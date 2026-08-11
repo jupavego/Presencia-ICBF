@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Acompañamiento Familiar - Sistema de Gestión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --radius-lg: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+            --table-bg: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .layout-container {
+            max-width: 1250px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* Panel Lateral */
+        .sidebar {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+            position: sticky;
+            top: 40px;
+        }
+
+        .sidebar h3 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .sidebar p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .badge-format {
+            display: inline-block;
+            background: #e0f2fe;
+            color: var(--primary-dark);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .sidebar-steps {
+            list-style: none;
+            border-left: 2px solid #e2e8f0;
+            padding-left: 14px;
+            margin-top: 10px;
+        }
+
+        .sidebar-steps li {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .sidebar-steps li.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Contenido Principal */
+        .main-content {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.75rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        fieldset {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            margin-bottom: 24px;
+            background-color: #ffffff;
+        }
+
+        legend {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            padding: 0 12px;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+            background: var(--table-bg);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid #e2e8f0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Tabla dinámica de compromisos */
+        .tabla-compromisos {
+            width: 100%;
+            margin-top: 10px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .tabla-compromisos th, .tabla-compromisos td {
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        .tabla-compromisos th {
+            background-color: var(--table-bg);
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .tabla-compromisos input, .tabla-compromisos select {
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        .btn-accion {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .btn-accion:hover {
+            background: #dc2626;
+        }
+
+        .btn-secundario {
+            background-color: #0f172a;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            font-size: 0.85rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            margin-top: 10px;
+            font-weight: 600;
+        }
+
+        .btn-secundario:hover {
+            background-color: #1e293b;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 35px;
+        }
+
+        button[type="submit"] {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 900px) {
+            .layout-container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+            .main-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="layout-container">
+    
+    <!-- PANEL LATERAL DE NAVEGACIÓN -->
+    <aside class="sidebar">
+        <span class="badge-format">INTERVENCIÓN FAMILIAR</span>
+        <h3>Acompañamiento Especializado</h3>
+        <p>Registro estructurado conectado con la historia de la familia y el motor de análisis institucional.</p>
+        
+        <ul class="sidebar-steps">
+            <li class="active">1. Datos Iniciales y Participantes</li>
+            <li>2. Motivo, Necesidad u Objetivo</li>
+            <li>3. Herramientas Utilizadas</li>
+            <li>4. Gestión de Compromisos</li>
+            <li>5. Contexto y Relación Comunitaria</li>
+            <li>6. Retos y Cierre Profesional</li>
+        </ul>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+        <h1>Registro de Acompañamiento Familiar</h1>
+        <p class="subtitle">Instrumento operativo de intervención psicosocial</p>
+
+        <form id="formAcompañamiento">
+            
+            <!-- 1. DATOS INICIALES -->
+            <fieldset>
+                <legend>1. Datos Iniciales y Ubicación</legend>
+                <div class="grid-3">
+                    <div class="form-group">
+                        <label for="fecha">Fecha del acompañamiento:</label>
+                        <input type="date" id="fecha" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="regional">Regional:</label>
+                        <input type="text" id="regional" placeholder="Ej. Antioquia" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="centroZonal">Centro Zonal:</label>
+                        <input type="text" id="centroZonal" placeholder="Ej. Centro Zonal Norte" required>
+                    </div>
+                </div>
+
+                <div class="grid-2" style="margin-top: 18px;">
+                    <div class="form-group">
+                        <label for="numPeticion">No. De petición / radicado:</label>
+                        <input type="text" id="numPeticion" placeholder="Número de registro" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="telefono">Teléfono de contacto:</label>
+                        <input type="text" id="telefono" placeholder="Número telefónico" required>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top: 18px;">
+                    <div class="form-group">
+                        <label for="direccion">Dirección:</label>
+                        <input type="text" id="direccion" placeholder="Dirección del domicilio" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="barrio">Barrio / Vereda:</label>
+                        <input type="text" id="barrio" placeholder="Barrio o sector" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="municipio">Municipio:</label>
+                        <input type="text" id="municipio" placeholder="Ej. Girardota" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 18px;">
+                    <label for="profesionales">Profesionales que acompañan:</label>
+                    <textarea id="profesionales" placeholder="Nombres y registros profesionales..." required></textarea>
+                </div>
+
+                <div class="form-group" style="margin-top: 18px;">
+                    <label for="participantes">Personas que participan (Nombre y rol en la familia):</label>
+                    <textarea id="participantes" placeholder="Ej. María Gómez (Madre), Carlos Pérez (Padre)..." required></textarea>
+                </div>
+            </fieldset>
+
+            <!-- 2. MOTIVO Y OBJETIVO -->
+            <fieldset>
+                <legend>2. Motivo, Necesidad y Objetivo</legend>
+
+                <div class="form-group">
+                    <label for="motivoSelect">Motivo, necesidad o interés orientador:</label>
+                    <select id="motivoSelect" required>
+                        <option value="">Seleccione una categoría orientadora...</option>
+                        <option value="Fortalecimiento de relaciones familiares.">Fortalecimiento de relaciones familiares.</option>
+                        <option value="Dificultades en la convivencia familiar.">Dificultades en la convivencia familiar.</option>
+                        <option value="Fortalecimiento de capacidades de cuidado.">Fortalecimiento de capacidades de cuidado.</option>
+                        <option value="Necesidad de fortalecer redes de apoyo.">Necesidad de fortalecer redes de apoyo.</option>
+                        <option value="Situación relacionada con condiciones económicas.">Situación relacionada con condiciones económicas.</option>
+                        <option value="Situación relacionada con acceso a servicios.">Situación relacionada con acceso a servicios.</option>
+                        <option value="Necesidad de orientación frente a una situación familiar.">Necesidad de orientación frente a una situación familiar.</option>
+                        <option value="Situación relacionada con cambios o transiciones familiares.">Situación relacionada con cambios o transiciones familiares.</option>
+                        <option value="Interés en fortalecer recursos y capacidades existentes.">Interés en fortalecer recursos y capacidades existentes.</option>
+                        <option value="Solicitud de orientación o acompañamiento frente a una situación específica.">Solicitud de orientación o acompañamiento frente a una situación específica.</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="motivoNarrativo">Descripción ampliada del motivo expresado por la familia (Valoración profesional obligatoria):</label>
+                    <textarea id="motivoNarrativo" placeholder="Describa textualmente y con valoración profesional el motivo expresado..." required></textarea>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="objetivoSelect">Objetivo del acompañamiento:</label>
+                    <select id="objetivoSelect" required>
+                        <option value="">Seleccione el objetivo principal...</option>
+                        <option value="Fortalecer capacidades familiares para el cuidado.">Fortalecer capacidades familiares para el cuidado.</option>
+                        <option value="Fortalecer relaciones y vínculos familiares.">Fortalecer relaciones y vínculos familiares.</option>
+                        <option value="Favorecer estrategias para mejorar la convivencia.">Favorecer estrategias para mejorar la convivencia.</option>
+                        <option value="Fortalecer redes de apoyo familiares y comunitarias.">Fortalecer redes de apoyo familiares y comunitarias.</option>
+                        <option value="Identificar recursos y fortalezas de la familia.">Identificar recursos y fortalezas de la familia.</option>
+                        <option value="Promover autonomía y toma de decisiones.">Promover autonomía y toma de decisiones.</option>
+                        <option value="Fortalecer capacidades para afrontar situaciones familiares.">Fortalecer capacidades para afrontar situaciones familiares.</option>
+                        <option value="Promover participación y corresponsabilidad familiar.">Promover participación y corresponsabilidad familiar.</option>
+                        <option value="Favorecer la articulación con recursos institucionales o comunitarios.">Favorecer la articulación con recursos institucionales o comunitarios.</option>
+                        <option value="Construir acuerdos y acciones de acompañamiento con la familia.">Construir acuerdos y acciones de acompañamiento con la familia.</option>
+                    </select>
+                </div>
+            </fieldset>
+
+            <!-- 3. HERRAMIENTAS UTILIZADAS -->
+            <fieldset>
+                <legend>3. Herramientas Metodológicas Utilizadas</legend>
+                <div class="checkbox-grid" id="grupoHerramientas">
+                    <label class="checkbox-item"><input type="checkbox" value="Diálogo para el Cuidado y el Buen Vivir."> Diálogo para el Cuidado y el Buen Vivir.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Entrevista familiar."> Entrevista familiar.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Escucha activa y conversación reflexiva."> Escucha activa y conversación reflexiva.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Cartografía de redes de apoyo."> Cartografía de redes de apoyo.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Mapa de pertenencia."> Mapa de pertenencia.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Identificación de recursos y fortalezas familiares."> Identificación de recursos y fortalezas familiares.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Análisis participativo de situaciones familiares."> Análisis participativo de situaciones familiares.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Ejercicio de construcción de acuerdos."> Ejercicio de construcción de acuerdos.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Orientación y fortalecimiento de capacidades."> Orientación y fortalecimiento de capacidades.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Identificación de necesidades de articulación institucional."> Identificación de necesidades de articulación institucional.</label>
+                </div>
+            </fieldset>
+
+            <!-- 4. GESTIÓN DE COMPROMISOS (FAMILIA E ICBF) -->
+            <fieldset>
+                <legend>4. Gestión de Compromisos y Acuerdos</legend>
+
+                <div class="form-group">
+                    <label>Tipos de compromiso sugeridos (Familia):</label>
+                    <div class="checkbox-grid" id="grupoCompromisosFamilia">
+                        <label class="checkbox-item"><input type="checkbox" value="Participar en los encuentros acordados."> Participar en los encuentros acordados.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Cumplir las fechas y horarios concertados."> Cumplir fechas y horarios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Informar oportunamente dificultades para asistir."> Informar dificultades para asistir.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Participar activamente en las actividades propuestas."> Participar activamente.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Implementar acuerdos construidos durante el acompañamiento."> Implementar acuerdos construidos.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Fortalecer prácticas de cuidado acordadas."> Fortalecer prácticas de cuidado.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Activar o fortalecer redes de apoyo identificadas."> Activar redes de apoyo.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Realizar gestiones acordadas con otras instituciones o servicios."> Gestiones con otras instituciones.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Compartir información relevante para el desarrollo del acompañamiento."> Compartir información relevante.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Revisar conjuntamente los avances y dificultades del proceso."> Revisar avances y dificultades.</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Matriz de Compromisos (Compromiso | Responsable | Fecha | Estado):</label>
+                    <table class="tabla-compromisos" id="tablaCompromisos">
+                        <thead>
+                            <tr>
+                                <th>Descripción del Compromiso</th>
+                                <th>Responsable</th>
+                                <th>Fecha Prevista</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody idbody="cuerpoCompromisos">
+                            <tr>
+                                <td><input type="text" placeholder="Ej. Participar en próximo encuentro" required></td>
+                                <td>
+                                    <select required>
+                                        <option value="Familia">Familia</option>
+                                        <option value="ICBF">ICBF</option>
+                                        <option value="Conjunto">Conjunto</option>
+                                    </select>
+                                </td>
+                                <td><input type="date" required></td>
+                                <td>
+                                    <select required>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="En proceso">En proceso</option>
+                                        <option value="Cumplido">Cumplido</option>
+                                    </select>
+                                </td>
+                                <td><button type="button" class="btn-accion" onclick="eliminarFila(this)">Eliminar</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn-secundario" onclick="agregarCompromiso()">+ Agregar otro compromiso</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 25px;">
+                    <label>Compromisos institucionales del ICBF (Selección múltiple):</label>
+                    <div class="checkbox-grid" id="grupoCompromisosICBF">
+                        <label class="checkbox-item"><input type="checkbox" value="Realizar el acompañamiento acordado."> Realizar el acompañamiento acordado.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Cumplir las fechas y horarios concertados."> Cumplir fechas y horarios concertados.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Brindar orientación relacionada con las necesidades identificadas."> Brindar orientación especializada.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Mantener confidencialidad sobre la información suministrada."> Mantener confidencialidad.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Realizar seguimiento a los acuerdos establecidos."> Realizar seguimiento a acuerdos.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Facilitar información sobre servicios y recursos disponibles."> Facilitar información de servicios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Orientar sobre rutas institucionales cuando corresponda."> Orientar sobre rutas institucionales.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Gestionar las articulaciones internas necesarias."> Gestionar articulaciones internas.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Orientar o facilitar articulaciones con actores externos cuando corresponda."> Articulación con actores externos.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Revisar conjuntamente con la familia los resultados del acompañamiento."> Revisar resultados conjuntamente.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 5. CONTEXTO Y RELACIÓN FAMILIA-COMUNIDAD -->
+            <fieldset>
+                <legend>5. Relación Familia-Comunidad y Contexto Territorial</legend>
+
+                <div class="form-group">
+                    <label>Aspectos potenciales de la relación familia-comunidad:</label>
+                    <div class="checkbox-grid" id="grupoRelacionComunidad">
+                        <label class="checkbox-item"><input type="checkbox" value="Existencia de redes familiares activas."> Existencia de redes familiares activas.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Existencia de redes comunitarias activas."> Existencia de redes comunitarias activas.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Participación de la familia en espacios comunitarios."> Participación en espacios comunitarios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Disponibilidad de personas significativas para la familia."> Personas significativas disponibles.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Presencia de relaciones de solidaridad."> Presencia de relaciones de solidaridad.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Vinculación con organizaciones comunitarias."> Vinculación con organizaciones.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Acceso a instituciones o servicios del territorio."> Acceso a instituciones o servicios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Potencial para fortalecer redes existentes."> Potencial para fortalecer redes.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Necesidad de ampliar o diversificar redes de apoyo."> Necesidad de diversificar redes.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Identificación de recursos comunitarios susceptibles de activación."> Recursos comunitarios identificados.</label>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 20px;">
+                    <label>Elementos críticos del contexto territorial y/o comunitario:</label>
+                    <div class="checkbox-grid" id="grupoContextoTerritorial">
+                        <label class="checkbox-item"><input type="checkbox" value="Barreras de acceso geográfico."> Barreras de acceso geográfico.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Dificultades de movilidad o transporte."> Dificultades de movilidad o transporte.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Condiciones de seguridad del territorio."> Condiciones de seguridad del territorio.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Limitaciones en la oferta institucional."> Limitaciones en la oferta institucional.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Dificultades de acceso a servicios sociales."> Dificultades de acceso a servicios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Condiciones económicas del territorio."> Condiciones económicas del territorio.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Dinámicas comunitarias que afectan a la familia."> Dinámicas comunitarias relevantes.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Situaciones ambientales o territoriales relevantes."> Situaciones ambientales o territoriales.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Débil articulación entre actores institucionales y comunitarios."> Débil articulación institucional.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Oportunidades o recursos territoriales susceptibles de aprovechamiento."> Oportunidades territoriales.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- 6. RETOS Y OPORTUNIDADES -->
+            <fieldset>
+                <legend>6. Retos, Oportunidades y Cierre</legend>
+
+                <div class="form-group">
+                    <label>Retos y oportunidades de mejora:</label>
+                    <div class="checkbox-grid" id="grupoRetos">
+                        <label class="checkbox-item"><input type="checkbox" value="Fortalecer la participación de la familia."> Fortalecer participación de la familia.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Fortalecer redes familiares y comunitarias."> Fortalecer redes familiares y comunitarias.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Mejorar la articulación institucional."> Mejorar articulación institucional.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Ampliar el acceso a recursos y servicios."> Ampliar acceso a recursos y servicios.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Fortalecer capacidades familiares."> Fortalecer capacidades familiares.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Mejorar la continuidad del acompañamiento."> Mejorar continuidad del acompañamiento.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Fortalecer el seguimiento a los acuerdos."> Fortalecer seguimiento a acuerdos.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Aprovechar recursos existentes en el territorio."> Aprovechar recursos del territorio.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Generar nuevas estrategias de acompañamiento."> Generar nuevas estrategias.</label>
+                        <label class="checkbox-item"><input type="checkbox" value="Consolidar acciones de autonomía y sostenibilidad del proceso."> Consolidar autonomía y sostenibilidad.</label>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="btn-container">
+                <button type="submit">Generar Estructura de Intervención y Guardar</button>
+            </div>
+
+        </form>
+    </main>
+
+</div>
+
+<script>
+    // Función para añadir filas dinámicas a la tabla de compromisos
+    function agregarCompromiso() {
+        const tbody = document.getElementById('cuerpoCompromisos');
+        const nuevaFila = document.createElement('tr');
+        nuevaFila.innerHTML = `
+            <td><input type="text" placeholder="Descripción del acuerdo" required></td>
+            <td>
+                <select required>
+                    <option value="Familia">Familia</option>
+                    <option value="ICBF">ICBF</option>
+                    <option value="Conjunto">Conjunto</option>
+                </select>
+            </td>
+            <td><input type="date" required></td>
+            <td>
+                <select required>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En proceso">En proceso</option>
+                    <option value="Cumplido">Cumplido</option>
+                </select>
+            </td>
+            <td><button type="button" class="btn-accion" onclick="eliminarFila(this)">Eliminar</button></td>
+        `;
+        tbody.appendChild(nuevaFila);
+    }
+
+    function eliminarFila(btn) {
+        const row = btn.closest('tr');
+        if(document.querySelectorAll('#cuerpoCompromisos tr').length > 1) {
+            row.remove();
+        } else {
+            alert("Debe mantener al menos un compromiso registrado.");
+        }
+    }
+
+    // Manejo del formulario y estructuración JSON para el motor de análisis
+    document.getElementById('formAcompañamiento').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const obtenerSeleccionados = (idContenedor) => {
+            const checkboxes = document.querySelectorAll(`#${idContenedor} input[type="checkbox"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        };
+
+        // Recolectar tabla de compromisos
+        const compromisosArray = [];
+        document.querySelectorAll('#cuerpoCompromisos tr').forEach(row => {
+            const inputs = row.querySelectorAll('input, select');
+            compromisosArray.push({
+                compromiso: inputs[0].value,
+                responsable: inputs[1].value,
+                fechaPrevista: inputs[2].value,
+                estado: inputs[3].value
+            });
+        });
+
+        const registroEstructurado = {
+            metadataProceso: "Registro de Acompañamiento Familiar (Intervención)",
+            datosIniciales: {
+                fecha: document.getElementById('fecha').value,
+                regional: document.getElementById('regional').value,
+                centroZonal: document.getElementById('centroZonal').value,
+                numPeticion: document.getElementById('numPeticion').value,
+                telefono: document.getElementById('telefono').value,
+                ubicacion: {
+                    direccion: document.getElementById('direccion').value,
+                    barrio: document.getElementById('barrio').value,
+                    municipio: document.getElementById('municipio').value
+                },
+                profesionales: document.getElementById('profesionales').value,
+                participantesFamilia: document.getElementById('participantes').value
+            },
+            motivoNecesidad: {
+                categoriaOrientadora: document.getElementById('motivoSelect').value,
+                relatoValoracionProfesional: document.getElementById('motivoNarrativo').value
+            },
+            objetivoAcompañamiento: document.getElementById('objetivoSelect').value,
+            herramientasUtilizadas: obtenerSeleccionados('grupoHerramientas'),
+            gestionCompromisos: {
+                compromisosFamiliaSugeridos: obtenerSeleccionados('grupoCompromisosFamilia'),
+                compromisosICBFSugeridos: obtenerSeleccionados('grupoCompromisosICBF'),
+                matrizDetallada: compromisosArray
+            },
+            contextoYComunidad: {
+                aspectosPotencialesRelacionComunitaria: obtenerSeleccionados('grupoRelacionComunidad'),
+                elementosCriticosTerritoriales: obtenerSeleccionados('grupoContextoTerritorial')
+            },
+            retosYOportunidades: obtenerSeleccionados('grupoRetos')
+        };
+
+        console.log("Estructura JSON de Acompañamiento Familiar Generada:", JSON.stringify(registroEstructurado, null, 2));
+        alert("¡Registro de acompañamiento familiar estructurado con éxito! Ver consola para validar los nodos relacionales.");
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,18 @@
+/* Tokens de marca — Servicio Presencia · ICBF */
+:root {
+  --verde: #39a900;
+  --verde-oscuro: #1f6b1f;
+  --teal-900: #0d3b34;
+  --teal-800: #124a41;
+  --teal-700: #1a5c50;
+  --bg: #f2f6f4;
+  --card: #ffffff;
+  --text: #16241f;
+  --muted: #5c6f68;
+  --border: #dfe8e3;
+  --amber: #b8860b;
+  --amber-bg: #fdf3df;
+  --gray-bg: #eef1f0;
+  --radius: 12px;
+  --shadow: 0 6px 24px -8px rgba(13, 59, 52, 0.14);
+}

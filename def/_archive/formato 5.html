@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Módulo de Encuentros Comunitarios de Cuidado - Formato F5</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --radius-lg: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Manrope', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.75rem;
+            color: var(--text-main);
+            margin-bottom: 8px;
+            text-align: center;
+            font-weight: 700;
+        }
+
+        p.subtitle {
+            text-align: center;
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 35px;
+            font-weight: 500;
+        }
+
+        fieldset {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 24px;
+            margin-bottom: 24px;
+            background-color: #ffffff;
+        }
+
+        legend {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            padding: 0 12px;
+            color: var(--primary-dark);
+            font-size: 1.1rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+        }
+
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            color: var(--text-main);
+            background-color: #fff;
+            transition: all 0.2s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid #e2e8f0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.9rem;
+            color: var(--text-main);
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            margin-top: 3px;
+            accent-color: var(--primary);
+            width: 16px;
+            height: 16px;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 35px;
+        }
+
+        button[type="submit"] {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+        }
+
+        button[type="submit"]:hover {
+            background-color: var(--primary-dark);
+        }
+
+        button[type="submit"]:active {
+            transform: scale(0.98);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Encuentros Comunitarios de Cuidado</h1>
+    <p class="subtitle">Módulo Parametrizado de Registro y Catálogo Inteligente (Formato F5)</p>
+
+    <form id="formEncuentro">
+        
+        <!-- INFORMACIÓN GENERAL -->
+        <fieldset>
+            <legend>Información General</legend>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label for="fecha">Fecha del encuentro:</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label for="regional">Regional:</label>
+                    <input type="text" id="regional" placeholder="Ej. Antioquia" required>
+                </div>
+                <div class="form-group">
+                    <label for="centroZonal">Centro Zonal:</label>
+                    <input type="text" id="centroZonal" placeholder="Ej. Centro Zonal Norte" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 18px;">
+                <label for="equipoAcompanamiento">Equipo de Acompañamiento Familiar y Comunitario:</label>
+                <input type="text" id="equipoAcompanamiento" placeholder="Nombres de los profesionales" required>
+            </div>
+
+            <div class="grid-2" style="margin-top: 18px;">
+                <div class="form-group">
+                    <label for="numeroFamilias">Número de familias participantes:</label>
+                    <input type="number" id="numeroFamilias" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="lugar">Lugar en el que se desarrolla:</label>
+                    <input type="text" id="lugar" placeholder="Dirección o espacio comunitario" required>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- CARACTERIZACIÓN Y DESARROLLO -->
+        <fieldset>
+            <legend>Caracterización y Desarrollo del Encuentro</legend>
+
+            <!-- Metodología -->
+            <div class="form-group">
+                <label for="metodologia">Metodología utilizada:</label>
+                <select id="metodologia" required>
+                    <option value="">Seleccione una metodología...</option>
+                    <option value="Reunión participativa">Reunión participativa</option>
+                    <option value="Círculo de diálogo">Círculo de diálogo</option>
+                    <option value="Taller participativo">Taller participativo</option>
+                    <option value="Conversatorio">Conversatorio</option>
+                    <option value="Cartografía social">Cartografía social</option>
+                    <option value="Trabajo colaborativo por grupos">Trabajo colaborativo por grupos</option>
+                    <option value="Estudio de casos">Estudio de casos</option>
+                    <option value="Actividad lúdico-pedagógica">Actividad lúdico-pedagógica</option>
+                    <option value="Diálogo de saberes">Diálogo de saberes</option>
+                    <option value="Encuentro experiencial/reflexivo">Encuentro experiencial/reflexivo</option>
+                    <option value="Otra metodología">Otra metodología</option>
+                </select>
+            </div>
+
+            <!-- Objetivo -->
+            <div class="form-group">
+                <label for="objetivo">Objetivo del encuentro:</label>
+                <select id="objetivo" required>
+                    <option value="">Seleccione un objetivo...</option>
+                    <option value="Fortalecer capacidades familiares y comunitarias para el cuidado.">Fortalecer capacidades familiares y comunitarias para el cuidado.</option>
+                    <option value="Promover la participación activa de las familias.">Promover la participación activa de las familias.</option>
+                    <option value="Reconocer fortalezas y recursos existentes en las familias.">Reconocer fortalezas y recursos existentes en las familias.</option>
+                    <option value="Fortalecer redes de apoyo familiares y comunitarias.">Fortalecer redes de apoyo familiares y comunitarias.</option>
+                    <option value="Favorecer espacios de diálogo y escucha entre participantes.">Favorecer espacios de diálogo y escucha entre participantes.</option>
+                    <option value="Promover estrategias para afrontar situaciones identificadas por las familias.">Promover estrategias para afrontar situaciones identificadas por las familias.</option>
+                    <option value="Compartir conocimientos y experiencias entre las familias.">Compartir conocimientos y experiencias entre las familias.</option>
+                    <option value="Fortalecer vínculos y relaciones de confianza.">Fortalecer vínculos y relaciones de confianza.</option>
+                    <option value="Promover la autonomía y la toma de decisiones.">Promover la autonomía y la toma de decisiones.</option>
+                    <option value="Construir acuerdos y estrategias colectivas frente a necesidades identificadas.">Construir acuerdos y estrategias colectivas frente a necesidades identificadas.</option>
+                </select>
+            </div>
+
+            <!-- Actividades realizadas -->
+            <div class="form-group">
+                <label>Actividades realizadas (Selección múltiple):</label>
+                <div class="checkbox-grid" id="grupoActividades">
+                    <label class="checkbox-item"><input type="checkbox" value="Círculo de palabra"> Círculo de palabra</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Dinámica de presentación e integración"> Dinámica de presentación e integración</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Lluvia de ideas"> Lluvia de ideas</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Cartografía de redes y recursos"> Cartografía de redes y recursos</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Análisis de situaciones o casos"> Análisis de situaciones o casos</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Trabajo colaborativo en grupos"> Trabajo colaborativo en grupos</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Juego o actividad lúdica"> Juego o actividad lúdica</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Ejercicio de reflexión individual y colectiva"> Ejercicio de reflexión individual y colectiva</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Construcción colectiva de acuerdos"> Construcción colectiva de acuerdos</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Socialización y cierre participativo"> Socialización y cierre participativo</label>
+                </div>
+            </div>
+
+            <!-- Logros -->
+            <div class="form-group">
+                <label>Logros alcanzados:</label>
+                <div class="checkbox-grid" id="grupoLogros">
+                    <label class="checkbox-item"><input type="checkbox" value="Se fortaleció la participación de las familias."> Se fortaleció la participación de las familias.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se identificaron recursos y fortalezas familiares."> Se identificaron recursos y fortalezas familiares.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se reconocieron redes de apoyo disponibles."> Se reconocieron redes de apoyo disponibles.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se generaron acuerdos entre los participantes."> Se generaron acuerdos entre los participantes.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se promovió el intercambio de experiencias."> Se promovió el intercambio de experiencias.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se fortalecieron conocimientos relacionados con el cuidado."> Se fortalecieron conocimientos relacionados con el cuidado.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se identificaron estrategias frente a situaciones comunes."> Se identificaron estrategias frente a situaciones comunes.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se favoreció la expresión de necesidades y expectativas."> Se favoreció la expresión de necesidades y expectativas.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se fortalecieron vínculos entre participantes."> Se fortalecieron vínculos entre participantes.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se definieron acciones o compromisos para continuar el proceso."> Se definieron acciones o compromisos para continuar el proceso.</label>
+                </div>
+            </div>
+
+            <!-- Aciertos -->
+            <div class="form-group">
+                <label>Aciertos (Aspectos logísticos y de desarrollo que funcionaron bien):</label>
+                <div class="checkbox-grid" id="grupoAciertos">
+                    <label class="checkbox-item"><input type="checkbox" value="La metodología facilitó la participación."> La metodología facilitó la participación.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="El lenguaje utilizado fue claro y comprensible."> El lenguaje utilizado fue claro y comprensible.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se generó un ambiente de confianza."> Se generó un ambiente de confianza.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se logró una participación activa de las familias."> Se logró una participación activa de las familias.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Las actividades fueron pertinentes para el grupo."> Las actividades fueron pertinentes para el grupo.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se aprovechó adecuadamente el tiempo disponible."> Se aprovechó adecuadamente el tiempo disponible.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se favoreció el intercambio de experiencias."> Se favoreció el intercambio de experiencias.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="El equipo facilitó adecuadamente el diálogo."> El equipo facilitó adecuadamente el diálogo.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Los recursos utilizados fueron pertinentes."> Los recursos utilizados fueron pertinentes.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Se logró articulación adecuada entre las actividades y el objetivo."> Se logró articulación adecuada entre las actividades y el objetivo.</label>
+                </div>
+            </div>
+
+            <!-- Barreras -->
+            <div class="form-group">
+                <label>Barreras (Dificultades presentadas):</label>
+                <div class="checkbox-grid" id="grupoBarreras">
+                    <label class="checkbox-item"><input type="checkbox" value="Baja asistencia de las familias convocadas."> Baja asistencia de las familias convocadas.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Dificultades de desplazamiento o acceso al lugar."> Dificultades de desplazamiento o acceso al lugar.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Limitaciones de tiempo."> Limitaciones de tiempo.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Dificultades para mantener la participación durante el encuentro."> Dificultades para mantener la participación.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Condiciones físicas o logísticas inadecuadas."> Condiciones físicas o logísticas inadecuadas.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Dificultades de comunicación o convocatoria."> Dificultades de comunicación o convocatoria.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Disponibilidad limitada de los participantes."> Disponibilidad limitada de los participantes.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Situaciones particulares del territorio que afectaron el desarrollo."> Situaciones particulares del territorio.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Limitaciones de recursos o materiales."> Limitaciones de recursos o materiales.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Dificultades para desarrollar completamente las actividades previstas."> Dificultades con actividades previstas.</label>
+                </div>
+            </div>
+
+            <!-- Oportunidades de mejora -->
+            <div class="form-group">
+                <label>Oportunidades de mejora (Reflexiones y retos):</label>
+                <div class="checkbox-grid" id="grupoMejora">
+                    <label class="checkbox-item"><input type="checkbox" value="Fortalecer los mecanismos de convocatoria."> Fortalecer mecanismos de convocatoria.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Ajustar los horarios de acuerdo con la disponibilidad de las familias."> Ajustar horarios según disponibilidad.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Mejorar las condiciones logísticas del encuentro."> Mejorar condiciones logísticas.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Diversificar las metodologías de participación."> Diversificar metodologías de participación.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Fortalecer los mecanismos de seguimiento a los acuerdos."> Fortalecer seguimiento a acuerdos.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Incorporar actividades más adaptadas a las características del grupo."> Actividades adaptadas al grupo.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Mejorar la preparación previa del encuentro."> Mejorar preparación previa.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Fortalecer la articulación con actores comunitarios."> Articulación con actores comunitarios.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Optimizar el uso de recursos y materiales."> Optimizar recursos y materiales.</label>
+                    <label class="checkbox-item"><input type="checkbox" value="Ajustar los contenidos de futuros encuentros a los aprendizajes obtenidos."> Ajustar contenidos futuros.</label>
+                </div>
+            </div>
+        </fieldset>
+
+        <div class="btn-container">
+            <button type="submit">Generar Estructura y Guardar Encuentro</button>
+        </div>
+
+    </form>
+</div>
+
+<script>
+    document.getElementById('formEncuentro').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const obtenerSeleccionados = (idContenedor) => {
+            const checkboxes = document.querySelectorAll(`#${idContenedor} input[type="checkbox"]:checked`);
+            return Array.from(checkboxes).map(cb => cb.value);
+        };
+
+        const datosEstructurados = {
+            informacionGeneral: {
+                fecha: document.getElementById('fecha').value,
+                regional: document.getElementById('regional').value,
+                centroZonal: document.getElementById('centroZonal').value,
+                equipoAcompanamiento: document.getElementById('equipoAcompanamiento').value,
+                numeroFamilias: document.getElementById('numeroFamilias').value,
+                lugar: document.getElementById('lugar').value
+            },
+            caracterizacionYDesarrollo: {
+                metodologia: document.getElementById('metodologia').value,
+                objetivo: document.getElementById('objetivo').value,
+                actividadesRealizadas: obtenerSeleccionados('grupoActividades'),
+                resultados: {
+                    logros: obtenerSeleccionados('grupoLogros'),
+                    aciertos: obtenerSeleccionados('grupoAciertos')
+                },
+                dificultades: {
+                    barreras: obtenerSeleccionados('grupoBarreras')
+                },
+                aprendizajesYRetos: {
+                    oportunidadesMejora: obtenerSeleccionados('grupoMejora')
+                }
+            }
+        };
+
+        console.log("Estructura JSON Generada:", JSON.stringify(datosEstructurados, null, 2));
+        alert("¡Encuentro registrado y estructurado con éxito! Revisa la consola para ver el objeto JSON generado.");
+    });
+</script>
+
+</body>
+</html>

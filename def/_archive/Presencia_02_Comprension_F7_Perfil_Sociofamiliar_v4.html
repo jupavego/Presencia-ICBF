@@ -1,0 +1,240 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Presencia · Comprensión · Perfil Sociofamiliar</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:#eef2f1;color:#19363b}.app{display:grid;grid-template-columns:230px 1fr;min-height:100vh}aside{background:#17343b;color:#fff;padding:22px 14px;position:sticky;top:0;height:100vh}.brand{font-weight:800;font-size:17px;margin:5px 10px 24px}.brand small{display:block;color:#a9c7bf;font-size:8px;margin-top:5px}.stage{padding:10px;border-radius:9px;margin:5px 0;color:#cbd7d9;font-size:11px}.stage.active{background:#dcece6;color:#17343b;font-weight:800}.num{display:inline-grid;place-items:center;width:23px;height:23px;border-radius:7px;background:#ffffff15;margin-right:8px;font-size:9px}.foot{position:absolute;bottom:16px;left:16px;right:16px;font-size:8px;color:#89a2a5;line-height:1.4}
+main{max-width:1250px;width:100%;margin:auto;padding:28px 34px 50px}.top{display:flex;justify-content:space-between;gap:20px}.eyebrow{font-size:9px;letter-spacing:1.5px;font-weight:800;color:#2d7564}h1{font-size:29px;margin:6px 0}.lead{font-size:12px;color:#687a7f;line-height:1.5;max-width:850px}.badge{background:#fff;border:1px solid #dfe7e8;border-radius:10px;padding:10px;font-size:9px;font-weight:800;height:max-content}.context{margin-top:18px;background:#19363b;color:#fff;border-radius:14px;padding:17px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.context div{border-left:2px solid #79aa9d;padding-left:10px}.context b{font-size:9px}.context span{display:block;font-size:9px;color:#cbd7d9;line-height:1.4;margin-top:4px}.progress{display:flex;gap:6px;flex-wrap:wrap;margin:20px 0 12px}.pill{padding:8px 10px;border-radius:18px;background:#fff;border:1px solid #dfe7e8;font-size:8px;color:#718186}.pill.active{background:#dcece6;color:#20584c;font-weight:800}.section{background:#fff;border:1px solid #dfe7e8;border-radius:13px;padding:19px;margin-top:11px;box-shadow:0 5px 18px #19363b0b}.section h2{font-size:15px;margin:0 0 4px}.hint{font-size:9px;color:#718186;margin-bottom:13px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:11px}.field{grid-column:span 4}.wide{grid-column:span 8}.full{grid-column:1/-1}label{display:block;font-size:9px;font-weight:800;margin-bottom:5px;color:#42575c}input,select,textarea{width:100%;border:1px solid #d8e2e3;border-radius:7px;padding:9px;font-size:10px;color:#19363b;background:#fbfcfc}textarea{min-height:90px}.choice{display:flex;flex-wrap:wrap;gap:6px}.choice label{border:1px solid #dfe7e8;border-radius:7px;padding:7px;font-weight:600;background:#fbfcfc}.choice input{width:auto}.member{overflow:auto;border:1px solid #dfe7e8;border-radius:8px}.member table{width:100%;min-width:900px;border-collapse:collapse}.member th,.member td{padding:7px;border-bottom:1px solid #e5ebec;font-size:8px;text-align:left}.member th{background:#f4f7f6}.member input,.member select{padding:5px;font-size:8px}.insight,.export{margin-top:10px;padding:11px;border-radius:8px;font-size:9px;line-height:1.45}.insight{background:#f4f8f6;border-left:3px solid #2d7564;color:#566a6f}.export{background:#f8f3ed;border:1px solid #eadfd3;color:#6e7472}.actions{display:flex;justify-content:space-between;align-items:center;margin-top:15px}.btn{border:0;border-radius:8px;padding:10px 13px;font-size:9px;font-weight:800}.secondary{background:#fff;border:1px solid #dfe7e8}.primary{background:#19363b;color:#fff}@media(max-width:850px){.app{grid-template-columns:1fr}aside{display:none}main{padding:20px}.context{grid-template-columns:1fr}.field,.wide{grid-column:1/-1}.top{display:block}}
+
+.category-panel{margin:10px 0 13px;background:#f7f9f8;border:1px solid #dfe7e8;border-radius:9px;padding:12px}
+.category-title{font-size:8px;letter-spacing:1px;font-weight:800;color:#2d7564;margin-bottom:10px}
+.category-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.category-grid>div{background:#fff;border:1px solid #e3e9e9;border-radius:7px;padding:9px;min-height:100px}
+.category-grid b{font-size:8px;color:#40575c}.category-grid ol{margin:5px 0 9px 17px;padding:0;color:#6b7b80;font-size:7.5px;line-height:1.45}
+.table-actions{display:flex;align-items:center;justify-content:space-between;margin-top:9px}.table-actions span{font-size:8px;color:#78898d}
+.remove-row{border:0;background:#f7e8e4;color:#8a4a3f;border-radius:6px;width:25px;height:25px;cursor:pointer;font-weight:800}
+.member table{min-width:1280px}
+@media(max-width:1100px){.category-grid{grid-template-columns:repeat(2,1fr)}}
+
+.check-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.check-grid label,.check-stack label{border:1px solid #dfe7e8;border-radius:7px;padding:8px;background:#fbfcfc;font-size:8px;font-weight:600;color:#566a6f;margin:0}
+.check-grid input,.check-stack input{width:auto;margin-right:5px}
+.check-stack{display:grid;gap:6px}.events{grid-template-columns:repeat(4,1fr)}
+.aspirations{grid-template-columns:repeat(3,1fr)}.conclusions{grid-template-columns:repeat(2,1fr)}
+@media(max-width:1000px){.check-grid,.events,.aspirations,.conclusions{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.check-grid,.events,.aspirations,.conclusions{grid-template-columns:1fr}}
+
+.family-members{display:grid;gap:10px}
+.family-member{border:1px solid #dbe5e5;border-radius:9px;background:#fff;padding:10px 11px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.member-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.member-number{font-size:8px;font-weight:800;letter-spacing:1px;color:#2d7564}
+.member-row{display:grid;gap:8px;align-items:end}
+.member-row.row-one{grid-template-columns:2.1fr .65fr 1.35fr 1.15fr 1.35fr}
+.member-row.row-two{grid-template-columns:1.7fr 1.25fr 2fr 1.15fr .7fr;margin-top:8px}
+.member-row>div{min-width:0}
+.member-row label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.member-row input,.member-row select{width:100%;box-sizing:border-box}
+.member-action{display:flex;align-items:end;justify-content:flex-end}
+.member-action .remove-row{font-size:8px;padding:0 8px;width:auto}
+.family-section .remove-row{border:0;background:#f7e8e4;color:#8a4a3f;border-radius:6px;height:25px;cursor:pointer;font-weight:700}
+@media(max-width:900px){
+  .member-row.row-one,.member-row.row-two{grid-template-columns:repeat(2,1fr)}
+  .member-row.row-one>div:first-child,.member-row.row-two>div:nth-child(3){grid-column:span 2}
+}
+@media(max-width:560px){
+  .member-row.row-one,.member-row.row-two{grid-template-columns:1fr}
+  .member-row.row-one>div:first-child,.member-row.row-two>div:nth-child(3){grid-column:auto}
+}
+</style></head><body><div class="app"><aside>
+<div class="brand">PRESENCIA<small>PLATAFORMA DE ACOMPAÑAMIENTO</small></div>
+<div class="stage"><span class="num">01</span>Acceso</div><div class="stage active"><span class="num">02</span>Comprensión</div>
+<div class="stage"><span class="num">03</span>Acompañamiento</div><div class="stage"><span class="num">04</span>Planeación</div>
+<div class="stage"><span class="num">05</span>Acompañamiento continuo</div><div class="stage"><span class="num">06</span>Seguimiento</div>
+<div class="stage"><span class="num">07</span>Valoración</div><div class="stage"><span class="num">08</span>Cierre</div><div class="stage"><span class="num">09</span>Resultados</div>
+<div class="foot">F7.GO3.MT5.PP · Versión 2<br>La interfaz facilita la captura; el formato institucional se conserva como salida verificable.</div>
+</aside><main>
+<div class="top"><div><div class="eyebrow">02 · COMPRENSIÓN · PERFIL FAMILIAR</div><h1>Comprender a la familia</h1><p class="lead">Espacio digital para construir el Perfil Sociofamiliar a partir de la conversación con la familia. La estructura toma como base el F7.GO3.MT5.PP y lo convierte en una experiencia de trabajo por componentes, no en una copia literal del documento.</p></div><div class="badge">F7.GO3.MT5.PP · V2<br><span style="font-weight:400;color:#718186">31/12/2025</span></div></div>
+<div class="context"><div><b>PROPÓSITO</b><span>Comprender contexto, situación, capacidades, necesidades, relaciones y expectativas.</span></div><div><b>FUENTE</b><span>Ficha de Perfil Sociofamiliar del Servicio Presencia.</span></div><div><b>PRINCIPIO DIGITAL</b><span>Capturar una vez, reutilizar durante el acompañamiento y conservar la trazabilidad.</span></div></div>
+<div class="progress"><span class="pill active">01 Datos iniciales</span><span class="pill">02 Participantes</span><span class="pill">03 Sociodemografía</span><span class="pill">04 Situación</span><span class="pill">05 Familia</span><span class="pill">06 Dinámica</span><span class="pill">07 Redes y aspiraciones</span><span class="pill">08 Conclusiones</span></div>
+
+<div class="section"><h2>1. Datos iniciales</h2><div class="hint">Información de apertura de la historia sociofamiliar.</div><div class="grid">
+<div class="field"><label>Fecha de apertura</label><input type="date"></div><div class="field"><label>Regional</label><input></div><div class="field"><label>Centro Zonal</label><input></div><div class="field"><label>No. de petición</label><input></div><div class="wide"><label>Profesionales que acompañan</label><input></div></div></div>
+
+<div class="section"><h2>2. Persona participante</h2><div class="hint">Registrar los datos de la persona a la cual se le haya creado el beneficiario en el SIM.</div><div class="grid">
+<div class="wide"><label>Nombre</label><input></div><div class="field"><label>Tipo y número de identificación</label><input></div><div class="field"><label>Rol en el grupo familiar</label><input></div></div></div>
+
+<div class="section"><h2>3. Encuentro inicial</h2><div class="hint">Personas que participan en el encuentro inicial de Diálogos por el cuidado y el buen vivir.</div><div class="grid">
+<div class="full"><label>Participantes: nombre, documento y rol familiar</label><textarea></textarea></div><div class="field"><label>Dirección</label><input></div><div class="field"><label>Barrio</label><input></div><div class="field"><label>Municipio</label><input></div><div class="field"><label>Teléfono</label><input></div><div class="wide"><label>Acuden por</label><div class="choice"><label><input type="radio" name="a"> Propia iniciativa</label><label><input type="radio" name="a"> Remitidos</label></div></div></div></div>
+
+<div class="section"><h2>4. Información sociodemográfica</h2><div class="hint">Variables económicas, de vivienda y apoyos sociales contempladas por la ficha.</div><div class="grid">
+<div class="field"><label>Ingreso mensual aproximado</label><select><option>Seleccione</option><option>Menos de un salario mínimo</option><option>1 s.m.</option><option>2 s.m.</option><option>3 a 4 s.m.</option><option>5 o más s.m.</option><option>No sabe / no informa</option></select></div>
+<div class="field"><label>Vivienda</label><select><option>Seleccione</option><option>Propia</option><option>Familiar</option><option>En arriendo</option><option>Usufructo</option><option>Inquilinato</option><option>Refugio temporal</option><option>Paga diario</option><option>No sabe / no informa</option></select></div>
+<div class="field"><label>Personas que aportan económicamente</label><input type="number"></div>
+<div class="wide"><label>¿Recibe subsidios?</label><div class="choice"><label><input type="radio" name="s"> Sí</label><label><input type="radio" name="s"> No</label><label><input type="radio" name="s"> No informa</label></div></div><div class="field"><label>¿Cuál?</label><input></div></div></div>
+
+<div class="section"><h2>5. Situación que motiva el contacto</h2><div class="hint">Relato textual de la familia.</div><textarea placeholder="Registrar el relato de la familia, conservando su sentido y su voz."></textarea></div>
+
+<div class="section family-section">
+<h2>6. Información de otros miembros de la familia</h2>
+<div class="hint">Registre a cada integrante de la familia. Las categorías del F7 están incorporadas directamente en las listas desplegables.</div>
+
+<div id="familyRows" class="family-members">
+  <div class="family-member">
+    <div class="member-header">
+      <span class="member-number">INTEGRANTE 01</span>
+      <button type="button" class="remove-row" onclick="removeFamilyMember(this)" title="Eliminar integrante">×</button>
+    </div>
+
+    <div class="member-row row-one">
+      <div><label>Nombre y apellido</label><input type="text" placeholder="Nombre completo"></div>
+      <div><label>Edad</label><input type="number" min="0" placeholder="Edad"></div>
+      <div><label>Lugar de nacimiento</label><input type="text" placeholder="Lugar"></div>
+      <div><label>Estado civil</label>
+        <select><option>Seleccione</option><option>Soltero(a)</option><option>Casado(a)</option><option>Unión libre</option><option>Separado(a)</option><option>Viudo(a)</option><option>Divorciado(a)</option><option>No aplica</option></select>
+      </div>
+      <div><label>Nivel escolar</label>
+        <select><option>Seleccione</option><option>Ninguno</option><option>Primaria completa</option><option>Primaria incompleta</option><option>Secundaria completa</option><option>Secundaria incompleta</option><option>Técnico completo</option><option>Técnico incompleto</option><option>Universitario completo</option><option>Universitario incompleto</option><option>Preescolar</option><option>Otro</option></select>
+      </div>
+    </div>
+
+    <div class="member-row row-two">
+      <div><label>Rol en la familia</label>
+        <select><option>Seleccione</option><option>Cónyuge o compañero(a) (sin hijos)</option><option>Madre, padre, cuidadora/or</option><option>Hija(o), hijastra(o)</option><option>Hermana(o), hermanastra(o)</option><option>Sobrina(o), tía(o), prima(o), cuñada(o)</option><option>Abuela(o)/suegra(o)</option><option>Nuera/yerno</option><option>Nieto/a</option><option>Otra(o) pariente</option><option>No-pariente</option></select>
+      </div>
+      <div><label>Afiliación a salud</label>
+        <select><option>Seleccione</option><option>Subsidiado</option><option>Contributivo</option><option>Prepagada</option><option>Sin afiliación</option></select>
+      </div>
+      <div><label>Actividad económica / ocupación</label>
+        <select><option>Seleccione</option><option>Estudiante</option><option>Desescolarizado</option><option>Desempleado(a)</option><option>Rentista/pensionado(a)</option><option>Actividades de cuidado en el hogar</option><option>Empleado(a)</option><option>Independiente formal</option><option>Independiente informal</option><option>No activo(a): bebé menor de 5 años / persona con discapacidad</option></select>
+      </div>
+      <div><label>Tiempo de dedicación</label>
+        <select><option>Seleccione</option><option>Permanente</option><option>Temporal</option><option>Eventual</option></select>
+      </div>
+      <div class="member-action"><button type="button" class="remove-row" onclick="removeFamilyMember(this)" title="Eliminar integrante">Eliminar</button></div>
+    </div>
+  </div>
+</div>
+
+<div class="table-actions">
+  <button type="button" class="btn secondary" onclick="addFamilyMember()">＋ Agregar integrante</button>
+  <span id="rowCount">1 integrante registrado</span>
+</div>
+
+<div class="insight"><b>Diseño:</b> cada integrante ocupa únicamente dos filas. Las listas están parametrizadas con las categorías del F7 y no se muestran como catálogos independientes.</div>
+</div>
+
+<div class="section"><h2>7. Curso de vida y trayectoria institucional</h2><div class="grid"><div class="full"><label>Momento del curso de vida</label><div class="choice"><label><input type="radio" name="v"> Sin hijos</label><label><input type="radio" name="v"> Preescolar 0–6</label><label><input type="radio" name="v"> Escolar 7–11</label><label><input type="radio" name="v"> Adolescente 12–18</label><label><input type="radio" name="v"> Joven 19–28</label><label><input type="radio" name="v"> Adulto &gt;28</label></div></div><div class="full"><label>Entidades o profesionales que han intervenido</label><textarea></textarea></div></div></div>
+
+
+<div class="section"><h2>8. Trayectoria con otros servicios sociales</h2>
+<div class="hint">Entidades o profesionales que han intervenido en el manejo de la situación que motiva el contacto con el ICBF. Selección múltiple.</div>
+<div class="check-grid">
+<label><input type="checkbox"> Ninguna</label><label><input type="checkbox"> Defensoría de Familia</label><label><input type="checkbox"> Comisaría de Familia</label><label><input type="checkbox"> Salud</label><label><input type="checkbox"> Educación</label><label><input type="checkbox"> Profesional particular</label><label><input type="checkbox"> Juzgado</label><label><input type="checkbox"> Organización Comunitaria</label><label><input type="checkbox"> Alcaldía local</label><label><input type="checkbox"> ONG</label><label><input type="checkbox"> Agencia Internacional</label><label><input type="checkbox"> Policía</label><label><input type="checkbox"> Medicina Legal</label><label><input type="checkbox"> Fiscalía</label><label><input type="checkbox"> Otra</label>
+</div>
+<div class="grid" style="margin-top:10px"><div class="full"><label>Si seleccionó “Otra”, ¿cuál?</label><input></div></div>
+</div>
+
+<div class="section"><h2>9. Subsistemas que conviven</h2>
+<div class="hint">Composición relacional de la familia y de las uniones actuales o anteriores.</div>
+<div class="grid">
+<div class="field"><label>Padre</label><div class="choice"><label><input type="radio" name="padre"> Sí</label><label><input type="radio" name="padre"> No</label></div></div>
+<div class="field"><label>Madre</label><div class="choice"><label><input type="radio" name="madre"> Sí</label><label><input type="radio" name="madre"> No</label></div></div>
+<div class="field"><label>Hijos de la unión actual</label><input type="number" min="0" placeholder="Cantidad"></div>
+<div class="field"><label>Hijos de uniones anteriores</label><input type="number" min="0" placeholder="Cantidad"></div>
+<div class="full"><label>Miembros de la familia extensa</label><textarea placeholder="Especificar."></textarea></div>
+<div class="full"><label>Otras personas</label><textarea placeholder="Especificar."></textarea></div>
+<div class="wide"><label>Número de la unión actual · de ella</label><div class="choice"><label><input type="radio" name="ella"> 1</label><label><input type="radio" name="ella"> 2</label><label><input type="radio" name="ella"> 3</label><label><input type="radio" name="ella"> 4</label></div></div>
+<div class="wide"><label>Número de la unión actual · de él</label><div class="choice"><label><input type="radio" name="el"> 1</label><label><input type="radio" name="el"> 2</label><label><input type="radio" name="el"> 3</label><label><input type="radio" name="el"> 4</label></div></div>
+</div></div>
+
+<div class="section"><h2>10. Eventos significativos y otros procesos</h2>
+<div class="hint">Eventos vividos en el último año o muy significativos en la historia familiar. Marque con una X.</div>
+<div class="check-grid events">
+<label><input type="checkbox"> Violencia intrafamiliar</label><label><input type="checkbox"> Abuso de SPA</label><label><input type="checkbox"> Enfermedades</label><label><input type="checkbox"> Conflicto con la ley de algún integrante</label><label><input type="checkbox"> Accidentes graves</label><label><input type="checkbox"> Desplazamiento forzado</label><label><input type="checkbox"> Muerte de algún integrante</label><label><input type="checkbox"> Amenazas</label><label><input type="checkbox"> Rupturas, pérdidas o abandonos</label><label><input type="checkbox"> Migración</label><label><input type="checkbox"> Conflictos de pareja</label><label><input type="checkbox"> Abuso sexual</label><label><input type="checkbox"> Relacionados con la salud mental</label><label><input type="checkbox"> Desempleo</label><label><input type="checkbox"> Alcoholismo</label><label><input type="checkbox"> Otros</label>
+</div>
+<div class="grid" style="margin-top:12px">
+<div class="field"><label>¿Actualmente están incursos en otros procesos?</label><div class="choice"><label><input type="radio" name="proc"> No</label><label><input type="radio" name="proc"> Sí</label></div></div>
+<div class="wide"><label>¿Cuáles?</label><input placeholder="Legales, terapéuticos, médicos, etc."></div>
+<div class="full"><label>Modalidad para el restablecimiento de derechos del ICBF, si aplica</label>
+<select><option>Seleccione</option><option>Hogar sustituto</option><option>Hogar de paso</option><option>Internado</option><option>Casa hogar</option><option>Casa de acogida</option><option>Apoyo y fortalecimiento a la familia</option><option>Intervención de apoyo</option><option>Externado</option><option>Seminternado</option><option>Centro de emergencia</option><option>Hogar gestor</option><option>Acogimiento familiar</option><option>Acogimiento residencial</option><option>Medida en medio familiar</option><option>Otra modalidad / medida</option></select>
+<div class="insight"><b>Control documental:</b> catálogo preliminar de parametrización; debe validarse contra el catálogo vigente del ICBF antes de producción.</div></div>
+</div></div>
+
+<div class="section"><h2>11. Relaciones con familia extensa y red social</h2>
+<div class="hint">Cuando tienen una dificultad económica, de salud, de labores de cuidado u otras, ¿a quiénes acuden?</div>
+<div class="grid">
+<div class="full"><label>Respuesta de la familia</label><textarea></textarea></div>
+<div class="field"><label>Vida social</label><div class="check-stack"><label><input type="checkbox"> Amigos</label><label><input type="checkbox"> Vecinos</label><label><input type="checkbox"> Grupos informales</label><label><input type="checkbox"> Familia</label></div></div>
+<div class="field"><label>Instituciones y profesionales</label><div class="check-stack"><label><input type="checkbox"> Salud</label><label><input type="checkbox"> Justicia</label><label><input type="checkbox"> Iglesia</label><label><input type="checkbox"> Otro</label></div></div>
+<div class="field"><label>Ocupación</label><div class="check-stack"><label><input type="checkbox"> Estudio</label><label><input type="checkbox"> Trabajo</label></div></div>
+<div class="wide"><label>Otro, ¿cuál?</label><input></div>
+</div></div>
+
+<div class="section"><h2>12. Proyectos / aspiraciones de la familia</h2>
+<div class="hint">¿Qué expectativas tiene la familia de este acompañamiento? Selección múltiple + respuesta abierta.</div>
+<div class="check-grid aspirations">
+<label><input type="checkbox"> Fortalecer la comunicación familiar</label><label><input type="checkbox"> Mejorar relaciones y convivencia</label><label><input type="checkbox"> Fortalecer cuidado y crianza</label><label><input type="checkbox"> Fortalecer redes de apoyo</label><label><input type="checkbox"> Mejorar condiciones económicas</label><label><input type="checkbox"> Acceder a servicios y derechos</label><label><input type="checkbox"> Fortalecer autonomía y toma de decisiones</label><label><input type="checkbox"> Manejar una situación familiar específica</label><label><input type="checkbox"> Fortalecer proyectos educativos</label><label><input type="checkbox"> Fortalecer proyectos laborales o productivos</label><label><input type="checkbox"> Mejorar bienestar y buen vivir</label><label><input type="checkbox"> Fortalecer participación comunitaria</label><label><input type="checkbox"> Construir acuerdos familiares</label><label><input type="checkbox"> Reconocer fortalezas y capacidades</label><label><input type="checkbox"> Prepararse para cambios o transiciones</label><label><input type="checkbox"> Otra</label>
+</div>
+<div class="grid" style="margin-top:10px"><div class="full"><label>Expectativa expresada por la familia</label><textarea></textarea></div><div class="full"><label>Si seleccionó “Otra”, ¿cuál?</label><input></div></div>
+</div>
+
+<div class="section"><h2>13. Conclusiones y compromisos</h2>
+<div class="hint">Orientadores estructurados para la decisión. La conclusión narrativa y los acuerdos conservan la valoración profesional y lo construido con la familia.</div>
+<div class="check-grid conclusions">
+<label><input type="checkbox"> Respuesta satisfactoria y cierre</label>
+<label><input type="checkbox"> Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir</label>
+<label><input type="checkbox"> Encuentro Comunitario de Cuidado</label>
+<label><input type="checkbox"> Acompañamiento en el Entorno Familiar</label>
+<label><input type="checkbox"> Combinación de formas de acompañamiento</label>
+<label><input type="checkbox"> Profundizar la comprensión de la situación</label>
+<label><input type="checkbox"> Fortalecer capacidades de cuidado y crianza</label>
+<label><input type="checkbox"> Fortalecer redes familiares y sociales</label>
+<label><input type="checkbox"> Orientar acceso a oferta institucional</label>
+<label><input type="checkbox"> Articular con otra entidad o servicio</label>
+<label><input type="checkbox"> Hacer seguimiento a acuerdos</label>
+<label><input type="checkbox"> Fortalecer autonomía</label>
+<label><input type="checkbox"> Abordar situación familiar priorizada</label>
+<label><input type="checkbox"> Construir plan de acción con la familia</label>
+<label><input type="checkbox"> Realizar nueva valoración</label>
+<label><input type="checkbox"> Otro resultado / conclusión</label>
+</div>
+<div class="grid" style="margin-top:12px">
+<div class="full"><label>Conclusión narrativa</label><textarea placeholder="Propuestas adecuadas a la expectativa de la familia, respuesta brindada y decisión de continuidad o cierre."></textarea></div>
+<div class="full"><label>Acuerdos y compromisos</label><textarea placeholder="Qué se acordó, quién participa y qué acción se realizará."></textarea></div>
+<div class="full"><label>Ruta de continuidad propuesta</label><select><option>Seleccione</option><option>Cierre</option><option>Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir</option><option>Encuentro Comunitario de Cuidado</option><option>Acompañamiento en el Entorno Familiar</option><option>Combinación de formas de acompañamiento</option><option>Otra / por definir</option></select></div>
+<div class="full"><label>Si corresponde “Otra”, especifique</label><input></div>
+</div></div>
+
+<div class="section"><h2>14. Validación del perfil</h2>
+<div class="export"><b>Salida documental</b><br>Las selecciones alimentan la trazabilidad y el análisis; la narrativa conserva el componente cualitativo. La información queda preparada para generar posteriormente el F7 institucional.</div>
+<div class="actions"><small>✓ Perfil estructurado · listo para revisión profesional</small><div><button class="btn secondary">Guardar borrador</button> <button class="btn primary">Validar perfil →</button></div></div>
+</div>
+
+<script>
+function renumberFamilyMembers(){
+  const members = document.querySelectorAll('#familyRows .family-member');
+  members.forEach((member, i) => {
+    const label = member.querySelector('.member-number');
+    label.textContent = 'INTEGRANTE ' + String(i + 1).padStart(2, '0');
+  });
+  const n = members.length;
+  document.getElementById('rowCount').textContent =
+    n + ' integrante' + (n === 1 ? '' : 's') + ' registrado' + (n === 1 ? '' : 's');
+}
+function addFamilyMember(){
+  const original = document.querySelector('#familyRows .family-member');
+  const clone = original.cloneNode(true);
+  clone.querySelectorAll('input').forEach(input => input.value = '');
+  clone.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+  document.getElementById('familyRows').appendChild(clone);
+  renumberFamilyMembers();
+}
+function removeFamilyMember(button){
+  const members = document.querySelectorAll('#familyRows .family-member');
+  if(members.length <= 1){
+    alert('Debe permanecer al menos un integrante para iniciar el registro.');
+    return;
+  }
+  button.closest('.family-member').remove();
+  renumberFamilyMembers();
+}
+</script>
+</body></html>
