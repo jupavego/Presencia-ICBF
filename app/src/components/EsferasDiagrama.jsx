@@ -1,48 +1,31 @@
 import { AMBITOS } from '../data/ambitos.js';
 
-// Agrupa las 13 esferas en 4 capas conceptuales (de lo más cercano a la
-// persona hacia el entorno más amplio) más el Proyecto de Vida como cierre
-// integrador. Es un ordenamiento pedagógico para presentar el módulo, no
+// Diagrama de red compacto: agrupa las 13 esferas en 4 columnas
+// conceptuales (de lo más cercano a la persona hacia el entorno más
+// amplio) que convergen en un nodo final, el Proyecto de Vida. Es un
+// ordenamiento pedagógico para presentar el módulo en un solo vistazo, no
 // una taxonomía oficial adicional — cada esfera sigue siendo independiente
-// en ambitos.js.
-const CAPAS = [
-  {
-    id: 'persona',
-    badge: '1',
-    nombre: 'La persona',
-    desc: 'Punto de partida: qué recursos internos, intereses y estado de ánimo reconoce la persona en sí misma.',
-    esferas: ['A', 'B', 'G'],
-  },
-  {
-    id: 'familia',
-    badge: '2',
-    nombre: 'La familia',
-    desc: 'Cómo funciona el sistema familiar más cercano: comunicación, roles, crianza y capacidad de adaptarse ante la crisis.',
-    esferas: ['C', 'E'],
-  },
-  {
-    id: 'redes',
-    badge: '3',
-    nombre: 'Relaciones y redes',
-    desc: 'Con quién cuenta la persona y la familia más allá del hogar: apoyo social, vínculos naturales e institucionales.',
-    esferas: ['D', 'F'],
-  },
-  {
-    id: 'contexto',
-    badge: '4',
-    nombre: 'El contexto',
-    desc: 'El entorno más amplio en el que vive la familia: educación, trabajo, condiciones materiales, cultura y territorio.',
-    esferas: ['H', 'I', 'J', 'K', 'L'],
-  },
-  {
-    id: 'proyecto',
-    badge: 'M',
-    nombre: 'Proyecto de vida',
-    desc: 'Reúne lo explorado en las 12 esferas anteriores en una sola lectura orientadora sobre hacia dónde quiere ir la persona.',
-    esferas: ['M'],
-    final: true,
-  },
+// en ambitos.js. Los colores replican tokens.css (--teal-700, --verde,
+// --info, --amber) porque el SVG no puede leer variables CSS por JS.
+const COLUMNAS = [
+  { id: 'persona', x: 90, nombre: 'Persona', sub: 'Recursos internos', color: '#1a5c50', esferas: ['A', 'B', 'G'] },
+  { id: 'familia', x: 300, nombre: 'Familia', sub: 'Dinámica del hogar', color: '#39a900', esferas: ['C', 'E'] },
+  { id: 'redes', x: 500, nombre: 'Relaciones y redes', sub: 'Apoyo fuera del hogar', color: '#2d6cdf', esferas: ['D', 'F'] },
+  { id: 'contexto', x: 700, nombre: 'Contexto', sub: 'Entorno más amplio', color: '#b8860b', esferas: ['H', 'I', 'J', 'K', 'L'] },
 ];
+
+const HUB = { x: 900, codigo: 'M', nombre: 'Proyecto de vida' };
+const CY = 190;
+const GAP = 52;
+const R = 17;
+const HUB_R = 27;
+const WIDTH = 990;
+const HEIGHT = 340;
+
+function posicionesY(cantidad) {
+  const inicio = -(cantidad - 1) / 2;
+  return Array.from({ length: cantidad }, (_, i) => CY + (inicio + i) * GAP);
+}
 
 export default function EsferasDiagrama() {
   const nombrePorCodigo = {};
@@ -57,36 +40,53 @@ export default function EsferasDiagrama() {
       <div className="esferas-diagrama-intro">
         <h3>¿Cómo se organizan las 13 esferas?</h3>
         <p>
-          No son 13 casillas sueltas para llenar: van de lo más cercano a la persona hacia el entorno más amplio que
-          la rodea, en cuatro grupos. Lo que se explora en cada uno converge al final en el <b>proyecto de vida</b> —
-          la lectura que integra el conjunto en vez de dejarlo disperso entre herramientas sueltas.
+          De lo más cercano a la persona hacia el entorno más amplio, en cuatro grupos que convergen en el{' '}
+          <b>proyecto de vida</b>. Pase el cursor sobre un nodo para ver el detalle, o haga clic para ir directo a esa
+          herramienta.
         </p>
       </div>
-      <div className="esferas-capas">
-        {CAPAS.map((capa) => (
-          <div key={capa.id} className={capa.final ? 'esferas-capa esferas-capa-final' : 'esferas-capa'}>
-            <div className="esferas-capa-head">
-              <span className="esferas-capa-num">{capa.badge}</span>
-              <div>
-                <h4>{capa.nombre}</h4>
-                <p>{capa.desc}</p>
-              </div>
-            </div>
-            <div className="esferas-capa-chips">
-              {capa.esferas.map((cod) => (
-                <a
-                  key={cod}
-                  href={`#esfera-${cod}`}
-                  className="esferas-chip"
-                  title={`Ir a ${nombrePorCodigo[cod]} — ${propositoPorCodigo[cod]}`}
-                >
-                  {cod} · {nombrePorCodigo[cod]}
+
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        className="esferas-red"
+        role="img"
+        aria-label="Diagrama de las 13 esferas agrupadas en 4 capas que convergen en el proyecto de vida"
+      >
+        {COLUMNAS.map((col) =>
+          col.esferas.map((cod, i) => {
+            const y = posicionesY(col.esferas.length)[i];
+            const dx = (HUB.x - col.x) * 0.5;
+            const d = `M ${col.x + R} ${y} C ${col.x + R + dx} ${y}, ${HUB.x - HUB_R - dx} ${CY}, ${HUB.x - HUB_R} ${CY}`;
+            return <path key={`edge-${cod}`} d={d} className="esferas-edge" style={{ stroke: col.color }} />;
+          }),
+        )}
+
+        {COLUMNAS.map((col) => {
+          const ys = posicionesY(col.esferas.length);
+          return (
+            <g key={col.id}>
+              <text x={col.x} y={24} textAnchor="middle" className="esferas-col-titulo">{col.nombre}</text>
+              <text x={col.x} y={40} textAnchor="middle" className="esferas-col-sub">{col.sub}</text>
+              {col.esferas.map((cod, i) => (
+                <a key={cod} href={`#esfera-${cod}`} className="esferas-nodo-link">
+                  <title>{`${cod} · ${nombrePorCodigo[cod]} — ${propositoPorCodigo[cod]}`}</title>
+                  <circle cx={col.x} cy={ys[i]} r={R} className="esferas-nodo" style={{ stroke: col.color }} />
+                  <text x={col.x} y={ys[i] + 4} textAnchor="middle" className="esferas-nodo-txt" style={{ fill: col.color }}>
+                    {cod}
+                  </text>
                 </a>
               ))}
-            </div>
-          </div>
-        ))}
-      </div>
+            </g>
+          );
+        })}
+
+        <a href={`#esfera-${HUB.codigo}`} className="esferas-nodo-link">
+          <title>{`${HUB.codigo} · ${nombrePorCodigo[HUB.codigo]} — ${propositoPorCodigo[HUB.codigo]}`}</title>
+          <circle cx={HUB.x} cy={CY} r={HUB_R} className="esferas-hub" />
+          <text x={HUB.x} y={CY + 5} textAnchor="middle" className="esferas-hub-txt">{HUB.codigo}</text>
+        </a>
+        <text x={HUB.x} y={CY + HUB_R + 22} textAnchor="middle" className="esferas-col-titulo">{HUB.nombre}</text>
+      </svg>
     </div>
   );
 }
