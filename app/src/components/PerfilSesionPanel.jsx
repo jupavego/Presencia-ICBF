@@ -4,6 +4,8 @@ import PatternCard from './ui/PatternCard.jsx';
 import { AMBITOS } from '../data/ambitos.js';
 import { usePerfilSesion } from '../context/PerfilSesionContext.jsx';
 import { useCaso } from '../context/CasoContext.jsx';
+import { useCompromisos } from '../context/CompromisosContext.jsx';
+import { formatoFecha } from '../lib/exportOficial.js';
 
 const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fortalecimiento', profundizacion: 'Situaciones a priorizar' };
 
@@ -24,6 +26,11 @@ const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fo
 export default function PerfilSesionPanel({ onOpenFormat }) {
   const { registro } = usePerfilSesion();
   const { caso, casoActivoId } = useCaso();
+  const { compromisos } = useCompromisos();
+
+  const compromisosPendientes = compromisos.filter((c) => c.estado === 'Pendiente');
+  const compromisosEnProceso = compromisos.filter((c) => c.estado === 'En proceso');
+  const compromisosCumplidos = compromisos.filter((c) => c.estado === 'Cumplido');
 
   const infoHerramienta = useMemo(() => {
     const mapa = {};
@@ -102,6 +109,34 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
             </div>
           ))}
         </>
+      )}
+
+      {casoActivoId && compromisos.length > 0 && (
+        <div className="ambito-block">
+          <div className="ambito-block-head">
+            <div className="ambito-block-title">
+              <h3>Compromisos del caso</h3>
+              <p>Acuerdos registrados desde cualquier formato del caso (hoy: F6), reunidos en un solo lugar.</p>
+            </div>
+          </div>
+          <div className="lectura-metrics">
+            <div><b>{compromisosPendientes.length}</b><span>Pendientes</span></div>
+            <div><b>{compromisosEnProceso.length}</b><span>En proceso</span></div>
+            <div><b>{compromisosCumplidos.length}</b><span>Cumplidos</span></div>
+          </div>
+          {compromisosPendientes.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              {compromisosPendientes.map((c) => (
+                <div key={c.id} className="repeater-item" style={{ marginBottom: 8 }}>
+                  <div>{c.descripcion || '(sin descripción)'}</div>
+                  <div className="fnote-status" style={{ marginTop: 4 }}>
+                    {c.responsable}{c.fecha ? ` · ${formatoFecha(c.fecha)}` : ''} · desde {c.origen || '—'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       <div className="ambito-block">
