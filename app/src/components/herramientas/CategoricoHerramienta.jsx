@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -7,6 +7,7 @@ import { TextField, TextAreaField } from '../ui/Field.jsx';
 import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { leerCategorias } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 // Formulario genérico para cualquier herramienta Tipo B (motor cualitativo,
 // leerCategorias). Cada herramienta categórica (Autoestima, Fortalezas por
@@ -24,7 +25,8 @@ export default function CategoricoHerramienta({ definicion, eyebrow, metaTitle, 
     if (p.tipo === 'checklist') return Array.isArray(v) && v.length > 0;
     return v !== undefined && v !== null && v !== '';
   });
-  const resultado = completo ? leerCategorias(definicion, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerCategorias(definicion, respuestas) : null), [completo, respuestas, definicion]);
+  useRegistrarEnPerfilSesion(definicion.id, resultado);
 
   function responderUnica(pregunta, etiqueta) {
     const opcion = pregunta.opciones.find((o) => o.etiqueta === etiqueta);

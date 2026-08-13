@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { AUTOEFICACIA } from '../../data/instrumentos/autoeficacia.js';
 import { leerInstrumento } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETAS = AUTOEFICACIA.opciones.map((o) => o.etiqueta);
 
@@ -16,7 +17,8 @@ export default function AutoeficaciaHerramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = AUTOEFICACIA.items.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumento(AUTOEFICACIA, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumento(AUTOEFICACIA, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(AUTOEFICACIA.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: Number(etiqueta) }));

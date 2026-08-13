@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { FRAS_HIBRIDO } from '../../data/instrumentos/frasHibrido.js';
 import { leerInstrumentoMultiescala } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(FRAS_HIBRIDO.opciones.map((o) => [o.valor, o.etiqueta]));
 const VALOR_POR_ETIQUETA = Object.fromEntries(FRAS_HIBRIDO.opciones.map((o) => [o.etiqueta, o.valor]));
@@ -21,7 +22,8 @@ export default function FRASHibridoHerramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = TODOS_LOS_ITEMS.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumentoMultiescala(FRAS_HIBRIDO, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumentoMultiescala(FRAS_HIBRIDO, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(FRAS_HIBRIDO.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: VALOR_POR_ETIQUETA[etiqueta] }));

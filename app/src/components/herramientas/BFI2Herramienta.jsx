@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { BFI2 } from '../../data/instrumentos/bfi2.js';
 import { leerInstrumentoMultiescala } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(BFI2.opciones.map((o) => [o.valor, o.etiqueta]));
 const VALOR_POR_ETIQUETA = Object.fromEntries(BFI2.opciones.map((o) => [o.etiqueta, o.valor]));
@@ -16,7 +17,8 @@ export default function BFI2Herramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = TODOS_LOS_ITEMS.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumentoMultiescala(BFI2, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumentoMultiescala(BFI2, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(BFI2.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: VALOR_POR_ETIQUETA[etiqueta] }));

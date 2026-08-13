@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { WHO5 } from '../../data/instrumentos/who5.js';
 import { leerInstrumento } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(WHO5.opciones.map((o) => [o.valor, o.etiqueta]));
 const VALOR_POR_ETIQUETA = Object.fromEntries(WHO5.opciones.map((o) => [o.etiqueta, o.valor]));
@@ -20,7 +21,8 @@ export default function WHO5Herramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = WHO5.items.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumento(WHO5, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumento(WHO5, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(WHO5.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: VALOR_POR_ETIQUETA[etiqueta] }));

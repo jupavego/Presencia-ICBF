@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { EMPODERAMIENTO_FAMILIAR } from '../../data/instrumentos/empoderamientoFamiliar.js';
 import { leerCategorias } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 // Primera herramienta funcional del módulo construida con el motor
 // cualitativo (leerCategorias): 4 preguntas de respuesta cerrada
@@ -15,7 +16,8 @@ export default function EmpoderamientoFamiliarHerramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = EMPODERAMIENTO_FAMILIAR.preguntas.every((p) => respuestas[p.id] !== undefined);
-  const resultado = completo ? leerCategorias(EMPODERAMIENTO_FAMILIAR, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerCategorias(EMPODERAMIENTO_FAMILIAR, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(EMPODERAMIENTO_FAMILIAR.id, resultado);
 
   function responder(preguntaId, etiqueta, pregunta) {
     const opcion = pregunta.opciones.find((o) => o.etiqueta === etiqueta);

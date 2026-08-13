@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { FQOL } from '../../data/instrumentos/fqol.js';
 import { leerInstrumentoMultiescala } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(FQOL.opciones.map((o) => [o.valor, o.etiqueta]));
 const VALOR_POR_ETIQUETA = Object.fromEntries(FQOL.opciones.map((o) => [o.etiqueta, o.valor]));
@@ -29,7 +30,8 @@ export default function FQOLHerramienta() {
 
   const listoParaResponder = aplicaDiscapacidad !== null;
   const completo = listoParaResponder && itemsActivos.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumentoMultiescala(definicionActiva, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumentoMultiescala(definicionActiva, respuestas) : null), [completo, definicionActiva, respuestas]);
+  useRegistrarEnPerfilSesion(FQOL.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: VALOR_POR_ETIQUETA[etiqueta] }));

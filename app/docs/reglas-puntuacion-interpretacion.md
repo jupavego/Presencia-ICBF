@@ -500,7 +500,7 @@ estructura de otro instrumento:
 | Exploración territorial (esfera L) | B | ✅ Completo | ✅ `data/instrumentos/exploracionTerritorial.js` |
 | Proyecto de vida (esfera M) | B | ✅ Completo — incluye las 2 reglas de cruce ya documentadas ("barrera sin oportunidad", "proyecto sin formular") + 3 adicionales | ✅ `data/instrumentos/proyectoDeVida.js` — la más grande (16 preguntas, 6 categorías) |
 
-**Las 23 herramientas (8 Tipo A + 15 Tipo B) están completamente
+**Las 24 herramientas (8 Tipo A + 16 Tipo B) están completamente
 implementadas y verificadas en el navegador**, no solo documentadas. Cada
 una fue construida con `CategoricoHerramienta.jsx` (componente genérico
 compartido para el motor cualitativo) o su equivalente Tipo A, siguiendo

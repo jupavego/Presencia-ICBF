@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
@@ -6,6 +6,7 @@ import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import { FACES20ESP } from '../../data/instrumentos/faces20esp.js';
 import { leerInstrumentoMultiescala } from '../../lib/motorInstrumento.js';
+import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(FACES20ESP.opciones.map((o) => [o.valor, o.etiqueta]));
 const VALOR_POR_ETIQUETA = Object.fromEntries(FACES20ESP.opciones.map((o) => [o.etiqueta, o.valor]));
@@ -19,7 +20,8 @@ export default function FACES20espHerramienta() {
   const [respuestas, setRespuestas] = useState({});
 
   const completo = TODOS_LOS_ITEMS.every((it) => respuestas[it.id] !== undefined);
-  const resultado = completo ? leerInstrumentoMultiescala(FACES20ESP, respuestas) : null;
+  const resultado = useMemo(() => (completo ? leerInstrumentoMultiescala(FACES20ESP, respuestas) : null), [completo, respuestas]);
+  useRegistrarEnPerfilSesion(FACES20ESP.id, resultado);
 
   function responder(itemId, etiqueta) {
     setRespuestas((r) => ({ ...r, [itemId]: VALOR_POR_ETIQUETA[etiqueta] }));

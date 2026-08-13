@@ -32,6 +32,15 @@ export default function Sidebar({ etapas, activeIndex, onSelect }) {
         <span className="lbl">Herramientas</span>
         <span className="count">{AMBITOS.length}</span>
       </button>
+      <button type="button" className={`stage-btn${activeIndex === 'perfil' ? ' active' : ''}`} onClick={() => onSelect('perfil')}>
+        <span className="num">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.3">
+            <circle cx="12" cy="8" r="3.5" />
+            <path d="M5 20c1.2-4 4-6 7-6s5.8 2 7 6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
+        <span className="lbl">Perfil de sesión</span>
+      </button>
     </aside>
   );
 }

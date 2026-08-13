@@ -23,11 +23,10 @@ export default function AmbitosPanel({ onOpenFormat }) {
           profundizar — no reemplaza los formatos oficiales F1-F10.
         </p>
         <Callout>
-          Fase de diseño: ninguna herramienta de este módulo está digitalizada
-          todavía, salvo el Mapa de Pertenencia (F1), que ya existe y se
-          reutiliza aquí. Ver <code>docs/arquitectura-modulo-perfilamiento.md</code> y{' '}
-          <code>docs/matriz-variables-indicadores.md</code> para el sustento de
-          cada herramienta.
+          Las 24 herramientas propias del módulo ya están digitalizadas y funcionales, más el Mapa de Pertenencia
+          (F1), que ya existía y se reutiliza aquí sin duplicarse. Ver <code>docs/arquitectura-modulo-perfilamiento.md</code> y{' '}
+          <code>docs/matriz-variables-indicadores.md</code> para el sustento de cada herramienta, y el{' '}
+          <b>Perfil de sesión</b> en el menú lateral para ver los resultados consolidados de lo ya completado.
         </Callout>
       </div>
 
