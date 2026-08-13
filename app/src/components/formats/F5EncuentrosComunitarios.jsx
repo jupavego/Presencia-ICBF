@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import FormActions from '../ui/FormActions.jsx';
+import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 
 const METODOLOGIAS = ['Reunión participativa', 'Círculo de diálogo', 'Taller participativo', 'Conversatorio', 'Cartografía social', 'Trabajo colaborativo por grupos', 'Estudio de casos', 'Actividad lúdico-pedagógica', 'Diálogo de saberes', 'Encuentro experiencial/reflexivo', 'Otra metodología'];
 
@@ -31,6 +32,7 @@ const BARRERAS = ['Baja asistencia de las familias convocadas.', 'Dificultades d
 const MEJORAS = ['Fortalecer los mecanismos de convocatoria.', 'Ajustar los horarios de acuerdo con la disponibilidad de las familias.', 'Mejorar las condiciones logísticas del encuentro.', 'Diversificar las metodologías de participación.', 'Fortalecer los mecanismos de seguimiento a los acuerdos.', 'Incorporar actividades más adaptadas a las características del grupo.', 'Mejorar la preparación previa del encuentro.', 'Fortalecer la articulación con actores comunitarios.', 'Optimizar el uso de recursos y materiales.', 'Ajustar los contenidos de futuros encuentros a los aprendizajes obtenidos.'];
 
 export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
+  const formRef = useRef(null);
   const [actividades, setActividades] = useState([]);
   const [logros, setLogros] = useState([]);
   const [aciertos, setAciertos] = useState([]);
@@ -42,8 +44,37 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
     alert('¡Encuentro comunitario registrado y estructurado con éxito!');
   }
 
+  async function handleExportarOficial() {
+    const fd = new FormData(formRef.current);
+    const logrosYAciertos = [
+      logros.length ? `Logros: ${logros.join('; ')}` : '',
+      aciertos.length ? `Aciertos: ${aciertos.join('; ')}` : '',
+    ].filter(Boolean).join(' | ');
+
+    const datos = {
+      fecha: formatoFecha(fd.get('fecha')),
+      regional: fd.get('regional') || '',
+      centroZonal: fd.get('centroZonal') || '',
+      equipo: fd.get('equipo') || '',
+      numFamilias: fd.get('numFamilias') || '',
+      lugar: fd.get('lugar') || '',
+      metodologia: fd.get('metodologia') || '',
+      objetivo: fd.get('objetivo') || '',
+      actividades: actividades.join('; '),
+      logrosYAciertos,
+      barreras: barreras.join('; '),
+      oportunidadesMejora: mejoras.join('; '),
+    };
+
+    await descargarDocxOficial(
+      '/plantillas/F5-Encuentros-Comunitarios.docx',
+      datos,
+      'F5-Encuentros-Comunitarios-diligenciado.docx'
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Encuentro comunitario`}
         title="Encuentros Comunitarios de Cuidado"
@@ -54,23 +85,24 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
 
       <Section title="Información general">
         <div className="grid">
-          <TextField label="Fecha del encuentro" type="date" required />
-          <TextField label="Regional" placeholder="Ej. Antioquia" required />
-          <TextField label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" required />
-          <TextField span="wide" label="Equipo de Acompañamiento Familiar y Comunitario" placeholder="Nombres de los profesionales" required />
-          <TextField label="Número de familias participantes" type="number" min="1" required />
-          <TextField span="wide" label="Lugar en el que se desarrolla" placeholder="Dirección o espacio comunitario" required />
+          <TextField name="fecha" label="Fecha del encuentro" type="date" required />
+          <TextField name="regional" label="Regional" placeholder="Ej. Antioquia" required />
+          <TextField name="centroZonal" label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" required />
+          <TextField name="equipo" span="wide" label="Equipo de Acompañamiento Familiar y Comunitario" placeholder="Nombres de los profesionales" required />
+          <TextField name="numFamilias" label="Número de familias participantes" type="number" min="1" required />
+          <TextField name="lugar" span="wide" label="Lugar en el que se desarrolla" placeholder="Dirección o espacio comunitario" required />
         </div>
       </Section>
 
       <Section title="Caracterización y desarrollo del encuentro">
         <div className="grid">
           <SelectField
+            name="metodologia"
             span="full" label="Metodología utilizada"
             tip="Es la forma o técnica de trabajo utilizada para desarrollar el encuentro con las familias (taller, círculo de diálogo, conversatorio, etc.)."
             options={METODOLOGIAS} required
           />
-          <SelectField span="full" label="Objetivo del encuentro" options={OBJETIVOS} required />
+          <SelectField name="objetivo" span="full" label="Objetivo del encuentro" options={OBJETIVOS} required />
         </div>
 
         <div style={{ marginTop: 16 }}><CheckboxGrid cols={3} label="Actividades realizadas (selección múltiple)" options={ACTIVIDADES} selected={actividades} onChange={setActividades} /></div>
@@ -85,7 +117,7 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
         </div>
         <div style={{ marginTop: 16 }}><CheckboxGrid cols={3} label="Oportunidades de mejora (reflexiones y retos)" options={MEJORAS} selected={mejoras} onChange={setMejoras} /></div>
 
-        <FormActions statusText="✓ Formato oficial F5.GO3.MT5.PP parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Registro →" />
+        <FormActions statusText="✓ Formato oficial F5.GO3.MT5.PP parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Registro →" onExport={handleExportarOficial} />
       </Section>
     </form>
   );

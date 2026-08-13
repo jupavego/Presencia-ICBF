@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
@@ -6,6 +6,7 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
+import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 
 const MOTIVOS = ['Fortalecimiento de relaciones familiares.', 'Dificultades en la convivencia familiar.', 'Fortalecimiento de capacidades de cuidado.', 'Necesidad de fortalecer redes de apoyo.', 'Situación relacionada con condiciones económicas.', 'Situación relacionada con acceso a servicios.', 'Necesidad de orientación frente a una situación familiar.', 'Situación relacionada con cambios o transiciones familiares.', 'Interés en fortalecer recursos y capacidades existentes.', 'Solicitud de orientación o acompañamiento frente a una situación específica.'];
 
@@ -32,6 +33,7 @@ const COMPROMISO_COLUMNS = [
 const nuevoCompromiso = () => ({ descripcion: '', responsable: 'Familia', fecha: '', estado: 'Pendiente' });
 
 export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre }) {
+  const formRef = useRef(null);
   const [herramientas, setHerramientas] = useState([]);
   const [compromisosFamilia, setCompromisosFamilia] = useState([]);
   const [compromisosIcbf, setCompromisosIcbf] = useState([]);
@@ -45,8 +47,50 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
     alert('¡Registro de acompañamiento familiar estructurado con éxito!');
   }
 
+  async function handleExportarOficial() {
+    const fd = new FormData(formRef.current);
+
+    const motivo = [fd.get('motivoCategoria'), fd.get('motivoDescripcion')].filter(Boolean).join('. ');
+
+    const matrizTexto = compromisos
+      .filter((c) => c.descripcion)
+      .map((c) => `Matriz: ${c.descripcion} (${c.responsable}, ${formatoFecha(c.fecha) || 'sin fecha'}, ${c.estado})`)
+      .join(' | ');
+    const compromisoFamilia = [
+      compromisosFamilia.length ? compromisosFamilia.join('; ') : '',
+      matrizTexto,
+    ].filter(Boolean).join(' | ');
+
+    const datos = {
+      fecha: formatoFecha(fd.get('fecha')),
+      regional: fd.get('regional') || '',
+      centroZonal: fd.get('centroZonal') || '',
+      numPeticion: fd.get('numPeticion') || '',
+      telefono: fd.get('telefono') || '',
+      municipio: fd.get('municipio') || '',
+      direccion: fd.get('direccion') || '',
+      barrio: fd.get('barrio') || '',
+      profesionales: fd.get('profesionales') || '',
+      participantes: fd.get('participantes') || '',
+      motivo,
+      objetivo: fd.get('objetivo') || '',
+      herramientas: herramientas.join('; '),
+      compromisoFamilia,
+      compromisoIcbf: compromisosIcbf.join('; '),
+      aspectosComunidad: aspectosComunidad.join('; '),
+      contextoTerritorial: contextoTerritorial.join('; '),
+      retos: retos.join('; '),
+    };
+
+    await descargarDocxOficial(
+      '/plantillas/F6-Acompanamiento-Entorno-Familiar.docx',
+      datos,
+      'F6-Acompanamiento-Entorno-Familiar-diligenciado.docx'
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Entorno familiar`}
         title="Registro de Acompañamiento Familiar"
@@ -57,28 +101,29 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
 
       <Section title="1. Datos iniciales y ubicación" hint="Información general del registro de acompañamiento y profesionales responsables.">
         <div className="grid">
-          <TextField label="Fecha del acompañamiento" type="date" required />
-          <TextField label="Regional" placeholder="Ej. Antioquia" required />
-          <TextField label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" required />
-          <TextField label="No. de petición / radicado" required />
-          <TextField label="Teléfono de contacto" required />
-          <TextField label="Municipio" placeholder="Ej. Girardota" required />
-          <TextField label="Dirección" required />
-          <TextField label="Barrio / Vereda" required />
-          <TextField span="wide" label="Profesionales que acompañan" placeholder="Nombres y registros profesionales" required />
-          <TextAreaField label="Personas que participan (Nombre y rol en la familia)" placeholder="Ej. María Gómez (Madre), Carlos Pérez (Padre)..." required />
+          <TextField name="fecha" label="Fecha del acompañamiento" type="date" required />
+          <TextField name="regional" label="Regional" placeholder="Ej. Antioquia" required />
+          <TextField name="centroZonal" label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" required />
+          <TextField name="numPeticion" label="No. de petición / radicado" required />
+          <TextField name="telefono" label="Teléfono de contacto" required />
+          <TextField name="municipio" label="Municipio" placeholder="Ej. Girardota" required />
+          <TextField name="direccion" label="Dirección" required />
+          <TextField name="barrio" label="Barrio / Vereda" required />
+          <TextField name="profesionales" span="wide" label="Profesionales que acompañan" placeholder="Nombres y registros profesionales" required />
+          <TextAreaField name="participantes" label="Personas que participan (Nombre y rol en la familia)" placeholder="Ej. María Gómez (Madre), Carlos Pérez (Padre)..." required />
         </div>
       </Section>
 
       <Section title="2. Motivo, necesidad y objetivo">
         <div className="grid">
-          <SelectField span="full" label="Motivo, necesidad o interés orientador" options={MOTIVOS} required />
+          <SelectField name="motivoCategoria" span="full" label="Motivo, necesidad o interés orientador" options={MOTIVOS} required />
           <TextAreaField
+            name="motivoDescripcion"
             label="Descripción ampliada del motivo expresado por la familia (Campo narrativo obligatorio)"
             tip="Es la explicación más completa, en palabras de la familia, de la razón por la que solicitan o requieren el acompañamiento."
             placeholder="Describa textualmente y con valoración profesional el motivo expresado..." required
           />
-          <SelectField span="full" label="Objetivo principal del acompañamiento" options={OBJETIVOS} required />
+          <SelectField name="objetivo" span="full" label="Objetivo principal del acompañamiento" options={OBJETIVOS} required />
         </div>
       </Section>
 
@@ -118,7 +163,7 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
 
       <Section title="6. Retos, oportunidades y cierre">
         <CheckboxGrid cols={3} options={RETOS} selected={retos} onChange={setRetos} />
-        <FormActions statusText="✓ Formulario parametrizado · listo para integración" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Registro →" />
+        <FormActions statusText="✓ Formulario parametrizado · listo para integración" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Registro →" onExport={handleExportarOficial} />
       </Section>
     </form>
   );

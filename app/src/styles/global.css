@@ -82,6 +82,19 @@ details.about summary { cursor: pointer; font-size: 11px; font-weight: 700; colo
 .fbtn[disabled] { background: var(--gray-bg); color: #94a39d; cursor: not-allowed; }
 .fbtn:not([disabled]):hover { background: var(--verde-oscuro); }
 
+/* ---------- Módulo de Perfilamiento (Herramientas por ámbito) ---------- */
+.ambitos-panel .stage-head { padding-bottom: 18px; }
+.ambitos-panel .stage-head p { max-width: 860px; margin-bottom: 12px; }
+.ambito-block { padding: 20px 24px; border-top: 1px solid var(--border); }
+.ambito-block-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.ambito-block-head .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--teal-900); color: #fff; font-size: 12px; font-weight: 800; flex: none; }
+.ambito-block-title { flex: 1; min-width: 220px; }
+.ambito-block-title h3 { margin: 0 0 4px; font-size: 15.5px; color: var(--teal-900); }
+.ambito-block-title p { margin: 0; font-size: 11.5px; color: var(--muted); max-width: 620px; }
+.ambito-objetivos { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
+.objetivo-chip { background: #eef3fb; color: #2d5187; border-color: #d5e2f5; cursor: default; }
+.ambito-nota-diseno { font-size: 10.5px; color: var(--muted); font-style: italic; margin: 10px 2px 0; }
+
 /* ---------- Visor de formato (superposición) ---------- */
 .viewer { position: fixed; inset: 0; background: #0d3b34cc; display: flex; align-items: center; justify-content: center; padding: 26px; z-index: 100; }
 .viewer-box { background: #fff; border-radius: 14px; overflow: hidden; width: 100%; height: 100%; max-width: 1400px; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35); }
@@ -183,6 +196,10 @@ table.data-table input, table.data-table select { padding: 7px; font-size: 10.5p
 .pattern-block ul { margin: 4px 0 0 15px; padding: 0; }
 .pattern-block li { margin-bottom: 3px; }
 .pattern-block p { margin: 4px 0 0; }
+.pattern-block.strategy { background: #eef8f0; border-radius: 8px; padding: 7px 9px; }
+.pattern-block.strategy b { color: var(--verde-oscuro); }
+.pattern-block.risk { background: var(--amber-bg); border-radius: 8px; padding: 7px 9px; }
+.pattern-block.risk b { color: var(--amber); }
 
 .brecha-list { display: grid; gap: 6px; margin-top: 10px; }
 .brecha-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: #fbfdfc; border: 1px solid var(--border); border-radius: 8px; padding: 8px 11px; font-size: 10.5px; }
@@ -207,6 +224,39 @@ table.data-table input, table.data-table select { padding: 7px; font-size: 10.5p
 .repeater-item { border: 1px solid var(--border); border-radius: 11px; background: #fff; padding: 12px 13px; margin-bottom: 10px; }
 .repeater-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
 .repeater-num { font-size: 9.5px; font-weight: 800; letter-spacing: 1px; color: var(--verde-oscuro); }
+
+/* ---------- Selector en tarjetas (OptionGrid) ---------- */
+.option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.option-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.option-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.option { border: 1px solid var(--border); border-radius: 11px; padding: 12px 13px; cursor: pointer; background: #fbfdfc; transition: 0.15s; margin: 0; display: block; }
+.option:hover { border-color: var(--verde); }
+.option input { display: none; }
+.option.selected { background: var(--secondary, #e8f3f1); border-color: var(--teal-900); }
+.option strong { display: block; font-size: 11.5px; color: var(--text); }
+.option span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+
+/* ---------- Panel de orientación (Petición de acceso) ---------- */
+.orient-card { border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
+.orient-card.green { background: #edf8f2; border: 1px solid #b8dfc8; }
+.orient-card.blue { background: var(--info-bg); border: 1px solid #c5d8f5; }
+.orient-card.yellow { background: var(--amber-bg); border: 1px solid #ecd9ad; }
+.orient-code { display: inline-block; padding: 5px 9px; border-radius: 20px; background: #fff; font-size: 9.5px; font-weight: 800; margin-bottom: 9px; letter-spacing: 0.4px; }
+.orient-card h3 { margin: 0 0 8px; font-size: 15px; color: var(--teal-900); }
+.orient-card p { margin: 0; font-size: 11.5px; color: #45564f; line-height: 1.6; }
+.orient-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+.orient-summary-item { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; }
+.orient-summary-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.orient-summary-value { font-size: 12px; font-weight: 800; margin-top: 4px; color: var(--text); }
+
+@media (max-width: 900px) {
+  .option-grid, .option-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .orient-summary { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .option-grid, .option-grid.cols-2, .option-grid.cols-4 { grid-template-columns: 1fr; }
+  .orient-summary { grid-template-columns: 1fr; }
+}
 
 /* ---------- Tooltips pedagógicos (glosario del F1) ---------- */
 .tip { position: relative; display: inline-flex; cursor: help; outline: none; }

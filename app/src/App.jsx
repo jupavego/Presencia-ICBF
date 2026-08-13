@@ -4,11 +4,12 @@ import Sidebar from './components/layout/Sidebar.jsx';
 import Hero from './components/layout/Hero.jsx';
 import Home from './components/home/Home.jsx';
 import StagePanel from './components/StagePanel.jsx';
+import AmbitosPanel from './components/AmbitosPanel.jsx';
 import FormatViewer from './components/FormatViewer.jsx';
 import { ETAPAS } from './data/etapas.js';
 
 export default function App() {
-  const [activeIndex, setActiveIndex] = useState(-1); // -1 = Inicio
+  const [activeIndex, setActiveIndex] = useState(-1); // -1 = Inicio, 'herramientas' = módulo de perfilamiento, número = índice en ETAPAS
   const [openFormat, setOpenFormat] = useState(null);
 
   useEffect(() => {
@@ -19,7 +20,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
 
-  const etapa = activeIndex >= 0 ? ETAPAS[activeIndex] : null;
+  const etapa = typeof activeIndex === 'number' && activeIndex >= 0 ? ETAPAS[activeIndex] : null;
+  const herramientas = activeIndex === 'herramientas';
 
   return (
     <>
@@ -32,6 +34,8 @@ export default function App() {
               <Hero />
               <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
             </>
+          ) : herramientas ? (
+            <AmbitosPanel onOpenFormat={setOpenFormat} />
           ) : (
             <Home onSelectStage={setActiveIndex} />
           )}

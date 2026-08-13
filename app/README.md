@@ -36,6 +36,11 @@ npm run preview   # sirve el build localmente para probarlo
 docs/
   motor-lectura-red.md    Documentación interna del motor de lectura de red del F1
                           (fundamento metodológico, métricas, patrones, límites).
+  exportacion-formatos-oficiales.md  Cómo se descarga lo diligenciado sobre la
+                          plantilla oficial (.docx/.xlsx) de cada formato.
+public/
+  plantillas/             Plantillas .docx/.xlsx que consume la exportación
+                          (ver docs/exportacion-formatos-oficiales.md).
 src/
   data/
     etapas.js             Única fuente de verdad: las 7 etapas, sus funciones
@@ -45,6 +50,8 @@ src/
                           tooltips del diagrama — una sola fuente para los tres.
   lib/
     lecturaRed.js          Motor de lectura de red del F1 (ver docs/motor-lectura-red.md).
+    exportOficial.js        Motor de exportación a formato oficial (ver
+                          docs/exportacion-formatos-oficiales.md).
   components/
     layout/               Cascarón de la aplicación (TopBar, Sidebar, Hero).
     ui/                    Piezas reutilizables de formulario:
@@ -70,6 +77,43 @@ src/
   el motor de lectura de red del F1 convierte los vínculos registrados en
   fortalezas y oportunidades de mejora: fundamento metodológico, métricas,
   catálogo de patrones, salvaguardas éticas y cómo extenderlo.
+- [`docs/exportacion-formatos-oficiales.md`](docs/exportacion-formatos-oficiales.md) —
+  cómo cada formulario descarga lo diligenciado sobre la plantilla oficial
+  (.docx/.xlsx) sin modificar su diseño, qué formatos ya lo tienen y cómo
+  agregarlo a uno nuevo.
+- [`docs/revision-instrumentos-psicometricos.md`](docs/revision-instrumentos-psicometricos.md)
+  — evaluación técnica (fichas, fórmulas de puntuación, vacíos y
+  duplicados) de los instrumentos psicométricos cargados como insumo para
+  futuros motores de lectura (WHO-5, McMaster FAD, MSPSS, FACES, FQOL,
+  WHOQOL-BREF, Autoeficacia General, entre otros).
+- [`docs/catalogo-instrumentos-psicosociales.md`](docs/catalogo-instrumentos-psicosociales.md)
+  — matriz técnica completa (autor, ítems, fórmula, evidencia
+  psicométrica, licencia, limitaciones) de cada instrumento verificado,
+  más el inventario de instrumentos mencionados en el diseño conceptual
+  del sistema de caracterización que aún no tienen fuente confirmada.
+- [`docs/mapa-teorico-marcos-conceptuales.md`](docs/mapa-teorico-marcos-conceptuales.md)
+  — los marcos teóricos que sustentan el sistema de caracterización
+  (Circumplejo de Olson, resiliencia familiar de Walsh, CSDH, modelo
+  ecológico, autoeficacia, bienestar, calidad de vida, CIF, fortalezas de
+  carácter, rasgos de personalidad, autoestima), cada uno con su nivel de
+  respaldo documental explícito.
+- [`docs/matriz-variables-indicadores.md`](docs/matriz-variables-indicadores.md)
+  — cruce de las 13 esferas del sistema de caracterización con los
+  instrumentos verificados (dimensión → constructo → variable →
+  indicador), con las esferas sin cobertura marcadas explícitamente en vez
+  de rellenarlas con contenido inventado.
+- [`docs/arquitectura-modulo-perfilamiento.md`](docs/arquitectura-modulo-perfilamiento.md)
+  — diseño del módulo adicional de perfilamiento multidimensional
+  (independiente de los formatos F1-F10): trazabilidad esferas → objetivos
+  del servicio, ubicación en la app, estructura de datos propuesta
+  (`ambitos.js`), motor de lectura genérico y fase 1 de construcción
+  acotada.
+- [`docs/reglas-puntuacion-interpretacion.md`](docs/reglas-puntuacion-interpretacion.md)
+  — reglas de puntuación (Producto 6) e interpretación (Producto 7) por
+  herramienta: cómo interactúan entre sí las preguntas de un mismo
+  instrumento para generar un perfil descriptivo (nunca un diagnóstico),
+  con ejemplos completos de instrumento cuantitativo (McMaster FAD) y
+  categórico (Empoderamiento familiar).
 
 ### Cómo agregar un formato nuevo
 
@@ -85,10 +129,12 @@ solos a partir de `etapas.js` y del registro de componentes.
 ## Formatos pendientes
 
 Los formatos marcados como `pendiente` en `etapas.js` (las actuaciones de
-tipo SIO en las etapas 01, 06 y 07) corresponden a trámites dentro del
+tipo SIO en las etapas 05 y 06) corresponden a trámites dentro del
 Sistema de Información Oficial del ICBF, no a un formato/plantilla propio —
-por eso no tienen componente. Si el ICBF define un instrumento propio para
-esas actuaciones, se digitaliza igual que los demás.
+por eso no tienen componente. La etapa 01 ya no está en este grupo: su
+petición de vinculación al servicio (`PET`) es un formato propio de la
+plataforma, ya digitalizado. Si el ICBF define un instrumento propio para
+las actuaciones SIO restantes, se digitalizan igual que los demás.
 
 ## Próximos pasos de arquitectura (no implementados aún)
 

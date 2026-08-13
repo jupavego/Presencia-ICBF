@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField } from '../ui/Field.jsx';
@@ -6,6 +6,7 @@ import Choice from '../ui/Choice.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
+import { descargarDocxOficial } from '../../lib/exportOficial.js';
 
 // Fuente: F3.GO3_.MT5_.PP Formato Acuerdo de Vinculacion v2.docx
 const COLUMNAS_MENORES = [
@@ -14,7 +15,20 @@ const COLUMNAS_MENORES = [
 ];
 const nuevoMenor = () => ({ nombre: '', documento: '' });
 
+// El formato oficial marca cada Sí/No como "Si __ No__"; se reemplaza el
+// primer guion bajo tras la respuesta elegida por una X, igual que se
+// diligenciaría a mano.
+function marcarBlanco(texto, respuesta) {
+  if (!respuesta) return texto;
+  const patron = respuesta === 'Sí' ? /si\s*_/i : /no\s*_/i;
+  return texto.replace(patron, (m) => m.slice(0, -1) + 'X');
+}
+function textoSiNo(valor) {
+  return marcarBlanco('Si __ No__', valor);
+}
+
 export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
+  const formRef = useRef(null);
   const [tratamientoDatos, setTratamientoDatos] = useState('');
   const [mensajesTexto, setMensajesTexto] = useState('');
   const [fotosMenores, setFotosMenores] = useState('');
@@ -30,8 +44,49 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
     alert('¡Acuerdo de vinculación registrado con éxito!');
   }
 
+  async function handleExportarOficial() {
+    const fd = new FormData(formRef.current);
+    const anio = fd.get('fechaAnio') || '';
+
+    const datos = {
+      fechaCiudad: fd.get('fechaCiudad') || '',
+      fechaDia: fd.get('fechaDia') || '',
+      fechaMes: fd.get('fechaMes') || '',
+      fechaAnio: anio,
+      fechaAnio2: anio.slice(-2),
+      declaranteNombre: fd.get('declaranteNombre') || '',
+      declaranteTipoDoc: fd.get('declaranteTipoDoc') || '',
+      declaranteNumeroDoc: fd.get('declaranteNumeroDoc') || '',
+      declaranteExpedicion: fd.get('declaranteExpedicion') || '',
+      declaranteDireccion: fd.get('declaranteDireccion') || '',
+      declaranteCiudad: fd.get('declaranteCiudad') || '',
+      declaranteTelFijo: fd.get('declaranteTelFijo') || '',
+      declaranteCelular: fd.get('declaranteCelular') || '',
+      autDatosTexto: textoSiNo(tratamientoDatos),
+      autSmsTexto: textoSiNo(mensajesTexto),
+      menorFotosTexto: textoSiNo(fotosMenores),
+      menorAudiosTexto: textoSiNo(audiosMenores),
+      menorVideosTexto: textoSiNo(videosMenores),
+      titularNombre: fd.get('titularNombre') || '',
+      titularDocumento: fd.get('titularDocumento') || '',
+      titularFotosTexto: textoSiNo(fotosTitular),
+      titularAudiosTexto: textoSiNo(audiosTitular),
+      titularVideosTexto: textoSiNo(videosTitular),
+      firmante1Nombre: fd.get('firmante1Nombre') || '',
+      firmante2Nombre: fd.get('firmante2Nombre') || '',
+    };
+    // El formato oficial trae 4 líneas en blanco para menores de edad.
+    for (let i = 1; i <= 4; i++) {
+      const m = menores[i - 1];
+      datos[`menor${i}Nombre`] = m ? m.nombre || '' : '';
+      datos[`menor${i}Documento`] = m ? m.documento || '' : '';
+    }
+
+    await descargarDocxOficial('/plantillas/F3-Acuerdo-Vinculacion.docx', datos, 'F3-Acuerdo-Vinculacion-diligenciado.docx');
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Vinculación al servicio`}
         title="Acuerdo de Vinculación"
@@ -42,23 +97,23 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
 
       <Section title="Lugar y fecha del acuerdo">
         <div className="grid">
-          <TextField label="Ciudad" required />
-          <TextField label="Día" type="number" min="1" max="31" required />
-          <TextField label="Mes" required />
-          <TextField label="Año" type="number" defaultValue="2026" required />
+          <TextField name="fechaCiudad" label="Ciudad" required />
+          <TextField name="fechaDia" label="Día" type="number" min="1" max="31" required />
+          <TextField name="fechaMes" label="Mes" required />
+          <TextField name="fechaAnio" label="Año" type="number" defaultValue="2026" required />
         </div>
       </Section>
 
       <Section title="Datos del declarante">
         <div className="grid">
-          <TextField span="wide" label="Nombre completo" required />
-          <SelectField label="Tipo de documento" options={['CC', 'TI', 'CE', 'PPT', 'Registro Civil']} />
-          <TextField label="Número de documento" required />
-          <TextField label="Expedido en" placeholder="Ciudad de expedición" />
-          <TextField span="wide" label="Dirección de residencia" required />
-          <TextField label="Ciudad" required />
-          <TextField label="Teléfono fijo" />
-          <TextField label="Celular" required />
+          <TextField name="declaranteNombre" span="wide" label="Nombre completo" required />
+          <SelectField name="declaranteTipoDoc" label="Tipo de documento" options={['CC', 'TI', 'CE', 'PPT', 'Registro Civil']} />
+          <TextField name="declaranteNumeroDoc" label="Número de documento" required />
+          <TextField name="declaranteExpedicion" label="Expedido en" placeholder="Ciudad de expedición" />
+          <TextField name="declaranteDireccion" span="wide" label="Dirección de residencia" required />
+          <TextField name="declaranteCiudad" label="Ciudad" required />
+          <TextField name="declaranteTelFijo" label="Teléfono fijo" />
+          <TextField name="declaranteCelular" label="Celular" required />
         </div>
       </Section>
 
@@ -87,7 +142,7 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
         </div>
       </Section>
 
-      <Section title="Autorización — uso de imagen de niñas y niños menores de edad" hint="De conformidad con el Formato de autorización de uso de imagen (Versión 5), código F2.P2.CE. Quien suscribe obra como representante legal de las niñas y los niños relacionados a continuación.">
+      <Section title="Autorización — uso de imagen de niñas y niños menores de edad" hint="De conformidad con el Formato de autorización de uso de imagen (Versión 5), código F2.P2.CE. Quien suscribe obra como representante legal de las niñas y los niños relacionados a continuación (máximo 4).">
         <DataTable columns={COLUMNAS_MENORES} rows={menores} onChange={setMenores} newRow={nuevoMenor} minRows={0} />
         <div className="grid" style={{ marginTop: 14 }}>
           <Choice
@@ -102,8 +157,8 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
 
       <Section title="Autorización — uso de imagen del titular" hint="Cuando el titular es un adulto que autoriza por sí mismo.">
         <div className="grid">
-          <TextField span="wide" label="Nombre del titular" />
-          <TextField label="Documento de identidad" />
+          <TextField name="titularNombre" span="wide" label="Nombre del titular" />
+          <TextField name="titularDocumento" label="Documento de identidad" />
         </div>
         <div className="grid" style={{ marginTop: 14 }}>
           <Choice span="field" label="Fotos" name="fotosTitular" options={['Sí', 'No']} value={fotosTitular} onChange={setFotosTitular} />
@@ -117,12 +172,17 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
 
       <Section title="Firmas">
         <div className="grid">
-          <TextField span="wide" label="Nombre — firmante 1" />
+          <TextField name="firmante1Nombre" span="wide" label="Nombre — firmante 1" />
           <TextField label="Huella (si no cuenta con firma)" placeholder="Marcar si aplica" />
-          <TextField span="wide" label="Nombre — firmante 2" />
+          <TextField name="firmante2Nombre" span="wide" label="Nombre — firmante 2" />
           <TextField label="Huella (si no cuenta con firma)" placeholder="Marcar si aplica" />
         </div>
-        <FormActions statusText="✓ Acuerdo de vinculación parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Registrar acuerdo →" />
+        <FormActions
+          statusText="✓ Acuerdo de vinculación parametrizado"
+          onSaveDraft={() => alert('Borrador guardado localmente.')}
+          submitLabel="Registrar acuerdo →"
+          onExport={handleExportarOficial}
+        />
       </Section>
     </form>
   );

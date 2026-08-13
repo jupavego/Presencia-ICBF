@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
@@ -6,6 +6,7 @@ import Choice from '../ui/Choice.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
+import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 
 const ESTADOS_CIVILES = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Separado(a)', 'Viudo(a)', 'Divorciado(a)', 'No aplica'];
 const NIVELES_ESCOLARES = ['Ninguno', 'Primaria completa', 'Primaria incompleta', 'Secundaria completa', 'Secundaria incompleta', 'Técnico completo', 'Técnico incompleto', 'Universitario completo', 'Universitario incompleto', 'Preescolar', 'Otro'];
@@ -20,12 +21,25 @@ const ASPIRACIONES = ['Fortalecer la comunicación familiar', 'Mejorar relacione
 const CONCLUSIONES = ['Respuesta satisfactoria y cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Profundizar la comprensión de la situación', 'Fortalecer capacidades de cuidado y crianza', 'Fortalecer redes familiares y sociales', 'Orientar acceso a oferta institucional', 'Articular con otra entidad o servicio', 'Hacer seguimiento a acuerdos', 'Fortalecer autonomía', 'Abordar situación familiar priorizada', 'Construir plan de acción con la familia', 'Realizar nueva valoración', 'Otro resultado / conclusión'];
 const RUTA_CONTINUIDAD = ['Cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Otra / por definir'];
 
+const INGRESO_OPCIONES = ['Menos de un salario mínimo', '1 s.m.', '2 s.m.', '3 a 4 s.m.', '5 o más s.m.', 'No sabe / no informa'];
+const INGRESO_TAGS = ['ingresoMenosSmX', 'ingreso1SmX', 'ingreso2SmX', 'ingreso3a4SmX', 'ingreso5MasSmX', 'ingresoNoSabeX'];
+const VIVIENDA_OPCIONES = ['Propia', 'Familiar', 'En arriendo', 'Usufructo', 'Inquilinato', 'Refugio temporal', 'Paga diario', 'No sabe / no informa'];
+const VIVIENDA_TAGS = ['viviendaPropiaX', 'viviendaFamiliarX', 'viviendaArriendoX', 'viviendaUsufructoX', 'viviendaInquilinatoX', 'viviendaRefugioX', 'viviendaPagaDiarioX', 'viviendaNoSabeX'];
+const TRAYECTORIA_TAGS = {
+  'Ninguna': 'trNingunaX', 'Defensoría de Familia': 'trDefensoriaX', 'Comisaría de Familia': 'trComisariaX',
+  'Salud': 'trSaludX', 'Educación': 'trEducacionX', 'Profesional particular': 'trProfesionalX', 'Juzgado': 'trJuzgadoX',
+  'Organización Comunitaria': 'trOrganizacionX', 'Alcaldía local': 'trAlcaldiaX', 'ONG': 'trOngX', 'Agencia Internacional': 'trAgenciaX',
+  'Policía': 'trPoliciaX', 'Medicina Legal': 'trMedicinaX', 'Fiscalía': 'trFiscaliaX', 'Otra': 'trOtraX',
+};
+const EVENTO_TAGS = ['ev1X', 'ev2X', 'ev3X', 'ev4X', 'ev5X', 'ev6X', 'ev7X', 'ev8X', 'ev9X', 'ev10X', 'ev11X', 'ev12X', 'ev13X', 'ev14X', 'ev15X', 'ev16X'];
+
 const nuevoIntegrante = () => ({
   nombre: '', edad: '', lugarNacimiento: '', estadoCivil: '', nivelEscolar: '',
   rolFamilia: '', afiliacionSalud: '', ocupacion: '', dedicacion: '',
 });
 
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
+  const formRef = useRef(null);
   const [acudenPor, setAcudenPor] = useState('');
   const [recibeSubsidios, setRecibeSubsidios] = useState('');
   const [trayectoria, setTrayectoria] = useState([]);
@@ -33,6 +47,19 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const [aspiraciones, setAspiraciones] = useState([]);
   const [conclusiones, setConclusiones] = useState([]);
   const [integrantes, setIntegrantes] = useState([nuevoIntegrante()]);
+  const [cursoVida, setCursoVida] = useState('');
+  const [padre, setPadre] = useState('');
+  const [madre, setMadre] = useState('');
+  const [ella, setElla] = useState('');
+  const [el, setEl] = useState('');
+  const [procesos, setProcesos] = useState('');
+  const [vidaSocial, setVidaSocial] = useState([]);
+  const [institucionesProf, setInstitucionesProf] = useState([]);
+  const [ocupacionSocial, setOcupacionSocial] = useState([]);
+
+  function toggleEnArreglo(arreglo, setArreglo, valor) {
+    setArreglo(arreglo.includes(valor) ? arreglo.filter((v) => v !== valor) : [...arreglo, valor]);
+  }
 
   function updateIntegrante(index, key, value) {
     setIntegrantes(integrantes.map((it, i) => (i === index ? { ...it, [key]: value } : it)));
@@ -53,8 +80,116 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     alert('¡Perfil sociofamiliar estructurado con éxito!');
   }
 
+  async function handleExportarOficial() {
+    const fd = new FormData(formRef.current);
+    const datos = {
+      fecha: formatoFecha(fd.get('fecha')),
+      regional: fd.get('regional') || '',
+      centroZonal: fd.get('centroZonal') || '',
+      numPeticion: fd.get('numPeticion') || '',
+      profesionales: fd.get('profesionales') || '',
+      nombreParticipante: fd.get('nombreParticipante') || '',
+      tipoDocumento: fd.get('tipoDocumento') || '',
+      rolParticipante: fd.get('rolParticipante') || '',
+      participantesEncuentro: fd.get('participantesEncuentro') || '',
+      direccion: fd.get('direccion') || '',
+      barrio: fd.get('barrio') || '',
+      municipio: fd.get('municipio') || '',
+      telefono: fd.get('telefono') || '',
+      acudenPropiaMarca: acudenPor === 'Propia iniciativa' ? 'X' : '',
+      acudenRemitidosMarca: acudenPor === 'Remitidos' ? 'X' : '',
+      numAportantes: fd.get('numAportantes') || '',
+      subsidiosCual: fd.get('subsidiosCual') || '',
+      subsidiosSiMarca: recibeSubsidios === 'Sí' ? 'X' : '',
+      subsidiosNoMarca: recibeSubsidios === 'No' ? 'X' : '',
+      subsidiosNoInformaMarca: recibeSubsidios === 'No informa' ? 'X' : '',
+      relatoFamilia: fd.get('relatoFamilia') || '',
+      familiaExtensa: fd.get('familiaExtensa') || '',
+      otrasPersonas: fd.get('otrasPersonas') || '',
+      hijosUnionActual: fd.get('hijosUnionActual') || '',
+      hijosUnionAnterior: fd.get('hijosUnionAnterior') || '',
+      padreX: padre === 'Sí' ? 'X' : '',
+      madreX: madre === 'Sí' ? 'X' : '',
+      ellaNum: ella || '',
+      elNum: el || '',
+      procesosSiMarca: procesos === 'Sí' ? 'X' : '',
+      procesosNoMarca: procesos === 'No' ? 'X' : '',
+      procesosCuales: fd.get('procesosCuales') || '',
+      modalidadIcbf: fd.get('modalidadIcbf') || '',
+      ipOtroCual: fd.get('ipOtroCual') || '',
+      trOtraCual: fd.get('trOtraCual') || '',
+    };
+
+    INGRESO_OPCIONES.forEach((opt, i) => { datos[INGRESO_TAGS[i]] = ''; });
+    const ingresoSel = fd.get('ingreso');
+    const ingresoIdx = INGRESO_OPCIONES.indexOf(ingresoSel);
+    if (ingresoIdx >= 0) datos[INGRESO_TAGS[ingresoIdx]] = 'X';
+
+    VIVIENDA_OPCIONES.forEach((opt, i) => { datos[VIVIENDA_TAGS[i]] = ''; });
+    const viviendaSel = fd.get('vivienda');
+    const viviendaIdx = VIVIENDA_OPCIONES.indexOf(viviendaSel);
+    if (viviendaIdx >= 0) datos[VIVIENDA_TAGS[viviendaIdx]] = 'X';
+
+    Object.values(TRAYECTORIA_TAGS).forEach((tag) => { datos[tag] = ''; });
+    trayectoria.forEach((label) => {
+      const tag = TRAYECTORIA_TAGS[label];
+      if (tag) datos[tag] = 'X';
+    });
+
+    EVENTO_TAGS.forEach((tag) => { datos[tag] = ''; });
+    eventos.forEach((label) => {
+      const idx = EVENTOS_SIGNIFICATIVOS.indexOf(label);
+      if (idx >= 0) datos[EVENTO_TAGS[idx]] = 'X';
+    });
+
+    datos.vsAmigosX = vidaSocial.includes('Amigos') ? 'X' : '';
+    datos.vsVecinosX = vidaSocial.includes('Vecinos') ? 'X' : '';
+    datos.vsGruposX = vidaSocial.includes('Grupos informales') ? 'X' : '';
+    datos.vsFamiliaX = vidaSocial.includes('Familia') ? 'X' : '';
+    datos.ipSaludX = institucionesProf.includes('Salud') ? 'X' : '';
+    datos.ipJusticiaX = institucionesProf.includes('Justicia') ? 'X' : '';
+    datos.ipIglesiaX = institucionesProf.includes('Iglesia') ? 'X' : '';
+    datos.ipOtroX = institucionesProf.includes('Otro') ? 'X' : '';
+    datos.ocEstudioX = ocupacionSocial.includes('Estudio') ? 'X' : '';
+    datos.ocTrabajoX = ocupacionSocial.includes('Trabajo') ? 'X' : '';
+
+    datos.aspiracionesTexto = [
+      aspiraciones.length ? aspiraciones.join('; ') : '',
+      fd.get('aspiracionExpectativa') ? `Expectativa: ${fd.get('aspiracionExpectativa')}` : '',
+      fd.get('aspiracionOtraCual') ? `Otra: ${fd.get('aspiracionOtraCual')}` : '',
+    ].filter(Boolean).join(' | ');
+
+    datos.conclusionesTexto = [
+      conclusiones.length ? conclusiones.join('; ') : '',
+      fd.get('conclusionNarrativa') ? `Conclusión: ${fd.get('conclusionNarrativa')}` : '',
+    ].filter(Boolean).join(' | ');
+
+    datos.acuerdosTexto = [
+      fd.get('acuerdosCompromisos') ? `Acuerdos: ${fd.get('acuerdosCompromisos')}` : '',
+      fd.get('rutaContinuidad') ? `Ruta: ${fd.get('rutaContinuidad')}` : '',
+      fd.get('rutaOtraCual') ? `Otra: ${fd.get('rutaOtraCual')}` : '',
+    ].filter(Boolean).join(' | ');
+
+    datos.integrantes = integrantes
+      .filter((it) => it.nombre)
+      .map((it) => ({
+        nombre: it.nombre || '', edad: it.edad || '', lugarNacimiento: it.lugarNacimiento || '',
+        estadoCivil: it.estadoCivil || '', nivelEscolar: it.nivelEscolar || '', rolFamilia: it.rolFamilia || '',
+        afiliacionSalud: it.afiliacionSalud || '', ocupacion: it.ocupacion || '', dedicacion: it.dedicacion || '',
+      }));
+    if (datos.integrantes.length === 0) {
+      datos.integrantes = [{ nombre: '', edad: '', lugarNacimiento: '', estadoCivil: '', nivelEscolar: '', rolFamilia: '', afiliacionSalud: '', ocupacion: '', dedicacion: '' }];
+    }
+
+    await descargarDocxOficial(
+      '/plantillas/F7-Perfil-Socio-Familiar.docx',
+      datos,
+      'F7-Perfil-Socio-Familiar-diligenciado.docx'
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Perfil familiar`}
         title="Comprender a la familia"
@@ -65,29 +200,29 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
 
       <Section title="1. Datos iniciales" hint="Información de apertura de la historia sociofamiliar.">
         <div className="grid">
-          <TextField label="Fecha de apertura" type="date" />
-          <TextField label="Regional" placeholder="Ej. Antioquia" />
-          <TextField label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" />
-          <TextField label="No. de petición" />
-          <TextField span="wide" label="Profesionales que acompañan" />
+          <TextField name="fecha" label="Fecha de apertura" type="date" />
+          <TextField name="regional" label="Regional" placeholder="Ej. Antioquia" />
+          <TextField name="centroZonal" label="Centro Zonal" placeholder="Ej. Centro Zonal Norte" />
+          <TextField name="numPeticion" label="No. de petición" />
+          <TextField name="profesionales" span="wide" label="Profesionales que acompañan" />
         </div>
       </Section>
 
       <Section title="2. Persona participante" hint="Registrar los datos de la persona a la cual se le haya creado el beneficiario en el SIM.">
         <div className="grid">
-          <TextField span="wide" label="Nombre" />
-          <TextField label="Tipo y número de identificación" />
-          <TextField label="Rol en el grupo familiar" />
+          <TextField name="nombreParticipante" span="wide" label="Nombre" />
+          <TextField name="tipoDocumento" label="Tipo y número de identificación" />
+          <TextField name="rolParticipante" label="Rol en el grupo familiar" />
         </div>
       </Section>
 
       <Section title="3. Encuentro inicial" hint="Personas que participan en el encuentro inicial de Diálogos por el cuidado y el buen vivir.">
         <div className="grid">
-          <TextAreaField label="Participantes: nombre, documento y rol familiar" />
-          <TextField label="Dirección" />
-          <TextField label="Barrio" />
-          <TextField label="Municipio" />
-          <TextField label="Teléfono" />
+          <TextAreaField name="participantesEncuentro" label="Participantes: nombre, documento y rol familiar" />
+          <TextField name="direccion" label="Dirección" />
+          <TextField name="barrio" label="Barrio" />
+          <TextField name="municipio" label="Municipio" />
+          <TextField name="telefono" label="Teléfono" />
           <Choice label="Acuden por" name="acudenPor" options={['Propia iniciativa', 'Remitidos']} value={acudenPor} onChange={setAcudenPor} />
         </div>
       </Section>
@@ -95,23 +230,26 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       <Section title="4. Información sociodemográfica" hint="Variables económicas, de vivienda y apoyos sociales contempladas por la ficha.">
         <div className="grid">
           <SelectField
+            name="ingreso"
             label="Ingreso mensual aproximado"
             tip="Son los ingresos o recursos económicos que recibe el núcleo familiar en un mes, sumando los aportes de todos sus integrantes (salarios, subsidios, actividades informales, etc.)."
-            options={['Menos de un salario mínimo', '1 s.m.', '2 s.m.', '3 a 4 s.m.', '5 o más s.m.', 'No sabe / no informa']}
+            options={INGRESO_OPCIONES}
           />
           <SelectField
+            name="vivienda"
             label="Vivienda"
             tip="Indica el tipo de tenencia del lugar donde vive la familia. Usufructo: uso de una vivienda que no es propia. Inquilinato: habitación arrendada dentro de una vivienda compartida con otros hogares."
-            options={['Propia', 'Familiar', 'En arriendo', 'Usufructo', 'Inquilinato', 'Refugio temporal', 'Paga diario', 'No sabe / no informa']}
+            options={VIVIENDA_OPCIONES}
           />
-          <TextField label="Personas que aportan económicamente" type="number" />
+          <TextField name="numAportantes" label="Personas que aportan económicamente" type="number" />
           <Choice span="wide" label="¿Recibe subsidios?" name="subsidios" options={['Sí', 'No', 'No informa']} value={recibeSubsidios} onChange={setRecibeSubsidios} />
-          <TextField label="¿Cuál?" />
+          <TextField name="subsidiosCual" label="¿Cuál?" />
         </div>
       </Section>
 
       <Section title="5. Situación que motiva el contacto" hint="Relato textual de la familia.">
         <TextAreaField
+          name="relatoFamilia"
           span="full"
           label="Relato de la familia"
           tip="Es la descripción, en las propias palabras de la familia, del motivo o la situación que la lleva a acudir al servicio Presencia."
@@ -150,8 +288,8 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
 
       <Section title="7. Curso de vida y trayectoria institucional">
         <div className="grid">
-          <Choice span="full" label="Momento del curso de vida" name="cursoVida" options={['Sin hijos', 'Preescolar 0–6', 'Escolar 7–11', 'Adolescente 12–18', 'Joven 19–28', 'Adulto >28']} value="" onChange={() => {}} />
-          <TextAreaField label="Entidades o profesionales que han intervenido" />
+          <Choice span="full" label="Momento del curso de vida" name="cursoVida" options={['Sin hijos', 'Preescolar 0–6', 'Escolar 7–11', 'Adolescente 12–18', 'Joven 19–28', 'Adulto >28']} value={cursoVida} onChange={setCursoVida} />
+          <TextAreaField name="entidadesCursoVida" label="Entidades o profesionales que han intervenido" />
         </div>
       </Section>
 
@@ -162,7 +300,7 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
           tip="Son las entidades o profesionales que ya han intervenido en el manejo de la situación que motiva el contacto (salud, defensoría, comisaría, educación, entre otras)."
           options={TRAYECTORIA_SERVICIOS} selected={trayectoria} onChange={setTrayectoria}
         />
-        <div className="grid" style={{ marginTop: 10 }}><TextField span="full" label='Si seleccionó "Otra", ¿cuál?' /></div>
+        <div className="grid" style={{ marginTop: 10 }}><TextField name="trOtraCual" span="full" label='Si seleccionó "Otra", ¿cuál?' /></div>
       </Section>
 
       <Section title="9. Subsistemas que conviven" hint="Composición relacional de la familia y de las uniones actuales o anteriores.">
@@ -170,15 +308,15 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
           <Choice
             label="Padre"
             tip="Indica si la figura paterna hace parte del grupo familiar actual, independientemente de si convive con la familia."
-            name="padre" options={['Sí', 'No']} value="" onChange={() => {}}
+            name="padre" options={['Sí', 'No']} value={padre} onChange={setPadre}
           />
-          <Choice label="Madre" name="madre" options={['Sí', 'No']} value="" onChange={() => {}} />
-          <TextField label="Hijos de la unión actual" type="number" min="0" placeholder="Cantidad" />
-          <TextField label="Hijos de uniones anteriores" type="number" min="0" placeholder="Cantidad" />
-          <TextAreaField label="Miembros de la familia extensa" placeholder="Especificar." />
-          <TextAreaField label="Otras personas" placeholder="Especificar." />
-          <Choice label="Número de la unión actual · de ella" name="ella" options={['1', '2', '3', '4']} value="" onChange={() => {}} />
-          <Choice label="Número de la unión actual · de él" name="el" options={['1', '2', '3', '4']} value="" onChange={() => {}} />
+          <Choice label="Madre" name="madre" options={['Sí', 'No']} value={madre} onChange={setMadre} />
+          <TextField name="hijosUnionActual" label="Hijos de la unión actual" type="number" min="0" placeholder="Cantidad" />
+          <TextField name="hijosUnionAnterior" label="Hijos de uniones anteriores" type="number" min="0" placeholder="Cantidad" />
+          <TextAreaField name="familiaExtensa" label="Miembros de la familia extensa" placeholder="Especificar." />
+          <TextAreaField name="otrasPersonas" label="Otras personas" placeholder="Especificar." />
+          <Choice label="Número de la unión actual · de ella" name="ella" options={['1', '2', '3', '4']} value={ella} onChange={setElla} />
+          <Choice label="Número de la unión actual · de él" name="el" options={['1', '2', '3', '4']} value={el} onChange={setEl} />
         </div>
       </Section>
 
@@ -190,44 +328,57 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
           options={EVENTOS_SIGNIFICATIVOS} selected={eventos} onChange={setEventos}
         />
         <div className="grid" style={{ marginTop: 12 }}>
-          <Choice label="¿Actualmente están incursos en otros procesos?" name="procesos" options={['No', 'Sí']} value="" onChange={() => {}} />
-          <TextField span="wide" label="¿Cuáles?" placeholder="Legales, terapéuticos, médicos, etc." />
-          <SelectField span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida']} />
+          <Choice label="¿Actualmente están incursos en otros procesos?" name="procesos" options={['No', 'Sí']} value={procesos} onChange={setProcesos} />
+          <TextField name="procesosCuales" span="wide" label="¿Cuáles?" placeholder="Legales, terapéuticos, médicos, etc." />
+          <SelectField name="modalidadIcbf" span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida']} />
         </div>
         <Callout><b>Control documental:</b> catálogo preliminar de parametrización; debe validarse contra el catálogo vigente del ICBF antes de producción.</Callout>
       </Section>
 
       <Section title="11. Relaciones con familia extensa y red social" hint="Cuando tienen una dificultad económica, de salud, de labores de cuidado u otras, ¿a quiénes acuden?">
         <div className="grid">
-          <TextAreaField label="Respuesta de la familia" />
-          <div className="field"><label>Vida social</label><div className="check-stack"><label><input type="checkbox" /> Amigos</label><label><input type="checkbox" /> Vecinos</label><label><input type="checkbox" /> Grupos informales</label><label><input type="checkbox" /> Familia</label></div></div>
-          <div className="field"><label>Instituciones y profesionales</label><div className="check-stack"><label><input type="checkbox" /> Salud</label><label><input type="checkbox" /> Justicia</label><label><input type="checkbox" /> Iglesia</label><label><input type="checkbox" /> Otro</label></div></div>
-          <div className="field"><label>Ocupación</label><div className="check-stack"><label><input type="checkbox" /> Estudio</label><label><input type="checkbox" /> Trabajo</label></div></div>
-          <TextField span="wide" label="Otro, ¿cuál?" />
+          <TextAreaField name="respuestaFamiliaRed" label="Respuesta de la familia" />
+          <div className="field"><label>Vida social</label><div className="check-stack">
+            <label><input type="checkbox" checked={vidaSocial.includes('Amigos')} onChange={() => toggleEnArreglo(vidaSocial, setVidaSocial, 'Amigos')} /> Amigos</label>
+            <label><input type="checkbox" checked={vidaSocial.includes('Vecinos')} onChange={() => toggleEnArreglo(vidaSocial, setVidaSocial, 'Vecinos')} /> Vecinos</label>
+            <label><input type="checkbox" checked={vidaSocial.includes('Grupos informales')} onChange={() => toggleEnArreglo(vidaSocial, setVidaSocial, 'Grupos informales')} /> Grupos informales</label>
+            <label><input type="checkbox" checked={vidaSocial.includes('Familia')} onChange={() => toggleEnArreglo(vidaSocial, setVidaSocial, 'Familia')} /> Familia</label>
+          </div></div>
+          <div className="field"><label>Instituciones y profesionales</label><div className="check-stack">
+            <label><input type="checkbox" checked={institucionesProf.includes('Salud')} onChange={() => toggleEnArreglo(institucionesProf, setInstitucionesProf, 'Salud')} /> Salud</label>
+            <label><input type="checkbox" checked={institucionesProf.includes('Justicia')} onChange={() => toggleEnArreglo(institucionesProf, setInstitucionesProf, 'Justicia')} /> Justicia</label>
+            <label><input type="checkbox" checked={institucionesProf.includes('Iglesia')} onChange={() => toggleEnArreglo(institucionesProf, setInstitucionesProf, 'Iglesia')} /> Iglesia</label>
+            <label><input type="checkbox" checked={institucionesProf.includes('Otro')} onChange={() => toggleEnArreglo(institucionesProf, setInstitucionesProf, 'Otro')} /> Otro</label>
+          </div></div>
+          <div className="field"><label>Ocupación</label><div className="check-stack">
+            <label><input type="checkbox" checked={ocupacionSocial.includes('Estudio')} onChange={() => toggleEnArreglo(ocupacionSocial, setOcupacionSocial, 'Estudio')} /> Estudio</label>
+            <label><input type="checkbox" checked={ocupacionSocial.includes('Trabajo')} onChange={() => toggleEnArreglo(ocupacionSocial, setOcupacionSocial, 'Trabajo')} /> Trabajo</label>
+          </div></div>
+          <TextField name="ipOtroCual" span="wide" label="Otro, ¿cuál?" />
         </div>
       </Section>
 
       <Section title="12. Proyectos / aspiraciones de la familia" hint="¿Qué expectativas tiene la familia de este acompañamiento? Selección múltiple + respuesta abierta.">
         <CheckboxGrid cols={3} options={ASPIRACIONES} selected={aspiraciones} onChange={setAspiraciones} />
         <div className="grid" style={{ marginTop: 10 }}>
-          <TextAreaField label="Expectativa expresada por la familia" />
-          <TextField span="full" label='Si seleccionó "Otra", ¿cuál?' />
+          <TextAreaField name="aspiracionExpectativa" label="Expectativa expresada por la familia" />
+          <TextField name="aspiracionOtraCual" span="full" label='Si seleccionó "Otra", ¿cuál?' />
         </div>
       </Section>
 
       <Section title="13. Conclusiones y compromisos" hint="Orientadores estructurados para la decisión. La conclusión narrativa y los acuerdos conservan la valoración profesional y lo construido con la familia.">
         <CheckboxGrid options={CONCLUSIONES} selected={conclusiones} onChange={setConclusiones} />
         <div className="grid" style={{ marginTop: 12 }}>
-          <TextAreaField label="Conclusión narrativa" placeholder="Propuestas adecuadas a la expectativa de la familia, respuesta brindada y decisión de continuidad o cierre." />
-          <TextAreaField label="Acuerdos y compromisos" placeholder="Qué se acordó, quién participa y qué acción se realizará." />
-          <SelectField span="full" label="Ruta de continuidad propuesta" options={RUTA_CONTINUIDAD} />
-          <TextField span="full" label='Si corresponde "Otra", especifique' />
+          <TextAreaField name="conclusionNarrativa" label="Conclusión narrativa" placeholder="Propuestas adecuadas a la expectativa de la familia, respuesta brindada y decisión de continuidad o cierre." />
+          <TextAreaField name="acuerdosCompromisos" label="Acuerdos y compromisos" placeholder="Qué se acordó, quién participa y qué acción se realizará." />
+          <SelectField name="rutaContinuidad" span="full" label="Ruta de continuidad propuesta" options={RUTA_CONTINUIDAD} />
+          <TextField name="rutaOtraCual" span="full" label='Si corresponde "Otra", especifique' />
         </div>
       </Section>
 
       <Section title="14. Validación del perfil">
         <Callout variant="warn"><b>Salida documental</b><br />Las selecciones alimentan la trazabilidad y el análisis; la narrativa conserva el componente cualitativo. La información queda preparada para generar posteriormente el F7 institucional.</Callout>
-        <FormActions statusText="✓ Perfil estructurado · listo para revisión profesional" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Validar perfil →" />
+        <FormActions statusText="✓ Perfil estructurado · listo para revisión profesional" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Validar perfil →" onExport={handleExportarOficial} />
       </Section>
     </form>
   );

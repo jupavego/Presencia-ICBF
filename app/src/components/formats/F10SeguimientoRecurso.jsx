@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, TextAreaField } from '../ui/Field.jsx';
@@ -6,6 +6,10 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
+import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+
+const CAT_KEYS = { Física: 'catFisica', Visual: 'catVisual', Auditiva: 'catAuditiva', Sordoceguera: 'catSordoceguera', Psicosocial: 'catPsicosocial', Intelectual: 'catIntelectual', Múltiple: 'catMultiple' };
+const MONEY = (n) => (n ? Number(n).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '');
 
 const CATEGORIAS_DISCAPACIDAD = ['Física', 'Visual', 'Auditiva', 'Sordoceguera', 'Psicosocial', 'Intelectual', 'Múltiple'];
 
@@ -19,8 +23,10 @@ const COLUMNAS_INVERSION = [
 const nuevaCompra = () => ({ fecha: '', soporte: '', establecimiento: '', detalle: '', valor: '' });
 
 export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
+  const formRef = useRef(null);
   const [categorias, setCategorias] = useState([]);
   const [compras, setCompras] = useState([nuevaCompra()]);
+  const [saldoPendiente, setSaldoPendiente] = useState('');
 
   const total = useMemo(
     () => compras.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0),
@@ -32,8 +38,44 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
     alert('¡Seguimiento a la inversión del apoyo económico registrado con éxito!');
   }
 
+  async function handleExportarOficial() {
+    const fd = new FormData(formRef.current);
+    const datos = {
+      fecha: formatoFecha(fd.get('fecha')),
+      numSolicitud: fd.get('numSolicitud') || '',
+      centroZonal: fd.get('centroZonal') || '',
+      responsable: fd.get('responsable') || '',
+      titularCuenta: fd.get('titularCuenta') || '',
+      nombreParticipante: fd.get('nombreParticipante') || '',
+      coordinador: fd.get('coordinador') || '',
+      profesionales: fd.get('profesionales') || '',
+      totalInvertido: MONEY(total),
+      saldoPendiente: MONEY(saldoPendiente),
+    };
+    Object.values(CAT_KEYS).forEach((key) => { datos[key] = '□'; });
+    categorias.forEach((label) => {
+      const key = CAT_KEYS[label];
+      if (key) datos[key] = '☒';
+    });
+    for (let i = 0; i < 8; i += 1) {
+      const c = compras[i] || {};
+      const n = i + 1;
+      datos[`fila${n}Fecha`] = formatoFecha(c.fecha) || '';
+      datos[`fila${n}Soporte`] = c.soporte || '';
+      datos[`fila${n}Establecimiento`] = c.establecimiento || '';
+      datos[`fila${n}Detalle`] = c.detalle || '';
+      datos[`fila${n}Valor`] = MONEY(c.valor);
+    }
+
+    await descargarDocxOficial(
+      '/plantillas/F10-Seguimiento-Recurso.docx',
+      datos,
+      'F10-Seguimiento-Recurso-diligenciado.docx'
+    );
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
+    <form ref={formRef} onSubmit={handleSubmit}>
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Uso del recurso`}
         title="Seguimiento a la Inversión del Apoyo Económico"
@@ -44,13 +86,13 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
 
       <Section title="Datos básicos del seguimiento" hint="Información general del grupo familiar, beneficiario y centro zonal.">
         <div className="grid">
-          <TextField span="col-4" label="Fecha del seguimiento" type="date" required />
-          <TextField span="col-4" label="N° de solicitud" placeholder="Ej. SOL-2026-001" required />
-          <TextField span="col-4" label="Centro Zonal" placeholder="Centro Zonal" required />
-          <TextField span="col-6" label="Nombre del responsable del grupo familiar" placeholder="Nombre completo del responsable" required />
-          <TextField span="col-6" label="Nombre del titular de la cuenta (si es diferente)" placeholder="Dejar en blanco si coincide con el responsable" />
-          <TextField span="col-6" label="Nombre del niño, niña, adolescente o adulto con discapacidad" placeholder="Nombre completo del participante" required />
-          <TextField span="col-6" label="Coordinador del Centro Zonal" placeholder="Nombre del coordinador" required />
+          <TextField name="fecha" span="col-4" label="Fecha del seguimiento" type="date" required />
+          <TextField name="numSolicitud" span="col-4" label="N° de solicitud" placeholder="Ej. SOL-2026-001" required />
+          <TextField name="centroZonal" span="col-4" label="Centro Zonal" placeholder="Centro Zonal" required />
+          <TextField name="responsable" span="col-6" label="Nombre del responsable del grupo familiar" placeholder="Nombre completo del responsable" required />
+          <TextField name="titularCuenta" span="col-6" label="Nombre del titular de la cuenta (si es diferente)" placeholder="Dejar en blanco si coincide con el responsable" />
+          <TextField name="nombreParticipante" span="col-6" label="Nombre del niño, niña, adolescente o adulto con discapacidad" placeholder="Nombre completo del participante" required />
+          <TextField name="coordinador" span="col-6" label="Coordinador del Centro Zonal" placeholder="Nombre del coordinador" required />
           <div className="col-12">
             <CheckboxGrid
               cols={4}
@@ -66,13 +108,13 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
         <DataTable columns={COLUMNAS_INVERSION} rows={compras} onChange={setCompras} newRow={nuevaCompra} />
         <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 24, fontSize: 12, fontWeight: 800 }}>
           <div>TOTAL INVERTIDO: <span style={{ color: 'var(--verde-oscuro)' }}>{total.toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 2 })}</span></div>
-          <div>SALDO PENDIENTE: <input type="number" placeholder="0.00" style={{ width: 130, display: 'inline-block', fontSize: 11 }} /></div>
+          <div>SALDO PENDIENTE: <input type="number" placeholder="0.00" value={saldoPendiente} onChange={(e) => setSaldoPendiente(e.target.value)} style={{ width: 130, display: 'inline-block', fontSize: 11 }} /></div>
         </div>
       </Section>
 
       <Section title="Profesionales responsables y normativa de legalización">
         <div className="grid">
-          <TextAreaField span="col-12" label="Nombre de los profesionales que realizaron el seguimiento" placeholder="Ingrese los nombres y registros profesionales..." required />
+          <TextAreaField name="profesionales" span="col-12" label="Nombre de los profesionales que realizaron el seguimiento" placeholder="Ingrese los nombres y registros profesionales..." required />
         </div>
 
         <Callout variant="warn">
@@ -86,7 +128,7 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
           </ol>
         </Callout>
 
-        <FormActions statusText="✓ Formato de seguimiento a inversión parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Acta de Seguimiento →" />
+        <FormActions statusText="✓ Formato de seguimiento a inversión parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Generar Acta de Seguimiento →" onExport={handleExportarOficial} />
       </Section>
     </form>
   );
