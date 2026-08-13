@@ -33,6 +33,18 @@ export default function PatternCard({ patron }) {
           <p>{patron.oportunidad}</p>
         </div>
       )}
+      {patron.estrategias?.length > 0 && (
+        <div className="pattern-block strategy">
+          <b>Estrategias a considerar</b>
+          <ul>{patron.estrategias.map((e, i) => <li key={i}>{e}</li>)}</ul>
+        </div>
+      )}
+      {patron.riesgos?.length > 0 && (
+        <div className="pattern-block risk">
+          <b>Factores a priorizar</b>
+          <ul>{patron.riesgos.map((r, i) => <li key={i}>{r}</li>)}</ul>
+        </div>
+      )}
     </div>
   );
 }

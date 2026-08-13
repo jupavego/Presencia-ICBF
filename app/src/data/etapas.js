@@ -20,12 +20,11 @@ export const ETAPAS = [
     funciones: ['Registro de solicitud', 'Caracterización inicial', 'Clasificación y direccionamiento', 'Validación y activación', 'Asignación del caso'],
     formatos: [
       {
-        codigo: 'SIO',
-        nombre: 'Petición de Presencia',
-        desc: 'Registro de la solicitud en el Sistema de Información Oficial del ICBF (voluntaria, por remisión o por otros canales de atención).',
-        estado: 'pendiente',
-        componentKey: null,
-        nota: 'Es una actuación dentro del sistema misional del ICBF, no cuenta con un formato/plantilla propio para digitalizar.',
+        codigo: 'PET',
+        nombre: 'Petición de Vinculación al Servicio',
+        desc: 'Formato propio de la plataforma: cómo llega la familia, quién solicita el acompañamiento, su territorio, condiciones de contexto, pertenencia y motivo del contacto, con una orientación inicial hacia la etapa de Comprensión.',
+        estado: 'disponible',
+        componentKey: 'PETICION',
       },
     ],
   },
