@@ -7,6 +7,8 @@ import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const CAT_KEYS = { Física: 'catFisica', Visual: 'catVisual', Auditiva: 'catAuditiva', Sordoceguera: 'catSordoceguera', Psicosocial: 'catPsicosocial', Intelectual: 'catIntelectual', Múltiple: 'catMultiple' };
 const MONEY = (n) => (n ? Number(n).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '');
@@ -24,6 +26,7 @@ const nuevaCompra = () => ({ fecha: '', soporte: '', establecimiento: '', detall
 
 export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [categorias, setCategorias] = useState([]);
   const [compras, setCompras] = useState([nuevaCompra()]);
   const [saldoPendiente, setSaldoPendiente] = useState('');
@@ -67,6 +70,7 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
       datos[`fila${n}Valor`] = MONEY(c.valor);
     }
 
+    await guardarDatosFormatoOficial(casoActivoId, 'F10', datos);
     await descargarDocxOficial(
       '/plantillas/F10-Seguimiento-Recurso.docx',
       datos,

@@ -8,6 +8,7 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { MUNICIPIOS_ANTIOQUIA } from '../../data/municipiosAntioquia.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const ORIGENES = [
   { value: 'propia', label: 'Iniciativa propia', desc: 'La familia solicita directamente el acompañamiento.' },
@@ -75,6 +76,7 @@ function evaluarOrientacion(alerta) {
 
 export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { crearCaso } = useCaso();
   const [origen, setOrigen] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [zona, setZona] = useState('');
@@ -85,8 +87,9 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const [expectativas, setExpectativas] = useState([]);
   const [alerta, setAlerta] = useState('');
   const [resultado, setResultado] = useState(null);
+  const [errorCaso, setErrorCaso] = useState(null);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     const fd = new FormData(formRef.current);
     const nombre = (fd.get('nombre') || '').trim();
@@ -100,6 +103,17 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
         resumen: null,
       });
       return;
+    }
+
+    // Esta petición es el punto donde nace el caso: crea la fila raíz en
+    // Supabase y la deja como caso activo para que el resto de formatos y
+    // herramientas (F1-F10, Módulo de Perfilamiento) cuelguen sus datos
+    // de este mismo id — ver CasoContext.jsx.
+    setErrorCaso(null);
+    try {
+      await crearCaso({ nombreParticipante: nombre, municipio });
+    } catch (err) {
+      setErrorCaso('No se pudo registrar el caso en el servidor. La orientación se muestra igual, pero los datos de esta petición no quedaron guardados — intente de nuevo.');
     }
 
     const lectura = evaluarOrientacion(alerta);
@@ -248,6 +262,8 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
           </div>
         )}
       </Section>
+
+      {errorCaso && <Callout variant="warn">{errorCaso}</Callout>}
 
       {resultado && (
         <div className={`orient-card ${resultado.clase}`}>

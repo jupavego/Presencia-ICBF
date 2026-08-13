@@ -3,25 +3,27 @@ import Callout from './ui/Callout.jsx';
 import PatternCard from './ui/PatternCard.jsx';
 import { AMBITOS } from '../data/ambitos.js';
 import { usePerfilSesion } from '../context/PerfilSesionContext.jsx';
+import { useCaso } from '../context/CasoContext.jsx';
 
 const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fortalecimiento', profundizacion: 'Situaciones a priorizar' };
 
-// Primera pieza del Producto 8 (integración entre esferas) que no
-// requiere backend: sintetiza en un solo lugar lo que las 23
-// herramientas del módulo ya produjeron dentro de esta misma visita,
-// leyendo el registro compartido de PerfilSesionContext.js. No define
-// reglas nuevas de cruce entre esferas específicas (eso es la extensión
-// del motor de recomendaciones, Producto 9, que vendría después) — aquí
-// se agregan los patrones ya calculados por cada herramienta, agrupados
-// por nivel, para que el equipo tenga una vista consolidada sin abrir
-// una por una.
+// Primera pieza del Producto 8 (integración entre esferas): sintetiza en
+// un solo lugar lo que las 24 herramientas del módulo ya produjeron para
+// el caso activo, leyendo el registro compartido de
+// PerfilSesionContext.js — que ahora persiste en Supabase, no solo en
+// memoria de la visita. No define reglas nuevas de cruce entre esferas
+// específicas (eso es la extensión del motor de recomendaciones,
+// Producto 9, que vendría después) — aquí se agregan los patrones ya
+// calculados por cada herramienta, agrupados por nivel, para que el
+// equipo tenga una vista consolidada sin abrir una por una.
 //
 // No incluye el Mapa de Pertenencia (F1): usa su propio motor de lectura
-// de red (lecturaRed.js), con un contrato distinto al de las 23
+// de red (lecturaRed.js), con un contrato distinto al de las 24
 // herramientas de este módulo, y queda fuera del alcance de esta
 // primera versión.
 export default function PerfilSesionPanel({ onOpenFormat }) {
   const { registro } = usePerfilSesion();
+  const { caso, casoActivoId } = useCaso();
 
   const infoHerramienta = useMemo(() => {
     const mapa = {};
@@ -50,11 +52,23 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
         <div className="eyebrow">Módulo de Perfilamiento · Perfil de sesión</div>
         <h2>Perfil de la sesión</h2>
         <p>
-          Consolida los patrones que ya arrojaron las herramientas completadas en esta misma visita — no reemplaza
-          abrir cada una, es una vista de conjunto para no tener que recordarlas todas. Se pierde al recargar la
-          página, igual que las respuestas de cada formulario individual.
+          Consolida los patrones que ya arrojaron las herramientas completadas para el caso activo — no reemplaza
+          abrir cada una, es una vista de conjunto para no tener que recordarlas todas.
         </p>
       </div>
+
+      {!casoActivoId ? (
+        <Callout variant="warn">
+          No hay un caso activo. Los resultados que complete quedarán solo en esta visita — para que se guarden y
+          estén disponibles la próxima vez, registre una <b>Petición de Vinculación</b> (etapa 01) o seleccione un
+          caso existente desde la barra superior.
+        </Callout>
+      ) : (
+        <Callout>
+          Caso activo: <b>{caso?.nombre_participante || casoActivoId.slice(0, 8)}</b> — los resultados se guardan
+          automáticamente en el servidor.
+        </Callout>
+      )}
 
       <div className="lectura-metrics">
         <div><b>{completadas.length}/{totalHerramientas}</b><span>Herramientas completadas</span></div>

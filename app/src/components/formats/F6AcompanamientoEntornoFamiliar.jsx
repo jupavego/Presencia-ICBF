@@ -7,6 +7,8 @@ import DataTable from '../ui/DataTable.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const MOTIVOS = ['Fortalecimiento de relaciones familiares.', 'Dificultades en la convivencia familiar.', 'Fortalecimiento de capacidades de cuidado.', 'Necesidad de fortalecer redes de apoyo.', 'Situación relacionada con condiciones económicas.', 'Situación relacionada con acceso a servicios.', 'Necesidad de orientación frente a una situación familiar.', 'Situación relacionada con cambios o transiciones familiares.', 'Interés en fortalecer recursos y capacidades existentes.', 'Solicitud de orientación o acompañamiento frente a una situación específica.'];
 
@@ -34,6 +36,7 @@ const nuevoCompromiso = () => ({ descripcion: '', responsable: 'Familia', fecha:
 
 export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [herramientas, setHerramientas] = useState([]);
   const [compromisosFamilia, setCompromisosFamilia] = useState([]);
   const [compromisosIcbf, setCompromisosIcbf] = useState([]);
@@ -82,6 +85,7 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
       retos: retos.join('; '),
     };
 
+    await guardarDatosFormatoOficial(casoActivoId, 'F6', datos);
     await descargarDocxOficial(
       '/plantillas/F6-Acompanamiento-Entorno-Familiar.docx',
       datos,

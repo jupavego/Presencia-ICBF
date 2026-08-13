@@ -5,6 +5,8 @@ import { TextField, SelectField } from '../ui/Field.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const COLUMNAS_FAMILIAR = [
   { key: 'num', label: '# Acomp.', width: '50px' },
@@ -61,6 +63,7 @@ function escribirFilas(ws, filas, columnas) {
 
 export default function F8Cronograma({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [tab, setTab] = useState('familiar');
   const [familiar, setFamiliar] = useState([nuevaVisitaFamiliar(0)]);
   const [comunitario, setComunitario] = useState([nuevoEncuentro(0)]);
@@ -76,6 +79,8 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
     const centroZonal = fd.get('centroZonal') || '';
     const profesional = fd.get('profesional') || '';
     const telefono = fd.get('telefonoEquipo') || '';
+
+    await guardarDatosFormatoOficial(casoActivoId, 'F8', { regional, centroZonal, profesional, telefono, familiar, comunitario });
 
     await descargarXlsxOficial('/plantillas/F8-Cronograma.xlsx', (workbook) => {
       const wsFamiliar = workbook.getWorksheet('Acomp Entorno Familiar');

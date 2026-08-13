@@ -1,20 +1,22 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { supabase } from '../lib/supabaseClient.js';
+import { useCaso } from './CasoContext.jsx';
 
-// Perfil de sesión: registro compartido en memoria de los resultados que
-// cada herramienta del módulo de Perfilamiento produce. Vive mientras la
-// pestaña esté abierta — se pierde al recargar, igual que las respuestas
-// de cada formulario individual hoy — pero ya no se pierde al cerrar una
-// herramienta y abrir otra dentro de la misma visita.
-//
+// Perfil de sesión: registro compartido de los resultados que cada
+// herramienta del módulo de Perfilamiento produce para el caso activo.
 // Antes de esto, cada una de las 24 herramientas leía sus propias
 // respuestas de forma aislada (useState local en cada componente) y todo
 // se perdía al cerrar el formulario — no había forma de que, por ejemplo,
 // Proyecto de Vida "supiera" lo que ya se había explorado en
-// Empoderamiento familiar dentro de la misma visita. Este contexto es la
-// primera pieza del Producto 8 (integración entre esferas) que no
-// requiere backend: habilita que las herramientas se lean entre sí y le
-// da al futuro motor de recomendaciones (Producto 9) un lugar único de
-// donde partir, en vez de que cada herramienta viva en su propia burbuja.
+// Empoderamiento familiar, ni siquiera dentro de la misma visita.
+//
+// Ahora `registro` vive en memoria para lecturas rápidas mientras se
+// navega entre herramientas, pero cada resultado completo también se
+// guarda en la tabla `perfilamiento_resultados` de Supabase (caso_id +
+// instrumento_id) — así sí sobrevive a recargar la página o a volver en
+// otra visita, siempre que se seleccione el mismo caso. Es la primera
+// pieza real del Producto 8 (integración entre esferas) y de la
+// comparación T0/T1/T2 en el tiempo.
 //
 // Solo guarda resultados de herramientas ya completas (`resultado.completo
 // === true`) — un formulario a medio llenar no aporta nada al perfil de
@@ -23,13 +25,52 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 const PerfilSesionContext = createContext(null);
 
 export function PerfilSesionProvider({ children }) {
+  const { casoActivoId } = useCaso();
   const [registro, setRegistro] = useState({});
+  const [cargando, setCargando] = useState(false);
+
+  // Al cambiar de caso activo, hidrata el registro con lo que ya exista
+  // guardado para ese caso — sin esto, cada recarga de página (o cada
+  // cambio de caso) volvería a empezar en blanco pese a tener datos
+  // guardados en Supabase.
+  useEffect(() => {
+    if (!casoActivoId) {
+      setRegistro({});
+      return;
+    }
+    setCargando(true);
+    supabase
+      .from('perfilamiento_resultados')
+      .select('instrumento_id, resultado')
+      .eq('caso_id', casoActivoId)
+      .then(({ data, error }) => {
+        if (error) {
+          console.error('No se pudo cargar el perfil de sesión guardado:', error);
+          setRegistro({});
+          return;
+        }
+        const hidratado = {};
+        for (const fila of data || []) hidratado[fila.instrumento_id] = fila.resultado;
+        setRegistro(hidratado);
+      })
+      .finally(() => setCargando(false));
+  }, [casoActivoId]);
 
   const registrar = useCallback((instrumentoId, resultado) => {
     setRegistro((r) => (r[instrumentoId] === resultado ? r : { ...r, [instrumentoId]: resultado }));
-  }, []);
+    if (!casoActivoId) return; // sin caso activo, el resultado queda solo en memoria para esta visita
+    supabase
+      .from('perfilamiento_resultados')
+      .upsert(
+        { caso_id: casoActivoId, instrumento_id: instrumentoId, resultado, actualizado_en: new Date().toISOString() },
+        { onConflict: 'caso_id,instrumento_id' },
+      )
+      .then(({ error }) => {
+        if (error) console.error(`No se pudo guardar el resultado de ${instrumentoId} en el servidor:`, error);
+      });
+  }, [casoActivoId]);
 
-  const value = useMemo(() => ({ registro, registrar }), [registro, registrar]);
+  const value = useMemo(() => ({ registro, registrar, cargando }), [registro, registrar, cargando]);
 
   return <PerfilSesionContext.Provider value={value}>{children}</PerfilSesionContext.Provider>;
 }

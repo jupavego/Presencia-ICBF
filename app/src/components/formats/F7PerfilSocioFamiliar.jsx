@@ -7,6 +7,8 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const ESTADOS_CIVILES = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Separado(a)', 'Viudo(a)', 'Divorciado(a)', 'No aplica'];
 const NIVELES_ESCOLARES = ['Ninguno', 'Primaria completa', 'Primaria incompleta', 'Secundaria completa', 'Secundaria incompleta', 'Técnico completo', 'Técnico incompleto', 'Universitario completo', 'Universitario incompleto', 'Preescolar', 'Otro'];
@@ -40,6 +42,7 @@ const nuevoIntegrante = () => ({
 
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [acudenPor, setAcudenPor] = useState('');
   const [recibeSubsidios, setRecibeSubsidios] = useState('');
   const [trayectoria, setTrayectoria] = useState([]);
@@ -181,6 +184,7 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       datos.integrantes = [{ nombre: '', edad: '', lugarNacimiento: '', estadoCivil: '', nivelEscolar: '', rolFamilia: '', afiliacionSalud: '', ocupacion: '', dedicacion: '' }];
     }
 
+    await guardarDatosFormatoOficial(casoActivoId, 'F7', datos);
     await descargarDocxOficial(
       '/plantillas/F7-Perfil-Socio-Familiar.docx',
       datos,

@@ -1,0 +1,61 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabaseClient.js';
+import { useCaso } from '../../context/CasoContext.jsx';
+
+// Barra compacta en el TopBar: qué caso está activo y un selector simple
+// para cambiar entre los ya existentes. La creación de un caso nuevo pasa
+// por Petición de Acceso (etapa 01) — es el punto de la app donde hoy ya
+// se inicia un caso, no se duplica ese flujo aquí.
+export default function CasoBar() {
+  const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
+  const [casos, setCasos] = useState([]);
+  const [abierto, setAbierto] = useState(false);
+
+  useEffect(() => {
+    if (!abierto) return;
+    supabase
+      .from('casos')
+      .select('id, numero_peticion, nombre_participante, creado_en')
+      .order('creado_en', { ascending: false })
+      .limit(50)
+      .then(({ data }) => setCasos(data || []));
+  }, [abierto]);
+
+  return (
+    <div className="topbar-caso" style={{ position: 'relative' }}>
+      <button type="button" className="ftab" onClick={() => setAbierto((v) => !v)}>
+        {caso
+          ? `Caso: ${caso.nombre_participante || caso.numero_peticion || caso.id.slice(0, 8)}`
+          : casoActivoId
+            ? 'Cargando caso…'
+            : 'Sin caso activo'}
+      </button>
+      {abierto && (
+        <div
+          style={{
+            position: 'absolute', top: '110%', right: 0, background: '#fff', border: '1px solid var(--border)',
+            borderRadius: 10, boxShadow: 'var(--shadow)', padding: 8, minWidth: 240, zIndex: 20,
+          }}
+        >
+          {casos.length === 0 && <p className="fdesc" style={{ padding: 6 }}>Ningún caso creado todavía — cree uno desde Petición de Acceso.</p>}
+          {casos.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className="fbtn"
+              style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 4, background: c.id === casoActivoId ? 'var(--verde-oscuro)' : undefined }}
+              onClick={() => { seleccionarCaso(c.id); setAbierto(false); }}
+            >
+              {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
+            </button>
+          ))}
+          {caso && (
+            <button type="button" className="fbtn" style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }} onClick={() => { cerrarCaso(); setAbierto(false); }}>
+              Cerrar caso activo
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

@@ -7,6 +7,8 @@ import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 // Fuente: F3.GO3_.MT5_.PP Formato Acuerdo de Vinculacion v2.docx
 const COLUMNAS_MENORES = [
@@ -29,6 +31,7 @@ function textoSiNo(valor) {
 
 export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [tratamientoDatos, setTratamientoDatos] = useState('');
   const [mensajesTexto, setMensajesTexto] = useState('');
   const [fotosMenores, setFotosMenores] = useState('');
@@ -82,6 +85,7 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
       datos[`menor${i}Documento`] = m ? m.documento || '' : '';
     }
 
+    await guardarDatosFormatoOficial(casoActivoId, 'F3', datos);
     await descargarDocxOficial('/plantillas/F3-Acuerdo-Vinculacion.docx', datos, 'F3-Acuerdo-Vinculacion-diligenciado.docx');
   }
 

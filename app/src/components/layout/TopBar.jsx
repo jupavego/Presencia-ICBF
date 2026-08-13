@@ -1,4 +1,8 @@
+import CasoBar from '../caso/CasoBar.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+
 export default function TopBar() {
+  const { session, signOut } = useAuth();
   return (
     <header className="topbar">
       <svg className="mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -11,6 +15,12 @@ export default function TopBar() {
         <span className="servicio">Servicio <b>PRESENCIA</b> — Panel de Etapas y Formatos</span>
       </div>
       <div className="topbar-spacer" />
+      <CasoBar />
+      {session && (
+        <button type="button" className="ftab" onClick={signOut} title={session.user?.email}>
+          Cerrar sesión
+        </button>
+      )}
       <span className="topbar-tag">Prototipo interno · v0.2</span>
     </header>
   );

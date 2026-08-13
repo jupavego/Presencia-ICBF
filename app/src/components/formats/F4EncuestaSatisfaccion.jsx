@@ -6,6 +6,8 @@ import Choice from '../ui/Choice.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 // Columna del formato oficial donde se marca la X según la escala 1–5 / N/A.
 const COLUMNA_ESCALA = { '1 · Totalmente insatisfecho': 'C', '2 · Insatisfecho': 'D', '3 · Indiferente': 'E', '4 · Satisfecho': 'F', '5 · Totalmente satisfecho': 'G', 'N/A': 'H' };
@@ -67,6 +69,7 @@ function RatingItem({ index, text, value, onChange }) {
 
 export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [entiendeInfo, setEntiendeInfo] = useState('');
   const [aceptaResponder, setAceptaResponder] = useState('');
   const [respuestas, setRespuestas] = useState({});
@@ -84,6 +87,17 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
 
   async function handleExportarOficial() {
     const fd = new FormData(formRef.current);
+
+    await guardarDatosFormatoOficial(casoActivoId, 'F4', {
+      departamento: fd.get('departamento') || '',
+      municipio: fd.get('municipio') || '',
+      fecha: formatoFecha(fd.get('fecha')),
+      profesionales: fd.get('profesionales') || '',
+      nombreResponde: fd.get('nombreResponde') || '',
+      documentoResponde: fd.get('documentoResponde') || '',
+      entiendeInfo, aceptaResponder, respuestaSolicitud, fortalecioCapacidades, respuestas,
+      sugerencias: fd.get('sugerencias') || '',
+    });
 
     await descargarXlsxOficial('/plantillas/F4-Encuesta-Satisfaccion.xlsx', (workbook) => {
       const ws = workbook.worksheets[0];

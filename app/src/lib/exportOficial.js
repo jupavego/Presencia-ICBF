@@ -8,8 +8,10 @@
 // app/docs/exportacion-formatos-oficiales.md para el detalle de cómo se
 // construyó cada plantilla y qué campos cubre.
 //
-// Todo corre en el navegador: no hay backend que reciba ni almacene los
-// datos capturados. El archivo se genera localmente y se descarga.
+// La generación del documento corre en el navegador (el archivo se arma
+// localmente y se descarga); el guardado de esos mismos datos en el
+// servidor, para que sobrevivan a recargar la página, vive aparte en
+// persistenciaCaso.js — cada formato llama a ambas cosas al enviar.
 
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';

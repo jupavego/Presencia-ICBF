@@ -5,6 +5,8 @@ import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { useCaso } from '../../context/CasoContext.jsx';
 
 const METODOLOGIAS = ['Reunión participativa', 'Círculo de diálogo', 'Taller participativo', 'Conversatorio', 'Cartografía social', 'Trabajo colaborativo por grupos', 'Estudio de casos', 'Actividad lúdico-pedagógica', 'Diálogo de saberes', 'Encuentro experiencial/reflexivo', 'Otra metodología'];
 
@@ -33,6 +35,7 @@ const MEJORAS = ['Fortalecer los mecanismos de convocatoria.', 'Ajustar los hora
 
 export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
+  const { casoActivoId } = useCaso();
   const [actividades, setActividades] = useState([]);
   const [logros, setLogros] = useState([]);
   const [aciertos, setAciertos] = useState([]);
@@ -66,6 +69,7 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
       oportunidadesMejora: mejoras.join('; '),
     };
 
+    await guardarDatosFormatoOficial(casoActivoId, 'F5', datos);
     await descargarDocxOficial(
       '/plantillas/F5-Encuentros-Comunitarios.docx',
       datos,
