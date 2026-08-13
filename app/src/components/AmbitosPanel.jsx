@@ -1,5 +1,6 @@
 import FormatCard from './FormatCard.jsx';
 import Callout from './ui/Callout.jsx';
+import EsferasDiagrama from './EsferasDiagrama.jsx';
 import { AMBITOS, countDisponiblesAmbito } from '../data/ambitos.js';
 import { OBJETIVOS_ESPECIFICOS } from '../data/servicioInfo.js';
 
@@ -30,10 +31,12 @@ export default function AmbitosPanel({ onOpenFormat }) {
         </Callout>
       </div>
 
+      <EsferasDiagrama />
+
       {AMBITOS.map((ambito) => {
         const disponibles = countDisponiblesAmbito(ambito);
         return (
-          <div className="ambito-block" key={ambito.codigo}>
+          <div className="ambito-block" id={`esfera-${ambito.codigo}`} key={ambito.codigo}>
             <div className="ambito-block-head">
               <span className="num">{ambito.codigo}</span>
               <div className="ambito-block-title">

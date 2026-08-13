@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
@@ -9,6 +9,7 @@ import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import { useFamilia } from '../../context/FamiliaContext.jsx';
 
 const ESTADOS_CIVILES = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Separado(a)', 'Viudo(a)', 'Divorciado(a)', 'No aplica'];
 const NIVELES_ESCOLARES = ['Ninguno', 'Primaria completa', 'Primaria incompleta', 'Secundaria completa', 'Secundaria incompleta', 'Técnico completo', 'Técnico incompleto', 'Universitario completo', 'Universitario incompleto', 'Preescolar', 'Otro'];
@@ -36,6 +37,7 @@ const TRAYECTORIA_TAGS = {
 const EVENTO_TAGS = ['ev1X', 'ev2X', 'ev3X', 'ev4X', 'ev5X', 'ev6X', 'ev7X', 'ev8X', 'ev9X', 'ev10X', 'ev11X', 'ev12X', 'ev13X', 'ev14X', 'ev15X', 'ev16X'];
 
 const nuevoIntegrante = () => ({
+  id: crypto.randomUUID(),
   nombre: '', edad: '', lugarNacimiento: '', estadoCivil: '', nivelEscolar: '',
   rolFamilia: '', afiliacionSalud: '', ocupacion: '', dedicacion: '',
 });
@@ -43,6 +45,7 @@ const nuevoIntegrante = () => ({
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
   const { casoActivoId } = useCaso();
+  const { integrantes: integrantesDelCaso, guardarIntegrantes, cargando: cargandoFamilia } = useFamilia();
   const [acudenPor, setAcudenPor] = useState('');
   const [recibeSubsidios, setRecibeSubsidios] = useState('');
   const [trayectoria, setTrayectoria] = useState([]);
@@ -60,22 +63,46 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const [institucionesProf, setInstitucionesProf] = useState([]);
   const [ocupacionSocial, setOcupacionSocial] = useState([]);
 
+  // Hidrata la lista editable con lo que ya tenga guardado el caso activo
+  // (compartido con cualquier otro formato que use FamiliaContext). Se
+  // re-sincroniza al cambiar de caso y también cuando `cargandoFamilia`
+  // pasa de true a false — el fetch del contexto es async, así que si
+  // este formulario ya estaba montado antes de que la carga terminara,
+  // `integrantesDelCaso` seguía en `[]` en el primer render y había que
+  // esperar a que terminara de cargar para volver a sincronizar; sin este
+  // segundo disparador, la hidratación real llegaba tarde y se perdía.
+  useEffect(() => {
+    if (cargandoFamilia) return;
+    setIntegrantes(integrantesDelCaso.length ? integrantesDelCaso : [nuevoIntegrante()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casoActivoId, cargandoFamilia]);
+
   function toggleEnArreglo(arreglo, setArreglo, valor) {
     setArreglo(arreglo.includes(valor) ? arreglo.filter((v) => v !== valor) : [...arreglo, valor]);
   }
 
+  // El texto se sigue editando localmente en cada tecleo (sin esperar red);
+  // solo al salir del campo (onBlur, ver JSX) se persiste la lista
+  // completa al caso — así no se dispara una escritura por cada letra.
   function updateIntegrante(index, key, value) {
     setIntegrantes(integrantes.map((it, i) => (i === index ? { ...it, [key]: value } : it)));
   }
+  function persistirIntegrantes() {
+    guardarIntegrantes(integrantes);
+  }
   function addIntegrante() {
-    setIntegrantes([...integrantes, nuevoIntegrante()]);
+    const lista = [...integrantes, nuevoIntegrante()];
+    setIntegrantes(lista);
+    guardarIntegrantes(lista);
   }
   function removeIntegrante(index) {
     if (integrantes.length <= 1) {
       alert('Debe permanecer al menos un integrante para iniciar el registro.');
       return;
     }
-    setIntegrantes(integrantes.filter((_, i) => i !== index));
+    const lista = integrantes.filter((_, i) => i !== index);
+    setIntegrantes(lista);
+    guardarIntegrantes(lista);
   }
 
   function handleSubmit(e) {
@@ -263,21 +290,21 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
 
       <Section title="6. Información de otros miembros de la familia" hint='Registre a cada integrante de la familia. Las categorías del F7 están incorporadas directamente en las listas desplegables.'>
         {integrantes.map((it, i) => (
-          <div className="repeater-item" key={i}>
+          <div className="repeater-item" key={it.id || i}>
             <div className="repeater-head">
               <span className="repeater-num">INTEGRANTE {String(i + 1).padStart(2, '0')}</span>
               <button type="button" className="remove-row" onClick={() => removeIntegrante(i)}>Eliminar</button>
             </div>
             <div className="grid">
-              <TextField span="col-3" label="Nombre y apellido" placeholder="Nombre completo" value={it.nombre} onChange={(e) => updateIntegrante(i, 'nombre', e.target.value)} />
-              <TextField span="col-3" label="Edad" type="number" min="0" value={it.edad} onChange={(e) => updateIntegrante(i, 'edad', e.target.value)} />
-              <TextField span="col-3" label="Lugar de nacimiento" value={it.lugarNacimiento} onChange={(e) => updateIntegrante(i, 'lugarNacimiento', e.target.value)} />
-              <SelectField span="col-3" label="Estado civil" options={ESTADOS_CIVILES} value={it.estadoCivil} onChange={(e) => updateIntegrante(i, 'estadoCivil', e.target.value)} />
-              <SelectField span="col-3" label="Nivel escolar" options={NIVELES_ESCOLARES} value={it.nivelEscolar} onChange={(e) => updateIntegrante(i, 'nivelEscolar', e.target.value)} />
-              <SelectField span="col-3" label="Rol en la familia" options={ROLES_FAMILIA} value={it.rolFamilia} onChange={(e) => updateIntegrante(i, 'rolFamilia', e.target.value)} />
-              <SelectField span="col-3" label="Afiliación a salud" options={AFILIACIONES_SALUD} value={it.afiliacionSalud} onChange={(e) => updateIntegrante(i, 'afiliacionSalud', e.target.value)} />
-              <SelectField span="col-3" label="Actividad económica / ocupación" options={OCUPACIONES} value={it.ocupacion} onChange={(e) => updateIntegrante(i, 'ocupacion', e.target.value)} />
-              <SelectField span="col-3" label="Tiempo de dedicación" options={TIEMPOS_DEDICACION} value={it.dedicacion} onChange={(e) => updateIntegrante(i, 'dedicacion', e.target.value)} />
+              <TextField span="col-3" label="Nombre y apellido" placeholder="Nombre completo" value={it.nombre} onChange={(e) => updateIntegrante(i, 'nombre', e.target.value)} onBlur={persistirIntegrantes} />
+              <TextField span="col-3" label="Edad" type="number" min="0" value={it.edad} onChange={(e) => updateIntegrante(i, 'edad', e.target.value)} onBlur={persistirIntegrantes} />
+              <TextField span="col-3" label="Lugar de nacimiento" value={it.lugarNacimiento} onChange={(e) => updateIntegrante(i, 'lugarNacimiento', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Estado civil" options={ESTADOS_CIVILES} value={it.estadoCivil} onChange={(e) => updateIntegrante(i, 'estadoCivil', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Nivel escolar" options={NIVELES_ESCOLARES} value={it.nivelEscolar} onChange={(e) => updateIntegrante(i, 'nivelEscolar', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Rol en la familia" options={ROLES_FAMILIA} value={it.rolFamilia} onChange={(e) => updateIntegrante(i, 'rolFamilia', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Afiliación a salud" options={AFILIACIONES_SALUD} value={it.afiliacionSalud} onChange={(e) => updateIntegrante(i, 'afiliacionSalud', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Actividad económica / ocupación" options={OCUPACIONES} value={it.ocupacion} onChange={(e) => updateIntegrante(i, 'ocupacion', e.target.value)} onBlur={persistirIntegrantes} />
+              <SelectField span="col-3" label="Tiempo de dedicación" options={TIEMPOS_DEDICACION} value={it.dedicacion} onChange={(e) => updateIntegrante(i, 'dedicacion', e.target.value)} onBlur={persistirIntegrantes} />
             </div>
           </div>
         ))}

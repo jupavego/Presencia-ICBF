@@ -45,8 +45,11 @@ public/
   plantillas/             Plantillas .docx/.xlsx que consume la exportación
                           (ver docs/exportacion-formatos-oficiales.md).
 supabase/
-  migrations/0001_init.sql  Esquema de la base de datos (ver "Configuración
-                          de Supabase").
+  migrations/0001_init.sql  Esquema base de la base de datos (casos,
+                          perfilamiento_resultados, formatos_oficiales_datos).
+  migrations/0002_familia_compromisos.sql  Familia/Integrantes y
+                          Compromisos como entidades propias del caso (ver
+                          "Configuración de Supabase").
 src/
   context/
     AuthContext.jsx        Sesión de Supabase (login/logout), sin registro público.
@@ -55,6 +58,12 @@ src/
     PerfilSesionContext.jsx  Resultados de las 25 herramientas del Módulo de
                           Perfilamiento para el caso activo, persistidos en
                           Supabase.
+    FamiliaContext.jsx      Integrantes de la familia del caso activo — antes
+                          vivían solo dentro de F7, ahora los puede leer
+                          cualquier formato/herramienta.
+    CompromisosContext.jsx  Compromisos/acuerdos del caso activo — antes
+                          vivían solo dentro de F6, ahora se consolidan
+                          también en el Perfil de sesión.
   data/
     etapas.js             Única fuente de verdad: las 7 etapas, sus funciones
                           y los formatos que intervienen en cada una.
@@ -164,10 +173,13 @@ apuntar por accidente a un proyecto equivocado, ver
 `src/lib/supabaseClient.js`).
 
 1. Cree un proyecto gratuito en [supabase.com](https://supabase.com).
-2. Abra el **editor SQL** del proyecto y corra el contenido de
+2. Abra el **editor SQL** del proyecto y corra, en orden y una sola vez,
    [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
-   una sola vez — crea las tablas `casos`, `perfilamiento_resultados` y
-   `formatos_oficiales_datos`, con Row Level Security habilitada.
+   (tablas `casos`, `perfilamiento_resultados`, `formatos_oficiales_datos`)
+   y luego
+   [`supabase/migrations/0002_familia_compromisos.sql`](supabase/migrations/0002_familia_compromisos.sql)
+   (tablas `familia_integrantes`, `compromisos`) — ambas con Row Level
+   Security habilitada.
 3. Cree al menos un usuario desde **Authentication → Users** en el
    dashboard. No hay registro público en esta primera versión — las
    cuentas de los profesionales se crean manualmente, para no dejar la
@@ -198,16 +210,22 @@ que quede resuelto solo con este cambio de código.
 - **`formatos_oficiales_datos`** — los datos que cada formato oficial
   (F1, F3-F8, F10) ya arma para su descarga en Word/Excel, guardados
   también en el servidor al exportar.
+- **`familia_integrantes`** — los integrantes de la familia del caso
+  activo, capturados desde F7 pero compartidos (ver `FamiliaContext.jsx`)
+  con cualquier otro formato o herramienta que los necesite.
+- **`compromisos`** — los acuerdos/compromisos del caso activo,
+  capturados desde F6 pero consolidados también en el **Perfil de
+  sesión** (ver `CompromisosContext.jsx`).
 
 ## Próximos pasos de arquitectura
 
 Ya resuelto en esta vuelta: persistencia real (Supabase), autenticación
-básica y la entidad **Caso**, que antes no existía en ningún lugar del
-cliente.
+básica, la entidad **Caso** (que antes no existía en ningún lugar del
+cliente), y **Familia/Integrante** + **Compromiso/Acuerdo** como
+entidades propias del caso (antes vivían aisladas dentro del JSONB de
+F7 y F6 respectivamente, sin poder compartirse ni consultarse entre
+formatos).
 
-Pendiente para vueltas posteriores: modelar **Familia**/**Integrante**
-como entidades propias (hoy viven dentro del JSONB de cada formato, sin
-normalizar), **Compromiso/Acuerdo** como tabla propia (hoy es texto
-libre dentro de F6/F7), **Profesional/Equipo** con roles y control de
-acceso por caso, y el motor de recomendaciones cruzadas entre esferas
-(Producto 9, ver `docs/arquitectura-modulo-perfilamiento.md`).
+Pendiente para vueltas posteriores: **Profesional/Equipo** con roles y
+control de acceso por caso, y el motor de recomendaciones cruzadas entre
+esferas (Producto 9, ver `docs/arquitectura-modulo-perfilamiento.md`).

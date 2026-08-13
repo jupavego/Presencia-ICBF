@@ -12,6 +12,8 @@ import { ETAPAS } from './data/etapas.js';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
 import { CasoProvider } from './context/CasoContext.jsx';
 import { PerfilSesionProvider } from './context/PerfilSesionContext.jsx';
+import { FamiliaProvider } from './context/FamiliaContext.jsx';
+import { CompromisosProvider } from './context/CompromisosContext.jsx';
 
 function AppShell() {
   const [activeIndex, setActiveIndex] = useState(-1); // -1 = Inicio, 'herramientas' = módulo de perfilamiento, 'perfil' = perfil de sesión, número = índice en ETAPAS
@@ -63,9 +65,13 @@ function AuthGate() {
   if (!session) return <LoginScreen />;
   return (
     <CasoProvider>
-      <PerfilSesionProvider>
-        <AppShell />
-      </PerfilSesionProvider>
+      <FamiliaProvider>
+        <CompromisosProvider>
+          <PerfilSesionProvider>
+            <AppShell />
+          </PerfilSesionProvider>
+        </CompromisosProvider>
+      </FamiliaProvider>
     </CasoProvider>
   );
 }
