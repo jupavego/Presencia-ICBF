@@ -38,7 +38,7 @@ const nuevoCompromiso = () => ({ id: crypto.randomUUID(), descripcion: '', respo
 export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
   const { casoActivoId } = useCaso();
-  const { compromisos: compromisosDelCaso, guardarCompromisos } = useCompromisos();
+  const { compromisos: compromisosDelCaso, guardarCompromisos, cargando: cargandoCompromisos } = useCompromisos();
   const [herramientas, setHerramientas] = useState([]);
   const [compromisosFamilia, setCompromisosFamilia] = useState([]);
   const [compromisosIcbf, setCompromisosIcbf] = useState([]);
@@ -48,12 +48,15 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
   const [compromisos, setCompromisos] = useState([nuevoCompromiso()]);
 
   // Hidrata la matriz editable con lo que ya tenga guardado el caso activo
-  // (compartido con cualquier otro formato que use CompromisosContext) —
-  // solo al cambiar de caso, no en cada guardado propio.
+  // (compartido con cualquier otro formato que use CompromisosContext). Se
+  // re-sincroniza al cambiar de caso y también cuando `cargandoCompromisos`
+  // pasa de true a false — el fetch del contexto es async, ver el mismo
+  // comentario en F7PerfilSocioFamiliar.jsx.
   useEffect(() => {
+    if (cargandoCompromisos) return;
     setCompromisos(compromisosDelCaso.length ? compromisosDelCaso : [nuevoCompromiso()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [casoActivoId]);
+  }, [casoActivoId, cargandoCompromisos]);
 
   function actualizarCompromisos(nuevaLista) {
     setCompromisos(nuevaLista);

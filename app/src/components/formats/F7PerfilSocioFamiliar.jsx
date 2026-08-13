@@ -45,7 +45,7 @@ const nuevoIntegrante = () => ({
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
   const { casoActivoId } = useCaso();
-  const { integrantes: integrantesDelCaso, guardarIntegrantes } = useFamilia();
+  const { integrantes: integrantesDelCaso, guardarIntegrantes, cargando: cargandoFamilia } = useFamilia();
   const [acudenPor, setAcudenPor] = useState('');
   const [recibeSubsidios, setRecibeSubsidios] = useState('');
   const [trayectoria, setTrayectoria] = useState([]);
@@ -64,13 +64,18 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const [ocupacionSocial, setOcupacionSocial] = useState([]);
 
   // Hidrata la lista editable con lo que ya tenga guardado el caso activo
-  // (compartido con cualquier otro formato que use FamiliaContext) — solo
-  // al cambiar de caso, no en cada guardado propio, para no pisar lo que
-  // se está escribiendo con el eco del propio guardado.
+  // (compartido con cualquier otro formato que use FamiliaContext). Se
+  // re-sincroniza al cambiar de caso y también cuando `cargandoFamilia`
+  // pasa de true a false — el fetch del contexto es async, así que si
+  // este formulario ya estaba montado antes de que la carga terminara,
+  // `integrantesDelCaso` seguía en `[]` en el primer render y había que
+  // esperar a que terminara de cargar para volver a sincronizar; sin este
+  // segundo disparador, la hidratación real llegaba tarde y se perdía.
   useEffect(() => {
+    if (cargandoFamilia) return;
     setIntegrantes(integrantesDelCaso.length ? integrantesDelCaso : [nuevoIntegrante()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [casoActivoId]);
+  }, [casoActivoId, cargandoFamilia]);
 
   function toggleEnArreglo(arreglo, setArreglo, valor) {
     setArreglo(arreglo.includes(valor) ? arreglo.filter((v) => v !== valor) : [...arreglo, valor]);
