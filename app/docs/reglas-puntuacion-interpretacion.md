@@ -213,6 +213,48 @@ borrador.
 | Dimensiones desiguales (mixto, exhaustivo) | Cualquier combinación que no sea "todas consolidadas" ni "todas poco presentes" | Identifica dinámicamente la dimensión más y menos presente entre las 6 |
 | Recurso externo disponible sin activar | Recursos sociales/económicos "consolidado" **pero** Conexión familiar "poco presente" | La familia tiene acceso a redes de apoyo, pero la cohesión interna para movilizarlas juntos como unidad parece más débil |
 
+#### FRAS-54 — Family Resilience Assessment Scale (esfera C, instrumento real)
+
+Complementa al híbrido de arriba, no lo reemplaza. Fuente distinta a la
+adaptación colombiana bloqueada: la disertación doctoral original de
+Sixbey (2005, University of Florida), publicada abiertamente en el
+repositorio institucional de la universidad. Verificado con lectura
+visual de las páginas del Apéndice C (banco de 66 ítems) y Apéndice J
+(qué 54 de esos 66 componen la escala final, por subescala, con ítems
+inversos marcados) — no solo con extracción automática de texto, que
+desordenaba la tabla de columnas. Ítems reales, traducción propia al
+español (no una adaptación validada) — ver
+docs/catalogo-instrumentos-psicosociales.md#fras--family-resilience-assessment-scale-adaptación-colombiana
+para el detalle de la fuente.
+
+Escala Likert 1-4 (Totalmente en desacuerdo a Totalmente de acuerdo), 6
+subescalas puntuadas por promedio, con ítems inversos reales (4 de los 6
+ítems de Conexión familiar) — mismo patrón `escalaMin`/`escalaMax` que
+McMaster FAD y BFI-2.
+
+| Subescala | N.º de ítems | α (fuente original) |
+|---|---|---|
+| Comunicación y resolución de problemas | 27 | 0.96 |
+| Uso de recursos sociales y económicos | 8 | 0.85 |
+| Mantener una perspectiva positiva | 6 | 0.86 |
+| Conexión familiar | 6 (4 inversos) | 0.70 |
+| Espiritualidad familiar | 4 | 0.88 |
+| Capacidad de dar sentido a la adversidad | 3 | 0.74 |
+
+Sin puntos de corte clínicos oficiales reproducidos en la fuente
+revisada — niveles bajo/medio/alto (tercios sobre 1-4) son un corte
+descriptivo propio, igual que en BFI-2. Por la misma razón que BFI-2 (6
+factores con significados distintos entre sí, no comparables en una
+sola escala de "bueno/malo"), el catch-all exhaustivo es un
+`reglaResumen` neutral en vez de una regla "mixta" con juicio de valor.
+
+| Patrón | Regla | Lectura |
+|---|---|---|
+| Comunicación con apoyo comunitario | Comunicación y resolución de problemas alta **y** Uso de recursos sociales/económicos alto | Fortaleza interna respaldada por percepción de apoyo comunitario disponible |
+| Comunicación sin apoyo externo | Comunicación y resolución de problemas alta **pero** Uso de recursos sociales/económicos bajo | Fortaleza interna sin redes externas activadas — conecta con el Mapa de Pertenencia (F1) |
+| Comunicación a fortalecer | Comunicación y resolución de problemas baja | Es la dimensión con más peso del instrumento (27 de 54 ítems); un puntaje bajo aquí es la señal más relevante para priorizar |
+| Sentido con espiritualidad | Capacidad de dar sentido a la adversidad alta **y** Espiritualidad familiar alta | La familia encuentra en su práctica espiritual o de fe un recurso para afrontar la adversidad |
+
 #### FQOL Scale (5 subescalas: Interacción Familiar, Crianza, Bienestar Emocional, Bienestar Físico/Material, Apoyo por discapacidad)
 
 | Rango (satisfacción Likert 1-5) | Categoría descriptiva propia |
@@ -479,8 +521,9 @@ estructura de otro instrumento:
 | MSPSS | A | ✅ Completo (sección 2.1) — usa los rangos orientativos ya documentados en el catálogo | ✅ `data/instrumentos/mspss.js` + `herramientas/MSPSSHerramienta.jsx` |
 | FACES-20esp | A | ✅ Completo (sección 2.1) — usa la lógica curvilínea del propio modelo de Olson, no un corte inventado; exhaustivo sobre las 9 combinaciones posibles (balanceado, 4 extremos aislados, 4 esquinas del circumplejo) | ✅ `data/instrumentos/faces20esp.js` + `herramientas/FACES20espHerramienta.jsx` — ítems reales extraídos del anexo del paper fuente |
 | Autoeficacia General | A | ✅ Completo (sección 2.1) — unidimensional; se agregó además una regla de ítem divergente dentro del propio instrumento (no solo cruce entre esferas) | ✅ `data/instrumentos/autoeficacia.js` + `herramientas/AutoeficaciaHerramienta.jsx` — ítems reales extraídos de la Tabla I del paper fuente |
-| FRAS (real) | A | — | 🔒 Bloqueado — fuente incompleta (no un problema de licencia), ver fila híbrida |
+| FRAS (real, adaptación colombiana) | A | — | 🔒 Bloqueado — esa fuente específica no reproduce los 54 ítems (no un problema de licencia), ver filas híbrida y FRAS-54 |
 | FRAS (híbrido) | A | ✅ Completo (sección 2.1) — mismo modelo de 6 dimensiones de Walsh, 5 reglas exhaustivas | ✅ `data/instrumentos/frasHibrido.js` + `herramientas/FRASHibridoHerramienta.jsx` — preguntas de diseño propio, no ítems del FRAS original |
+| FRAS-54 (real, disertación Sixbey) | A | ✅ Completo (sección 2.1) — 4 reglas + `reglaResumen` neutral como catch-all, igual que BFI-2 | ✅ `data/instrumentos/frasReal.js` + `herramientas/FRASRealHerramienta.jsx` — 54 ítems reales, traducción propia, verificados con lectura visual del PDF fuente |
 | FQOL Scale | A | ✅ Completo (sección 2.1) — regla exhaustiva "mixto" + subescala condicional (Apoyo por discapacidad, solo si aplica a la familia) | ✅ `data/instrumentos/fqol.js` + `herramientas/FQOLHerramienta.jsx` — ítems reales extraídos del PDF fuente, traducción propia |
 | McMaster FAD | A | ✅ Completo (sección 2.1) — 5 reglas exhaustivas (fortaleza consistente / dificultad generalizada / focalizada / percepción discordante / mixto) | ✅ `data/instrumentos/mcmasterFad.js` + `herramientas/McMasterFADHerramienta.jsx` — 60 ítems reales transcritos del PDF escaneado (imagen, no texto); primer instrumento con ítems invertidos reales, motivó corregir `calcularPuntaje` para escalas 1-4 |
 | Empoderamiento familiar (esfera C) | B | ✅ Completo (sección 2.2) — se agregó la regla "mixto" para exhaustividad, más allá de los 4 patrones originales | ✅ `data/instrumentos/empoderamientoFamiliar.js` + `herramientas/EmpoderamientoFamiliarHerramienta.jsx` — primera herramienta con el motor cualitativo (`leerCategorias`) |
@@ -500,7 +543,7 @@ estructura de otro instrumento:
 | Exploración territorial (esfera L) | B | ✅ Completo | ✅ `data/instrumentos/exploracionTerritorial.js` |
 | Proyecto de vida (esfera M) | B | ✅ Completo — incluye las 2 reglas de cruce ya documentadas ("barrera sin oportunidad", "proyecto sin formular") + 3 adicionales | ✅ `data/instrumentos/proyectoDeVida.js` — la más grande (16 preguntas, 6 categorías) |
 
-**Las 24 herramientas (8 Tipo A + 16 Tipo B) están completamente
+**Las 25 herramientas (9 Tipo A + 16 Tipo B) están completamente
 implementadas y verificadas en el navegador**, no solo documentadas. Cada
 una fue construida con `CategoricoHerramienta.jsx` (componente genérico
 compartido para el motor cualitativo) o su equivalente Tipo A, siguiendo

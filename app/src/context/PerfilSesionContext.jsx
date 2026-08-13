@@ -4,7 +4,7 @@ import { useCaso } from './CasoContext.jsx';
 
 // Perfil de sesión: registro compartido de los resultados que cada
 // herramienta del módulo de Perfilamiento produce para el caso activo.
-// Antes de esto, cada una de las 24 herramientas leía sus propias
+// Antes de esto, cada una de las 25 herramientas leía sus propias
 // respuestas de forma aislada (useState local en cada componente) y todo
 // se perdía al cerrar el formulario — no había forma de que, por ejemplo,
 // Proyecto de Vida "supiera" lo que ya se había explorado en

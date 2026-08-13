@@ -52,7 +52,7 @@ src/
     AuthContext.jsx        Sesión de Supabase (login/logout), sin registro público.
     CasoContext.jsx         Caso activo — la entidad raíz a la que cuelgan
                           sus datos el resto de formatos y herramientas.
-    PerfilSesionContext.jsx  Resultados de las 24 herramientas del Módulo de
+    PerfilSesionContext.jsx  Resultados de las 25 herramientas del Módulo de
                           Perfilamiento para el caso activo, persistidos en
                           Supabase.
   data/

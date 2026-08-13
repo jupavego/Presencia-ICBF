@@ -8,7 +8,7 @@ import { useCaso } from '../context/CasoContext.jsx';
 const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fortalecimiento', profundizacion: 'Situaciones a priorizar' };
 
 // Primera pieza del Producto 8 (integración entre esferas): sintetiza en
-// un solo lugar lo que las 24 herramientas del módulo ya produjeron para
+// un solo lugar lo que las 25 herramientas del módulo ya produjeron para
 // el caso activo, leyendo el registro compartido de
 // PerfilSesionContext.js — que ahora persiste en Supabase, no solo en
 // memoria de la visita. No define reglas nuevas de cruce entre esferas

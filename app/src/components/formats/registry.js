@@ -17,6 +17,7 @@ import AutoeficaciaHerramienta from '../herramientas/AutoeficaciaHerramienta.jsx
 import FQOLHerramienta from '../herramientas/FQOLHerramienta.jsx';
 import McMasterFADHerramienta from '../herramientas/McMasterFADHerramienta.jsx';
 import FRASHibridoHerramienta from '../herramientas/FRASHibridoHerramienta.jsx';
+import FRASRealHerramienta from '../herramientas/FRASRealHerramienta.jsx';
 import EmpoderamientoFamiliarHerramienta from '../herramientas/EmpoderamientoFamiliarHerramienta.jsx';
 import AutoestimaHerramienta from '../herramientas/AutoestimaHerramienta.jsx';
 import HonestidadHumildadHerramienta from '../herramientas/HonestidadHumildadHerramienta.jsx';
@@ -52,6 +53,7 @@ export const FORMAT_REGISTRY = {
   FQOL: FQOLHerramienta,
   FAD: McMasterFADHerramienta,
   FRAS_HIB: FRASHibridoHerramienta,
+  FRAS_REAL: FRASRealHerramienta,
   EMPOFAM: EmpoderamientoFamiliarHerramienta,
   AUTOESTIMA: AutoestimaHerramienta,
   HONHUM: HonestidadHumildadHerramienta,

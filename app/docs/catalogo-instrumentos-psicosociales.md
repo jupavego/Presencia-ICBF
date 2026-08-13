@@ -239,12 +239,34 @@ vez de inferirlo o completarlo con un valor plausible.
 | Utilidad digital | **Muy alta** — única validación con población de la misma región del proyecto |
 | Limitaciones | Los ítems inversos (33, 37, 45, 50) mostraron cargas factoriales problemáticas; RMSEA/SRMR en rango limítrofe según los propios autores |
 
-**Resuelto con híbrido:** al no tener los 54 ítems completos, no se
-digitalizó el FRAS real. Se construyó un híbrido (`data/instrumentos/frasHibrido.js`)
+**Resuelto con híbrido:** al no tener los 54 ítems completos en esta
+fuente (la adaptación colombiana), no se digitalizó el FRAS real con
+base en este paper. Se construyó un híbrido (`data/instrumentos/frasHibrido.js`)
 que conserva las 6 dimensiones del modelo de Walsh (dominio académico
 verificado) con preguntas de diseño propio — ver
 [matriz-variables-indicadores.md](matriz-variables-indicadores.md#c-familia)
 y [reglas-puntuacion-interpretacion.md](reglas-puntuacion-interpretacion.md#fras--bloqueado-sustituido-por-híbrido-6-subescalas-comunicaciónresolución-recursos-socialeseconómicos-actitud-positiva-conexión-familiar-espiritualidad-sentido-de-la-adversidad).
+
+**Resuelto además con el original real (fuente distinta):** se encontró
+y verificó la disertación doctoral original de Sixbey (2005, University
+of Florida), publicada abiertamente en el repositorio institucional de
+la universidad (`ufdc.ufl.edu/UFE0012882`) — no el paper de la
+adaptación colombiana de arriba, que sigue sin reproducir los ítems.
+El Apéndice C de la disertación trae el banco completo de 66 ítems
+administrados, en inglés; el Apéndice J confirma exactamente cuáles 54
+de esos 66 componen la escala final (27+8+6+6+4+3, coincide con
+"FRAS-54"), con las cargas factoriales, el alfa de cada dimensión y los
+ítems de puntuación inversa marcados. Verificado renderizando esas
+páginas como imagen y leyéndolas directamente (la extracción automática
+de texto desordenaba la tabla de columnas), no solo con conversión
+automática de PDF a texto.
+
+Se digitalizó como `data/instrumentos/frasReal.js` (traducción propia al
+español de los 54 ítems reales, no una adaptación validada) —
+complementa a `frasHibrido.js`, no lo reemplaza: mismo constructo, pero
+ahora también disponible con contenido auténtico del instrumento
+original en vez de preguntas inventadas. Ver
+[reglas-puntuacion-interpretacion.md](reglas-puntuacion-interpretacion.md#fras-54--family-resilience-assessment-scale-esfera-c-instrumento-real).
 
 ### Brief COPE / COPE-28 (adaptación española)
 
