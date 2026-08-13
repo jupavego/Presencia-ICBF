@@ -398,6 +398,55 @@ Ya documentado con ejemplos completos directamente en
 ("barrera identificada sin oportunidad correspondiente", "proyecto de vida
 sin formular todavía") — no se repite aquí para no duplicar contenido.
 
+#### BFI-2 — Cinco Grandes (esfera A, Tipo A, 5 dominios/60 ítems)
+
+Instrumento real, no híbrido — ítems y clave de corrección extraídos
+directamente de `instrumentos/BFI2_Spanish.pdf` (licencia de código
+abierto, ver catálogo). Se puntúa a nivel de dominio (no de las 15
+facetas). Los 5 dominios tienen valencias distintas — Emocionalidad
+negativa alta no es "lo opuesto" de una fortaleza de la misma forma que
+Apertura baja — así que, a diferencia de los demás instrumentos
+multiescala, el catch-all exhaustivo es un `reglaResumen` neutral (solo
+presenta los 5 puntajes, sin calificar ninguno de positivo o negativo)
+en vez de una regla "mixta" que compare niveles entre dominios.
+
+| Patrón | Regla | Lectura |
+|---|---|---|
+| Perfil resiliente y sociable | Extraversión alta **y** Emocionalidad negativa baja | Alta disposición a la interacción social con baja tendencia a la ansiedad o el desánimo — recurso directo frente a crisis o cambio |
+| Perfil confiable y prosocial | Responsabilidad alta **y** Cordialidad alta | Organización y constancia junto con comprensión y generosidad hacia los demás |
+| Vulnerabilidad emocional con baja organización | Emocionalidad negativa alta **y** Responsabilidad baja | Puede dificultar sostener rutinas o planes durante una crisis — hipótesis a conversar, no conclusión clínica |
+| Apertura a nuevas experiencias | Apertura de mente alta | Recurso a considerar al proponer alternativas o rutas de acción |
+
+#### Intereses y preferencias vitales (esfera B, Tipo B, 3 preguntas)
+
+Complementa RIASEC (tipológico, 6 categorías fijas) con una mirada
+abierta por áreas temáticas. Exhaustivo sobre 4 ramas: sin intereses
+identificados / intereses poco practicados / activos y compartidos /
+activos pero individuales.
+
+| Patrón | Regla | Lectura |
+|---|---|---|
+| Sin áreas de interés identificadas | Checklist de áreas = solo "Ninguno" | No implica ausencia real; las categorías propuestas pueden no haberlo capturado |
+| Intereses activos y compartidos | ≥1 área marcada **y** práctica alta **y** los comparte | Recurso directo, personal y de red social |
+| Intereses latentes | ≥1 área marcada **pero** práctica baja | Reconocidos pero sin espacio activo en la vida cotidiana |
+| Intereses activos, individuales | ≥1 área marcada **y** práctica alta **pero** no los comparte | Punto de partida para tejer nuevas conexiones sociales |
+
+#### Aptitudes y habilidades percibidas (esfera B, Tipo B, 4 preguntas)
+
+Explora dominios de habilidad (manuales, comunicación, organización,
+etc.), distinto de Fortalezas por virtud (rasgos de carácter) y de las
+preguntas de "Aptitudes" en Proyecto de Vida (presencia pura, sin
+categorizar el área). Exhaustivo sobre 4 ramas: sin habilidades
+identificadas / sin reconocimiento externo / reconocidas sin uso ante
+dificultades / funcionales y reconocidas.
+
+| Patrón | Regla | Lectura |
+|---|---|---|
+| Sin habilidades identificadas | Checklist de áreas = solo "Ninguna" | No implica ausencia real de habilidades |
+| Habilidades funcionales y reconocidas | ≥1 área marcada **y** reconocidas por el entorno **y** usadas ante dificultades | Recurso verificado en la práctica, no solo potencial |
+| Habilidades sin reconocimiento externo | ≥1 área marcada **pero** no reconocidas por el entorno | Vale explorar si es diferencia real de percepción o falta de oportunidad de mostrarlas |
+| Habilidades reconocidas sin uso claro | ≥1 área marcada **y** reconocidas por el entorno **pero** no usadas —o solo parcialmente— ante dificultades | Capacidad disponible que todavía no se ha puesto a prueba en ese sentido |
+
 ## 3. Esquema general (la lógica detrás de cada ficha de la sección 2)
 
 Cada herramienta, cuando se digitalice, necesita responder estas 4
@@ -426,6 +475,7 @@ estructura de otro instrumento:
 | Herramienta | Tipo | Reglas de interacción definidas | Implementada en código |
 |---|---|---|---|
 | WHO-5 | A | ✅ Completo (sección 2.1) — usa el corte oficial del propio manual | ✅ `data/instrumentos/who5.js` + `herramientas/WHO5Herramienta.jsx` |
+| BFI-2 (Cinco Grandes) | A | ✅ Completo — 4 reglas + `reglaResumen` neutral como catch-all exhaustivo (valencias distintas por dominio) | ✅ `data/instrumentos/bfi2.js` + `herramientas/BFI2Herramienta.jsx` — 60 ítems reales extraídos del PDF fuente, licencia de código abierto |
 | MSPSS | A | ✅ Completo (sección 2.1) — usa los rangos orientativos ya documentados en el catálogo | ✅ `data/instrumentos/mspss.js` + `herramientas/MSPSSHerramienta.jsx` |
 | FACES-20esp | A | ✅ Completo (sección 2.1) — usa la lógica curvilínea del propio modelo de Olson, no un corte inventado; exhaustivo sobre las 9 combinaciones posibles (balanceado, 4 extremos aislados, 4 esquinas del circumplejo) | ✅ `data/instrumentos/faces20esp.js` + `herramientas/FACES20espHerramienta.jsx` — ítems reales extraídos del anexo del paper fuente |
 | Autoeficacia General | A | ✅ Completo (sección 2.1) — unidimensional; se agregó además una regla de ítem divergente dentro del propio instrumento (no solo cruce entre esferas) | ✅ `data/instrumentos/autoeficacia.js` + `herramientas/AutoeficaciaHerramienta.jsx` — ítems reales extraídos de la Tabla I del paper fuente |
@@ -437,8 +487,10 @@ estructura de otro instrumento:
 | Autoestima (esfera A) | B | ✅ Completo (sección 2.2) + regla "mixta" exhaustiva | ✅ `data/instrumentos/autoestima.js` |
 | Honestidad-Humildad (esfera A) | B | ✅ Completo + regla "mixta" exhaustiva | ✅ `data/instrumentos/honestidadHumildad.js` |
 | Resiliencia individual (esfera A) | B | ✅ Completo + regla "mixta" exhaustiva | ✅ `data/instrumentos/resilienciaIndividual.js` |
-| Fortalezas por virtud (esfera B) | B | ✅ Completo — primera con tipo `checklist` | ✅ `data/instrumentos/fortalezasPorVirtud.js` |
+| Fortalezas por virtud (esfera B) | B | ✅ Completo — primera con tipo `checklist`; Justicia se separó en 2 preguntas (equidad + trabajo en equipo) tras validación del equipo | ✅ `data/instrumentos/fortalezasPorVirtud.js` |
 | Intereses tipológico (esfera B) | B | ✅ Completo, exhaustivo (0/1/2-3/4-6 afinidades) | ✅ `data/instrumentos/interesesTipologicos.js` |
+| Intereses y preferencias vitales (esfera B) | B | ✅ Completo, exhaustivo (4 ramas) | ✅ `data/instrumentos/interesesPreferenciasVitales.js` |
+| Aptitudes y habilidades percibidas (esfera B) | B | ✅ Completo, exhaustivo (4 ramas) | ✅ `data/instrumentos/aptitudesHabilidades.js` |
 | Prácticas de crianza (esfera E) | B | ✅ Completo — incluye la regla de alerta de Castigo físico, independiente de las otras 4 | ✅ `data/instrumentos/practicasCrianza.js` |
 | Calidad de vida por dominios (esfera G) | B | ✅ Completo, exhaustivo | ✅ `data/instrumentos/calidadVidaDominios.js` |
 | Exploración educativa (esfera H) | B | ✅ Completo, exhaustivo dentro de la rama "le gustaría continuar" | ✅ `data/instrumentos/exploracionEducativa.js` |
@@ -448,7 +500,7 @@ estructura de otro instrumento:
 | Exploración territorial (esfera L) | B | ✅ Completo | ✅ `data/instrumentos/exploracionTerritorial.js` |
 | Proyecto de vida (esfera M) | B | ✅ Completo — incluye las 2 reglas de cruce ya documentadas ("barrera sin oportunidad", "proyecto sin formular") + 3 adicionales | ✅ `data/instrumentos/proyectoDeVida.js` — la más grande (16 preguntas, 6 categorías) |
 
-**Las 20 herramientas (7 Tipo A + 13 Tipo B) están completamente
+**Las 23 herramientas (8 Tipo A + 15 Tipo B) están completamente
 implementadas y verificadas en el navegador**, no solo documentadas. Cada
 una fue construida con `CategoricoHerramienta.jsx` (componente genérico
 compartido para el motor cualitativo) o su equivalente Tipo A, siguiendo

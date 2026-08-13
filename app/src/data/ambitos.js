@@ -25,7 +25,7 @@ export const AMBITOS = [
     herramientas: [
       { codigo: 'AUTOEF', nombre: 'Autoeficacia General', desc: 'Confianza percibida para manejar situaciones estresantes.', estado: 'disponible', componentKey: 'AUTOEF', nota: 'Cuarta herramienta funcional del módulo.' },
       { codigo: 'ROSENBERG', nombre: 'Autoestima (Rosenberg)', desc: 'Valía personal percibida.', estado: 'disponible', componentKey: 'AUTOESTIMA', disenoPropio: true, nota: 'Híbrido — validación disponible es argentina, no colombiana; preguntas propias sobre el mismo constructo.' },
-      { codigo: 'BFI2', nombre: 'Rasgos de personalidad (BFI-2)', desc: 'Cinco Grandes: Extraversión, Cordialidad, Responsabilidad, Emocionalidad negativa, Apertura.', estado: 'pendiente', componentKey: null },
+      { codigo: 'BFI2', nombre: 'Rasgos de personalidad (BFI-2)', desc: 'Cinco Grandes: Extraversión, Cordialidad, Responsabilidad, Emocionalidad negativa, Apertura.', estado: 'disponible', componentKey: 'BFI2', nota: 'Instrumento real, no híbrido — versión española completa (60 ítems), licencia de código abierto.' },
       { codigo: 'HONHUM', nombre: 'Honestidad-Humildad', desc: 'Sinceridad, equidad, evitación de la avaricia, modestia — la aportación de HEXACO que el BFI-2 no cubre.', estado: 'disponible', componentKey: 'HONHUM', disenoPropio: true, nota: 'Híbrido — HEXACO-PI-R-60 completo queda bloqueado por licencia de investigación; preguntas propias sobre el mismo constructo.' },
       { codigo: 'RESIND', nombre: 'Resiliencia individual', desc: 'Capacidad de adaptación personal ante la adversidad, distinta de la resiliencia familiar (esfera C).', estado: 'disponible', componentKey: 'RESIND', disenoPropio: true, nota: 'Híbrido — CD-RISC es comercial; preguntas propias sobre el mismo constructo.' },
     ],
@@ -38,8 +38,8 @@ export const AMBITOS = [
     herramientas: [
       { codigo: 'FORTVIRT', nombre: 'Fortalezas de carácter (por virtud)', desc: 'Fortalezas que la persona reconoce en sí misma, agrupadas en 6 virtudes (Sabiduría, Coraje, Humanidad, Justicia, Templanza, Trascendencia).', estado: 'disponible', componentKey: 'FORTVIRT', disenoPropio: true, nota: 'Híbrido — VIA GACS-24/SSS quedan bloqueados por licencia de investigación grupal; la taxonomía de Peterson & Seligman es académica pública.' },
       { codigo: 'RIASECHIB', nombre: 'Intereses vocacionales (tipológico)', desc: 'Afinidad descriptiva con los 6 tipos de Holland: Realista, Investigador, Artístico, Social, Emprendedor, Convencional.', estado: 'disponible', componentKey: 'RIASECHIB', disenoPropio: true, nota: 'Híbrido — el Self-Directed Search oficial es comercial; no reproduce sus ítems ni genera un código de 3 letras validado.' },
-      { codigo: 'INTERES', nombre: 'Intereses y preferencias vitales', desc: 'Exploración cualitativa de actividades y temas significativos (no tipológica).', estado: 'pendiente', componentKey: null, disenoPropio: true },
-      { codigo: 'APTITUD', nombre: 'Aptitudes y habilidades percibidas', desc: 'Capacidades que la persona reconoce en sí misma o que su entorno le reconoce.', estado: 'pendiente', componentKey: null, disenoPropio: true },
+      { codigo: 'INTERES', nombre: 'Intereses y preferencias vitales', desc: 'Exploración cualitativa de actividades y temas significativos (no tipológica).', estado: 'disponible', componentKey: 'INTERES', disenoPropio: true, nota: 'Complementa a RIASEC con una mirada más abierta, por áreas temáticas en vez de tipos fijos.' },
+      { codigo: 'APTITUD', nombre: 'Aptitudes y habilidades percibidas', desc: 'Capacidades que la persona reconoce en sí misma o que su entorno le reconoce.', estado: 'disponible', componentKey: 'APTITUD', disenoPropio: true, nota: 'Última de las 23 herramientas del módulo — completa la cobertura de las 13 esferas.' },
     ],
   },
   {

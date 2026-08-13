@@ -10,6 +10,7 @@ import F7PerfilSocioFamiliar from './F7PerfilSocioFamiliar.jsx';
 import F8Cronograma from './F8Cronograma.jsx';
 import F10SeguimientoRecurso from './F10SeguimientoRecurso.jsx';
 import WHO5Herramienta from '../herramientas/WHO5Herramienta.jsx';
+import BFI2Herramienta from '../herramientas/BFI2Herramienta.jsx';
 import MSPSSHerramienta from '../herramientas/MSPSSHerramienta.jsx';
 import FACES20espHerramienta from '../herramientas/FACES20espHerramienta.jsx';
 import AutoeficaciaHerramienta from '../herramientas/AutoeficaciaHerramienta.jsx';
@@ -22,6 +23,8 @@ import HonestidadHumildadHerramienta from '../herramientas/HonestidadHumildadHer
 import ResilienciaIndividualHerramienta from '../herramientas/ResilienciaIndividualHerramienta.jsx';
 import FortalezasPorVirtudHerramienta from '../herramientas/FortalezasPorVirtudHerramienta.jsx';
 import InteresesTipologicosHerramienta from '../herramientas/InteresesTipologicosHerramienta.jsx';
+import InteresesPreferenciasVitalesHerramienta from '../herramientas/InteresesPreferenciasVitalesHerramienta.jsx';
+import AptitudesHabilidadesHerramienta from '../herramientas/AptitudesHabilidadesHerramienta.jsx';
 import PracticasCrianzaHerramienta from '../herramientas/PracticasCrianzaHerramienta.jsx';
 import CalidadVidaDominiosHerramienta from '../herramientas/CalidadVidaDominiosHerramienta.jsx';
 import ExploracionEducativaHerramienta from '../herramientas/ExploracionEducativaHerramienta.jsx';
@@ -42,6 +45,7 @@ export const FORMAT_REGISTRY = {
   F8: F8Cronograma,
   F10: F10SeguimientoRecurso,
   WHO5: WHO5Herramienta,
+  BFI2: BFI2Herramienta,
   MSPSS: MSPSSHerramienta,
   FACES20ESP: FACES20espHerramienta,
   AUTOEF: AutoeficaciaHerramienta,
@@ -54,6 +58,8 @@ export const FORMAT_REGISTRY = {
   RESIND: ResilienciaIndividualHerramienta,
   FORTVIRT: FortalezasPorVirtudHerramienta,
   RIASECHIB: InteresesTipologicosHerramienta,
+  INTERES: InteresesPreferenciasVitalesHerramienta,
+  APTITUD: AptitudesHabilidadesHerramienta,
   CRIANZA: PracticasCrianzaHerramienta,
   CVIDAHIB: CalidadVidaDominiosHerramienta,
   EDU: ExploracionEducativaHerramienta,

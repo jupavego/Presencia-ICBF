@@ -365,6 +365,7 @@ y [reglas-puntuacion-interpretacion.md](reglas-puntuacion-interpretacion.md#fras
 | PDF fuente | `BFI2_Spanish.pdf` (versión completa de 60 ítems); también se descargó `BFI2S_Spanish.pdf` (forma corta) |
 | Utilidad digital | **Muy alta** — es, junto con el FRAS, el instrumento con la licencia más clara y abierta de todo el catálogo, con clave de puntuación incluida en el propio archivo |
 | Limitaciones | Sin evidencia psicométrica específica en español confirmada en este archivo; el modelo de Cinco Grandes es genérico, no está diseñado específicamente para ninguna de las esferas del prompt maestro en particular |
+| Estado | **Implementado** — `app/src/data/instrumentos/bfi2.js` + `BFI2Herramienta.jsx`, esfera A. Se puntúa a nivel de dominio (no de facetas). Ver docs/reglas-puntuacion-interpretacion.md |
 
 ### HEXACO-PI-R-60 (versión en español, adaptación para España)
 
