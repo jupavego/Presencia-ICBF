@@ -57,6 +57,7 @@ const PREGUNTAS = [
     id: 'castigo_fisico',
     texto: '¿Ha usado el castigo físico —nalgadas, golpes— como forma de disciplina?',
     avisoPrevio: 'Esta última pregunta es delicada — formúlela con calma, sin juicio, y solo si el contexto de la conversación lo permite.',
+    opcional: true,
     tipo: 'frecuencia',
     opciones: [
       { valor: 'nunca', etiqueta: 'Nunca', positiva: true },
@@ -92,7 +93,7 @@ function reglaConsolidada({ categorias }) {
     nivel: 'fortaleza',
     titulo: 'Crianza positiva consolidada',
     evidencia: claves.map((k) => `${NOMBRE_PREGUNTA[k]}: ${categorias[k].etiqueta}`),
-    lectura: 'Las 5 dimensiones evaluadas muestran un patrón de crianza consistente y sin uso de castigo físico.',
+    lectura: `Las ${claves.length} dimensiones evaluadas muestran un patrón de crianza consistente${categorias.castigo_fisico ? ' y sin uso de castigo físico' : ''}.`,
     preguntas: ['¿Qué prácticas familiares reconoce detrás de este resultado?'],
     estrategias: ['Reconocer explícitamente estas prácticas como una fortaleza a mantener.'],
   };
@@ -112,8 +113,11 @@ function reglaSupervisionSinInvolucramiento({ categorias }) {
 }
 
 // Se marca independientemente de cómo puntúen las otras 4 dimensiones —
-// no se "compensa" con buen desempeño en las demás.
+// no se "compensa" con buen desempeño en las demás. La pregunta es
+// opcional (avisoPrevio pide tacto al formularla); si queda sin
+// responder, simplemente no hay nada que alertar.
 function reglaAlertaCastigo({ categorias }) {
+  if (!categorias.castigo_fisico) return null;
   if (esPositiva('castigo_fisico', categorias.castigo_fisico)) return null;
   return {
     codigo: 'CRIANZA_ALERTA_CASTIGO',
@@ -135,7 +139,7 @@ function reglaAFortalecer({ categorias }) {
     nivel: 'profundizacion',
     titulo: 'Prácticas de crianza a fortalecer',
     evidencia: claves.map((k) => `${NOMBRE_PREGUNTA[k]}: ${categorias[k].etiqueta}`),
-    lectura: 'Ninguna de las 5 dimensiones evaluadas muestra la práctica asociada a crianza positiva.',
+    lectura: `Ninguna de las ${claves.length} dimensiones evaluadas muestra la práctica asociada a crianza positiva.`,
     preguntas: ['¿Qué apoyo necesitaría la familia para fortalecer estas prácticas?'],
   };
 }
@@ -144,7 +148,7 @@ function reglaAFortalecer({ categorias }) {
 function reglaMixta({ categorias }) {
   const claves = Object.keys(categorias);
   const positivas = claves.filter((k) => esPositiva(k, categorias[k]));
-  if (positivas.length === 0 || positivas.length === 5) return null;
+  if (positivas.length === 0 || positivas.length === claves.length) return null;
   return {
     codigo: 'CRIANZA_MIXTA',
     nivel: 'oportunidad',

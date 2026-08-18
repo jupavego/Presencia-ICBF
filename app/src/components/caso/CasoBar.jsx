@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import { exportarResumenMaestro } from '../../lib/exportMaestro.js';
 
 // Barra compacta en el TopBar: qué caso está activo y un selector simple
 // para cambiar entre los ya existentes. La creación de un caso nuevo pasa
@@ -10,6 +11,21 @@ export default function CasoBar() {
   const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
   const [casos, setCasos] = useState([]);
   const [abierto, setAbierto] = useState(false);
+  const [exportando, setExportando] = useState(false);
+  const [errorExportar, setErrorExportar] = useState(null);
+
+  async function exportarMaestro() {
+    setExportando(true);
+    setErrorExportar(null);
+    try {
+      await exportarResumenMaestro();
+    } catch (err) {
+      console.error('No se pudo generar el resumen maestro:', err);
+      setErrorExportar('No se pudo generar el archivo. Intente de nuevo.');
+    } finally {
+      setExportando(false);
+    }
+  }
 
   useEffect(() => {
     if (!abierto) return;
@@ -49,6 +65,16 @@ export default function CasoBar() {
               {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
             </button>
           ))}
+          <button
+            type="button"
+            className="fbtn"
+            style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }}
+            disabled={exportando}
+            onClick={exportarMaestro}
+          >
+            {exportando ? 'Generando…' : 'Exportar resumen maestro'}
+          </button>
+          {errorExportar && <p className="fdesc" style={{ padding: '4px 6px', color: '#a33' }}>{errorExportar}</p>}
           {caso && (
             <button type="button" className="fbtn" style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }} onClick={() => { cerrarCaso(); setAbierto(false); }}>
               Cerrar caso activo

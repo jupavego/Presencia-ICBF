@@ -55,6 +55,39 @@ function rangoTeorico(cantidadItems, { formula = 'suma', multiplicador = 1, esca
   return { min: min * multiplicador, max: max * multiplicador };
 }
 
+// Rango [mínimo, máximo] que el puntaje final de un conjunto de ítems
+// (ej. una subescala) PUEDE llegar a tener dado lo ya respondido — cada
+// ítem sin responder aporta su valor mínimo o máximo posible
+// (escalaMin/escalaMax; la inversión no cambia ese rango porque es una
+// reflexión dentro del mismo intervalo). Es el insumo de la "parada
+// temprana informada": si min y max caen en la misma banda cualitativa,
+// el resultado ya no puede cambiar de banda sin importar cómo se
+// respondan los ítems restantes. No usa IRT ni calibración estadística —
+// reutiliza la misma lógica de inversión que ya usa `calcularPuntaje`,
+// aplicada ítem por ítem en vez de exigir el conjunto completo. Devuelve
+// `null` si no hay escala declarada o si aún no se respondió nada.
+export function estimarRangoParcial(items, respuestasParciales, { formula = 'suma', multiplicador = 1, escalaMin = 0, escalaMax } = {}) {
+  if (escalaMax == null) return null;
+  let sumaMin = 0;
+  let sumaMax = 0;
+  let respondidos = 0;
+  for (const item of items) {
+    const v = respuestasParciales[item.id];
+    if (v === undefined || v === null) {
+      sumaMin += escalaMin;
+      sumaMax += escalaMax;
+      continue;
+    }
+    respondidos += 1;
+    const valor = item.invertido ? (escalaMin + escalaMax) - v : v;
+    sumaMin += valor;
+    sumaMax += valor;
+  }
+  if (respondidos === 0) return null;
+  const divisor = formula === 'promedio' ? items.length : 1;
+  return { min: (sumaMin / divisor) * multiplicador, max: (sumaMax / divisor) * multiplicador };
+}
+
 function calificacionDesdeRango(puntaje, rango, orientacion) {
   if (!rango || rango.max === rango.min) return null;
   const { min, max } = rango;
@@ -209,9 +242,15 @@ export function leerCategorias(definicion, respuestas) {
   const categorias = {};
   for (const p of definicion.preguntas) {
     const v = respuestas[p.id];
-    if (v === undefined || v === null) return { completo: false, categorias: null, patrones: [] };
+    if (v === undefined || v === null) {
+      if (p.opcional) continue;
+      return { completo: false, categorias: null, patrones: [] };
+    }
     if (p.tipo === 'checklist') {
-      if (!Array.isArray(v) || v.length === 0) return { completo: false, categorias: null, patrones: [] };
+      if (!Array.isArray(v) || v.length === 0) {
+        if (p.opcional) continue;
+        return { completo: false, categorias: null, patrones: [] };
+      }
       categorias[p.id] = v
         .map((val) => p.opciones.find((o) => o.valor === val))
         .filter(Boolean)
