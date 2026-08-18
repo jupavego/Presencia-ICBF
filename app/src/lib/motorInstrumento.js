@@ -25,6 +25,73 @@ export function calcularPuntaje(items, respuestas, { formula = 'suma', multiplic
   return bruto * multiplicador;
 }
 
+// Calificación transversal (1-5): no la asigna ninguna regla ni se
+// inventa por instrumento — se calcula matemáticamente a partir del
+// puntaje ya obtenido y del rango teórico posible de ese puntaje, para
+// que sea comparable entre instrumentos con escalas distintas (ej. WHO-5
+// 0-100 vs. McMaster FAD 1-4). Es el insumo numérico que necesita el
+// futuro motor de recomendaciones cruzadas (Producto 9) además del
+// `nivel` cualitativo que ya traen los patrones.
+//
+// El rango teórico se deriva de datos que la definición ya tiene
+// (escalaMin/escalaMax si están explícitos, si no de min/max de
+// `opciones`), sin necesitar que cada instrumento declare nada nuevo —
+// salvo `definicion.orientacion === 'invertida'` para los pocos casos
+// (hoy solo McMaster FAD) donde un puntaje más alto es peor, no mejor.
+function rangoTeorico(cantidadItems, { formula = 'suma', multiplicador = 1, escalaMin, escalaMax, opciones } = {}) {
+  let min = escalaMin;
+  let max = escalaMax;
+  if (max == null && opciones?.length) {
+    const valores = opciones.map((o) => o.valor);
+    min = Math.min(...valores);
+    max = Math.max(...valores);
+  }
+  if (min == null) min = 0;
+  if (max == null) return null;
+  if (formula !== 'promedio') {
+    min *= cantidadItems;
+    max *= cantidadItems;
+  }
+  return { min: min * multiplicador, max: max * multiplicador };
+}
+
+function calificacionDesdeRango(puntaje, rango, orientacion) {
+  if (!rango || rango.max === rango.min) return null;
+  const { min, max } = rango;
+  const fraccion = orientacion === 'invertida' ? (max - puntaje) / (max - min) : (puntaje - min) / (max - min);
+  const acotada = Math.min(1, Math.max(0, fraccion));
+  return Math.round((1 + 4 * acotada) * 10) / 10;
+}
+
+const NIVEL_A_CALIFICACION = { bajo: 1, medio: 3, alto: 5 };
+
+// Tipo B no tiene puntaje numérico: la calificación de cada pregunta
+// contestada sale de `nivel` (bajo/medio/alto, la convención que ya usa
+// la mayoría de instrumentos categóricos) o, si la pregunta no lo trae,
+// de `positiva` (true/false) en su opción original — la otra convención
+// que ya existe hoy (ver practicasCrianza.js, preguntas donde "alto" no
+// aplica como concepto, ej. castigo físico). Una pregunta sin ninguno de
+// los dos (ej. tipo 'numerico') simplemente no aporta al promedio.
+function calificacionDePregunta(pregunta, categoria) {
+  const items = Array.isArray(categoria) ? categoria : [categoria];
+  const valores = [];
+  for (const it of items) {
+    if (it?.nivel && NIVEL_A_CALIFICACION[it.nivel] != null) {
+      valores.push(NIVEL_A_CALIFICACION[it.nivel]);
+      continue;
+    }
+    const opcion = pregunta.opciones?.find((o) => o.valor === it?.valor);
+    if (typeof opcion?.positiva === 'boolean') valores.push(opcion.positiva ? 5 : 1);
+  }
+  if (valores.length === 0) return null;
+  return valores.reduce((a, b) => a + b, 0) / valores.length;
+}
+
+function promedioONull(valores) {
+  if (valores.length === 0) return null;
+  return Math.round((valores.reduce((a, b) => a + b, 0) / valores.length) * 10) / 10;
+}
+
 // Garantía del motor: ninguna combinación de respuestas completa debe
 // quedar sin lectura. Si ninguna regla de la definición aplicó, se usa
 // `definicion.reglaResumen(ctx)` si existe (una lectura general, propia de
@@ -71,7 +138,15 @@ export function leerInstrumento(definicion, respuestas) {
     definicion,
     ctx,
   );
-  return { completo: true, puntaje, patrones };
+  const rango = rangoTeorico(definicion.items.length, {
+    formula: definicion.formula,
+    multiplicador: definicion.multiplicador,
+    escalaMin: definicion.escalaMin,
+    escalaMax: definicion.escalaMax,
+    opciones: definicion.opciones,
+  });
+  const calificacion = calificacionDesdeRango(puntaje, rango, definicion.orientacion);
+  return { completo: true, puntaje, patrones, calificacion };
 }
 
 // Variante para instrumentos con varias subescalas (ej. MSPSS, FACES-20esp,
@@ -82,15 +157,20 @@ export function leerInstrumento(definicion, respuestas) {
 // { puntajes: { subescalaId: valor }, respuestas, subescalas }.
 export function leerInstrumentoMultiescala(definicion, respuestas) {
   const puntajes = {};
+  const calificacionesPorSub = [];
   for (const sub of definicion.subescalas) {
-    const puntaje = calcularPuntaje(sub.items, respuestas, {
+    const opts = {
       formula: sub.formula || definicion.formula,
       multiplicador: sub.multiplicador || definicion.multiplicador || 1,
       escalaMin: sub.escalaMin ?? definicion.escalaMin ?? 0,
       escalaMax: sub.escalaMax || definicion.escalaMax,
-    });
+    };
+    const puntaje = calcularPuntaje(sub.items, respuestas, opts);
     if (puntaje === null) return { completo: false, puntajes: null, patrones: [] };
     puntajes[sub.id] = puntaje;
+    const rango = rangoTeorico(sub.items.length, { ...opts, opciones: definicion.opciones });
+    const calSub = calificacionDesdeRango(puntaje, rango, sub.orientacion || definicion.orientacion);
+    if (calSub != null) calificacionesPorSub.push(calSub);
   }
   const ctx = { puntajes, respuestas, subescalas: definicion.subescalas };
   const patrones = conGarantiaDeLectura(
@@ -98,7 +178,8 @@ export function leerInstrumentoMultiescala(definicion, respuestas) {
     definicion,
     ctx,
   );
-  return { completo: true, puntajes, patrones };
+  const calificacion = promedioONull(calificacionesPorSub);
+  return { completo: true, puntajes, patrones, calificacion };
 }
 
 // Motor cualitativo (Tipo B): preguntas de respuesta cerrada donde cada
@@ -155,5 +236,9 @@ export function leerCategorias(definicion, respuestas) {
     definicion,
     ctx,
   );
-  return { completo: true, categorias, notas, patrones };
+  const calificacionesPreguntas = definicion.preguntas
+    .map((p) => calificacionDePregunta(p, categorias[p.id]))
+    .filter((v) => v != null);
+  const calificacion = promedioONull(calificacionesPreguntas);
+  return { completo: true, categorias, notas, patrones, calificacion };
 }

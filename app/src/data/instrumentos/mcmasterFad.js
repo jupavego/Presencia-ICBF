@@ -237,6 +237,11 @@ export const MCMASTER_FAD = {
   formula: 'promedio',
   escalaMin: 1,
   escalaMax: 4,
+  // A diferencia de los demás instrumentos del módulo, aquí un puntaje
+  // MÁS ALTO indica MÁS dificultad (ver comentario de cabecera) — se
+  // declara para que la calificación transversal (1-5) del motor
+  // (motorInstrumento.js) invierta la normalización correctamente.
+  orientacion: 'invertida',
   opciones: OPCIONES,
   nombreSubescala: NOMBRE_SUB,
   subescalas: [
