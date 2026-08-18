@@ -53,6 +53,28 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
     if (porNivel[p.nivel]) porNivel[p.nivel].push(p);
   }
 
+  // Calificación transversal (1-5): promedio de lo que ya calculó
+  // motorInstrumento.js por herramienta — ausente/null se ignora, nunca
+  // cuenta como 0 (herramientas completadas antes de este cambio, o sin
+  // dato suficiente, no deben distorsionar el promedio).
+  const calificacionesCompletadas = completadas
+    .map((id) => registro[id].calificacion)
+    .filter((c) => c != null);
+  const calificacionGlobal = calificacionesCompletadas.length
+    ? Math.round((calificacionesCompletadas.reduce((a, b) => a + b, 0) / calificacionesCompletadas.length) * 10) / 10
+    : null;
+
+  const calificacionPorEsfera = {};
+  for (const ambito of AMBITOS) {
+    const valores = ambito.herramientas
+      .filter((h) => h.componentKey && h.componentKey !== 'F1')
+      .map((h) => registro[h.componentKey]?.calificacion)
+      .filter((c) => c != null);
+    calificacionPorEsfera[ambito.codigo] = valores.length
+      ? Math.round((valores.reduce((a, b) => a + b, 0) / valores.length) * 10) / 10
+      : null;
+  }
+
   return (
     <section className="stage-panel">
       <div className="stage-head">
@@ -79,6 +101,7 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
 
       <div className="lectura-metrics">
         <div><b>{completadas.length}/{totalHerramientas}</b><span>Herramientas completadas</span></div>
+        <div><b>{calificacionGlobal != null ? `${calificacionGlobal}/5` : '—'}</b><span>Calificación global</span></div>
         <div><b>{porNivel.fortaleza.length}</b><span>Fortalezas</span></div>
         <div><b>{porNivel.oportunidad.length}</b><span>Oportunidades</span></div>
         <div><b>{porNivel.profundizacion.length}</b><span>A priorizar</span></div>
@@ -151,7 +174,10 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
           if (herramientasEsfera.length === 0) return null;
           return (
             <div key={ambito.codigo} style={{ marginBottom: 10 }}>
-              <span className="fnote-status">{ambito.codigo} · {ambito.nombre}</span>
+              <span className="fnote-status">
+                {ambito.codigo} · {ambito.nombre}
+                {calificacionPorEsfera[ambito.codigo] != null && ` · ${calificacionPorEsfera[ambito.codigo]}/5`}
+              </span>
               <div className="format-grid">
                 {herramientasEsfera.map((h) => {
                   const hecha = !!registro[h.componentKey]?.completo;
