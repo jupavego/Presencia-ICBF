@@ -4,8 +4,8 @@ import Section from '../ui/Section.jsx';
 import Choice from '../ui/Choice.jsx';
 import Callout from '../ui/Callout.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
-import { MCMASTER_FAD } from '../../data/instrumentos/mcmasterFad.js';
-import { leerInstrumentoMultiescala } from '../../lib/motorInstrumento.js';
+import { MCMASTER_FAD, nivel, ETIQUETA_NIVEL } from '../../data/instrumentos/mcmasterFad.js';
+import { leerInstrumentoMultiescala, estimarRangoParcial } from '../../lib/motorInstrumento.js';
 import { useRegistrarEnPerfilSesion } from '../../context/PerfilSesionContext.jsx';
 
 const ETIQUETA_POR_VALOR = Object.fromEntries(MCMASTER_FAD.opciones.map((o) => [o.valor, o.etiqueta]));
@@ -38,20 +38,36 @@ export default function McMasterFADHerramienta() {
         metaSub="7 áreas de funcionamiento familiar"
       />
 
-      {MCMASTER_FAD.subescalas.map((sub) => (
-        <Section key={sub.id} title={sub.nombre} hint="Indique qué tan de acuerdo está con cada afirmación, pensando en cómo es su familia.">
-          {sub.items.map((item) => (
-            <Choice
-              key={item.id}
-              label={item.texto}
-              name={item.id}
-              options={ETIQUETAS}
-              value={respuestas[item.id] !== undefined ? ETIQUETA_POR_VALOR[respuestas[item.id]] : null}
-              onChange={(etiqueta) => responder(item.id, etiqueta)}
-            />
-          ))}
-        </Section>
-      ))}
+      {MCMASTER_FAD.subescalas.map((sub) => {
+        const respondidosSub = sub.items.filter((it) => respuestas[it.id] !== undefined).length;
+        const rangoParcial = respondidosSub > 0 && respondidosSub < sub.items.length
+          ? estimarRangoParcial(sub.items, respuestas, {
+              formula: MCMASTER_FAD.formula,
+              escalaMin: MCMASTER_FAD.escalaMin,
+              escalaMax: MCMASTER_FAD.escalaMax,
+            })
+          : null;
+        const bandaFija = rangoParcial && nivel(rangoParcial.min) === nivel(rangoParcial.max) ? nivel(rangoParcial.min) : null;
+        return (
+          <Section key={sub.id} title={sub.nombre} hint="Indique qué tan de acuerdo está con cada afirmación, pensando en cómo es su familia.">
+            {sub.items.map((item) => (
+              <Choice
+                key={item.id}
+                label={item.texto}
+                name={item.id}
+                options={ETIQUETAS}
+                value={respuestas[item.id] !== undefined ? ETIQUETA_POR_VALOR[respuestas[item.id]] : null}
+                onChange={(etiqueta) => responder(item.id, etiqueta)}
+              />
+            ))}
+            {bandaFija && (
+              <Callout>
+                Con lo ya respondido en esta área, el resultado no puede salir de "{ETIQUETA_NIVEL[bandaFija]}" aunque conteste las preguntas restantes.
+              </Callout>
+            )}
+          </Section>
+        );
+      })}
 
       <Section title="Perfil descriptivo" hint="Se genera automáticamente a partir de las respuestas. Nunca es un diagnóstico: son patrones e hipótesis para conversar con la familia.">
         {resultado?.completo ? (

@@ -21,6 +21,7 @@ export default function CategoricoHerramienta({ definicion, eyebrow, metaTitle, 
   const [respuestas, setRespuestas] = useState({});
 
   const completo = definicion.preguntas.every((p) => {
+    if (p.opcional) return true;
     const v = respuestas[p.id];
     if (p.tipo === 'checklist') return Array.isArray(v) && v.length > 0;
     return v !== undefined && v !== null && v !== '';
