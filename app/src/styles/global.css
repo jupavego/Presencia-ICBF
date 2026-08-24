@@ -157,29 +157,43 @@ details.finstructions ol, details.finstructions ul { margin: 10px 0 0 20px; font
 .ftab { background: var(--card); border: 1px solid var(--border); border-radius: 9px; padding: 9px 14px; font-size: 11px; font-weight: 700; color: var(--muted); cursor: pointer; }
 .ftab.active { background: var(--teal-900); color: #fff; border-color: var(--teal-900); }
 
-.section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; margin-top: 14px; box-shadow: var(--shadow); }
-.section h2 { font-size: 15px; margin: 0 0 4px; color: var(--teal-900); }
-.section .hint { font-size: 10.5px; color: var(--muted); margin-bottom: 14px; }
+.section { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 26px 28px; margin-top: 20px; box-shadow: var(--shadow); }
+.section h2 { font-size: 18px; margin: 0 0 6px; color: var(--teal-900); }
+.section .hint { font-size: 12.5px; line-height: 1.5; color: var(--muted); margin-bottom: 20px; }
 
-.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; }
+.grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
 .field { grid-column: span 4; } .wide { grid-column: span 8; } .full { grid-column: 1 / -1; }
 .col-3 { grid-column: span 3; } .col-4 { grid-column: span 4; } .col-6 { grid-column: span 6; } .col-12 { grid-column: 1 / -1; }
 
-label { display: block; font-size: 10px; font-weight: 800; margin-bottom: 5px; color: #3a4d47; }
-input, select, textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; font-size: 11px; color: var(--text); background: #fbfdfc; font-family: inherit; }
-textarea { min-height: 85px; resize: vertical; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 3px rgba(57, 169, 0, 0.15); }
+label { display: block; font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; color: #23352d; }
+input, select, textarea { width: 100%; border: 1.5px solid var(--border); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: var(--text); background: #fbfdfc; font-family: inherit; transition: border-color .15s ease, box-shadow .15s ease; }
+textarea { min-height: 95px; resize: vertical; line-height: 1.5; }
+input:hover, select:hover, textarea:hover { border-color: #c3d3cb; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--verde); box-shadow: 0 0 0 4px rgba(57, 169, 0, 0.14); }
 
-.choice { display: flex; flex-wrap: wrap; gap: 7px; }
-.choice label { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-weight: 600; background: #fbfdfc; font-size: 10.5px; margin: 0; display: flex; align-items: center; gap: 6px; }
-.choice input { width: auto; }
+.choice { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 2px; }
+.choice label {
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 18px; font-weight: 600; font-size: 14px;
+  background: #fbfdfc; margin: 0; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .1s ease;
+}
+.choice label:hover { border-color: var(--verde); background: #f6fbf5; }
+.choice label:has(:checked) { border-color: var(--verde); background: #eaf7e6; color: var(--verde-oscuro); font-weight: 800; box-shadow: 0 2px 8px -2px rgba(57, 169, 0, 0.35); }
+.choice label:active { transform: scale(0.98); }
+.choice input { width: 17px; height: 17px; accent-color: var(--verde); }
 
-.check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.check-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .check-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
 .check-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-.check-stack { display: grid; gap: 7px; }
-.check-grid label, .check-stack label { border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; background: #fbfdfc; font-size: 10.5px; font-weight: 600; color: #455a53; margin: 0; display: flex; align-items: center; gap: 8px; }
-.check-grid input, .check-stack input { width: auto; }
+.check-stack { display: grid; gap: 10px; }
+.check-grid label, .check-stack label {
+  border: 1.5px solid var(--border); border-radius: 12px; padding: 13px 15px; background: #fbfdfc;
+  font-size: 14px; font-weight: 600; line-height: 1.4; color: #384e46; margin: 0; display: flex; align-items: center; gap: 10px;
+  cursor: pointer; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.check-grid label:hover, .check-stack label:hover { border-color: var(--verde); background: #f6fbf5; }
+.check-grid label:has(:checked), .check-stack label:has(:checked) { border-color: var(--verde); background: #eaf7e6; color: var(--verde-oscuro); font-weight: 800; box-shadow: 0 2px 8px -2px rgba(57, 169, 0, 0.35); }
+.check-grid input, .check-stack input { width: 17px; height: 17px; accent-color: var(--verde); flex: none; }
 
 .table-wrapper { overflow-x: auto; margin-top: 10px; border-radius: 10px; }
 table.data-table { width: 100%; min-width: 640px; border-collapse: collapse; font-size: 10.5px; }
@@ -254,12 +268,12 @@ table.data-table input, table.data-table select { padding: 7px; font-size: 10.5p
 .option-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .option-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
 .option-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
-.option { border: 1px solid var(--border); border-radius: 11px; padding: 12px 13px; cursor: pointer; background: #fbfdfc; transition: 0.15s; margin: 0; display: block; }
-.option:hover { border-color: var(--verde); }
+.option { border: 1.5px solid var(--border); border-radius: 13px; padding: 16px 17px; cursor: pointer; background: #fbfdfc; transition: 0.15s; margin: 0; display: block; }
+.option:hover { border-color: var(--verde); box-shadow: 0 2px 8px -3px rgba(57, 169, 0, 0.3); }
 .option input { display: none; }
-.option.selected { background: var(--secondary, #e8f3f1); border-color: var(--teal-900); }
-.option strong { display: block; font-size: 11.5px; color: var(--text); }
-.option span { display: block; margin-top: 5px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.option.selected { background: #eaf7e6; border-color: var(--verde); box-shadow: 0 2px 8px -2px rgba(57, 169, 0, 0.35); }
+.option strong { display: block; font-size: 14.5px; color: var(--text); }
+.option span { display: block; margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.5; }
 
 /* ---------- Panel de orientación (Petición de acceso) ---------- */
 .orient-card { border-radius: 14px; padding: 18px 20px; margin-top: 16px; }
@@ -307,7 +321,7 @@ table.data-table input, table.data-table select { padding: 7px; font-size: 10.5p
 .legend-chip .ico { width: 14px; height: 14px; border-radius: 50%; background: var(--gray-bg); color: var(--teal-900); font-size: 9px; font-weight: 800; display: inline-grid; place-items: center; flex: none; }
 
 /* Ícono de ayuda inline junto a la etiqueta de un campo (ver tip en Field/Choice/CheckboxGrid) */
-.tip-ico { display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--gray-bg); color: var(--teal-900); font-size: 9px; font-weight: 800; margin-left: 6px; vertical-align: middle; }
+.tip-ico { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--gray-bg); color: var(--teal-900); font-size: 10px; font-weight: 800; margin-left: 7px; vertical-align: middle; }
 .tip-ico:hover { background: var(--verde); color: #fff; }
 
 /* ==================================================================
