@@ -6,7 +6,10 @@
 // No se listan etapas sin formatos propios: cuando una etapa no aporta un
 // instrumento distinto, su alcance se fusiona con la etapa que sí lo tiene
 // (ver etapa 03, que cubre tanto el inicio como la continuidad del
-// acompañamiento).
+// acompañamiento; y etapa 02, que absorbió la antigua etapa "Planificación y
+// Agenda" — F3 y F8 no aportaban un momento distinto al de comprender a la
+// familia, la planificación se construye sobre esa misma comprensión, no
+// después de ella como paso separado).
 //
 // `componentKey` referencia un componente registrado en
 // src/components/formats/registry.js. Cuando un formato aún no tiene
@@ -30,11 +33,13 @@ export const ETAPAS = [
   },
   {
     code: '02',
-    nombre: 'Comprensión Familiar',
-    proposito: 'Comprender el contexto, las capacidades, necesidades y redes de apoyo de la familia.',
-    funciones: ['Perfil sociofamiliar', 'Contexto y situación', 'Capacidades y recursos', 'Necesidades', 'Redes y apoyos', 'Lectura ecosistémica', 'Riesgos y alertas'],
+    nombre: 'Comprensión y Planificación Familiar',
+    proposito: 'Comprender el contexto, las capacidades, necesidades y redes de apoyo de la familia, y construir con ella los objetivos, acuerdos y la programación del acompañamiento.',
+    funciones: ['Perfil sociofamiliar', 'Contexto y situación', 'Capacidades y recursos', 'Necesidades', 'Redes y apoyos', 'Lectura ecosistémica', 'Riesgos y alertas', 'Definición de objetivos', 'Acuerdos y compromisos', 'Plan de actividades', 'Cronograma de visitas y encuentros', 'Asignación de responsables'],
     formatos: [
       { codigo: 'F7', nombre: 'Perfil Socio Familiar', codigoOficial: 'F7.GO3.MT5.PP v2', desc: 'Caracterización y perfil de la familia y su contexto. F7.GO3.MT5.PP v2.', estado: 'disponible', componentKey: 'F7' },
+      { codigo: 'F3', nombre: 'Acuerdo de Vinculación', codigoOficial: 'F3.GO3.MT5.PP v2', desc: 'Formalización del acuerdo de vinculación de la familia al servicio, tratamiento de datos y uso de imagen. F3.GO3.MT5.PP v2.', estado: 'disponible', componentKey: 'F3' },
+      { codigo: 'F8', nombre: 'Cronograma de Visitas y Encuentros', codigoOficial: 'F8.GO3.MT5.PP v2', desc: 'Programación mensual de visitas al entorno familiar y encuentros comunitarios. F8.GO3.MT5.PP v2.', estado: 'disponible', componentKey: 'F8' },
     ],
   },
   {
@@ -50,16 +55,6 @@ export const ETAPAS = [
   },
   {
     code: '04',
-    nombre: 'Planificación y Agenda',
-    proposito: 'Construir objetivos, acuerdos y programar las actividades del acompañamiento con la familia.',
-    funciones: ['Definición de objetivos', 'Acuerdos y compromisos', 'Plan de actividades', 'Cronograma de visitas y encuentros', 'Asignación de responsables'],
-    formatos: [
-      { codigo: 'F3', nombre: 'Acuerdo de Vinculación', codigoOficial: 'F3.GO3.MT5.PP v2', desc: 'Formalización del acuerdo de vinculación de la familia al servicio, tratamiento de datos y uso de imagen. F3.GO3.MT5.PP v2.', estado: 'disponible', componentKey: 'F3' },
-      { codigo: 'F8', nombre: 'Cronograma de Visitas y Encuentros', codigoOficial: 'F8.GO3.MT5.PP v2', desc: 'Programación mensual de visitas al entorno familiar y encuentros comunitarios. F8.GO3.MT5.PP v2.', estado: 'disponible', componentKey: 'F8' },
-    ],
-  },
-  {
-    code: '05',
     nombre: 'Seguimiento',
     proposito: 'Revisar avances, el uso adecuado del recurso entregado a la familia y tomar decisiones oportunas.',
     funciones: ['Seguimiento a avances', 'Seguimiento al uso adecuado del recurso', 'Alertas y dificultades', 'Toma de decisiones', 'Reportes operativos'],
@@ -69,7 +64,7 @@ export const ETAPAS = [
     ],
   },
   {
-    code: '06',
+    code: '05',
     nombre: 'Valoración y Cierre',
     proposito: 'Valorar los cambios logrados, la satisfacción de la familia y formalizar el cierre del proceso.',
     funciones: ['Encuesta de satisfacción', 'Reconocer logros y aprendizajes', 'Formalizar el cierre', 'Registro final en el sistema oficial'],

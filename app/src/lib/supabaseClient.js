@@ -14,4 +14,10 @@ if (!url || !anonKey) {
   );
 }
 
-export const supabase = createClient(url, anonKey);
+// persistSession/autoRefreshToken ya son el default de supabase-js en
+// navegador (localStorage + refresco silencioso del token), pero se
+// declaran explícitos para que "mantener sesión iniciada" sea una
+// decisión visible del código, no un default implícito.
+export const supabase = createClient(url, anonKey, {
+  auth: { persistSession: true, autoRefreshToken: true },
+});
