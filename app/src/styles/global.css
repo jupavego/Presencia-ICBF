@@ -2,25 +2,48 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
-body { margin: 0; font-family: "Segoe UI", system-ui, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.55; }
+body { margin: 0; font-family: var(--font-body); font-weight: 500; background: var(--bg); color: var(--text); line-height: 1.55; }
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 
-/* ---------- Barra superior de la aplicación ---------- */
+/* ---------- Barra superior de la aplicación ----------
+   "Silicon Pastel Glass": fondo blanco semi-translúcido con desenfoque
+   de cristal (backdrop-blur), borde inferior sutil en verde lima y
+   acentos pastel — mismo componente y contenido de siempre, solo se
+   reemplaza el material oscuro por este look más cercano a la imagen
+   corporativa del ICBF. */
 .topbar {
   display: flex; align-items: center; gap: 16px;
-  background: linear-gradient(120deg, var(--teal-900), var(--teal-700));
-  color: #fff; padding: 16px 28px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  color: var(--text); padding: 16px 28px;
+  border-bottom: 1.5px solid #c9ecb8;
+  box-shadow: 0 4px 24px -10px rgba(13, 59, 52, 0.14);
   position: sticky; top: 0; z-index: 20;
 }
 .mark { width: 42px; height: 42px; flex: none; }
 .brandblock { display: flex; flex-direction: column; line-height: 1.15; }
-.brandblock .icbf { font-size: 10px; letter-spacing: 2px; font-weight: 700; color: #bfe6b0; text-transform: uppercase; }
-.brandblock .servicio { font-size: 19px; font-weight: 800; letter-spacing: 0.3px; }
+.brandblock .icbf { font-size: 10px; letter-spacing: 2px; font-weight: 700; color: var(--verde-oscuro); text-transform: uppercase; }
+.brandblock .servicio { font-size: 19px; font-weight: 800; letter-spacing: 0.3px; color: var(--text); }
 .brandblock .servicio b { color: var(--verde); font-weight: 900; }
 .topbar-spacer { flex: 1; }
-.topbar-tag { font-size: 10px; background: #ffffff1a; border: 1px solid #ffffff33; padding: 6px 12px; border-radius: 20px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.topbar-tag { font-size: 10px; background: #eef6ee; border: 1px solid #cdeec0; color: var(--verde-oscuro); padding: 6px 12px; border-radius: 20px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+.topbar .ftab { border-radius: 999px; border-color: #cdeec0; background: #ffffffb3; }
+.topbar .ftab:hover { border-color: var(--verde); background: #f3fbef; }
+
+/* Botón circular solo-ícono (cerrar sesión, campana de caso activo) —
+   mismo material pastel-glass que el resto de controles del topbar. */
+.icon-btn {
+  position: relative; display: inline-grid; place-items: center;
+  width: 38px; height: 38px; flex: none;
+  background: #ffffffb3; border: 1.5px solid #cdeec0; border-radius: 999px;
+  color: var(--verde-oscuro); cursor: pointer; transition: border-color .15s ease, background .15s ease;
+}
+.icon-btn:hover { border-color: var(--verde); background: #f3fbef; }
+.notif-dot {
+  position: absolute; top: 6px; right: 7px; width: 8px; height: 8px;
+  border-radius: 50%; background: #e0663b; border: 1.5px solid #fff;
+}
 
 /* ---------- Layout de dos columnas ---------- */
 .shell { display: grid; grid-template-columns: 270px 1fr; max-width: 1440px; margin: 0 auto; min-height: calc(100vh - 74px); }
@@ -389,4 +412,35 @@ table.data-table input, table.data-table select { padding: 7px; font-size: 10.5p
   .field, .wide, .col-3, .col-4, .col-6, .full, .col-12 { grid-column: 1 / -1; }
   .check-grid, .check-grid.cols-3, .check-grid.cols-4 { grid-template-columns: 1fr; }
   .flow-node { min-width: 84px; padding: 8px 10px; }
+}
+
+/* ==================================================================
+   Sistema tipográfico — ver tokens.css para --font-display/--font-body/
+   --font-stat. Va al final del archivo a propósito: varios de estos
+   selectores (.fcode, .status, .pattern-level, .ftab, etc.) ya traen su
+   propio letter-spacing/font-weight definido más arriba, y en un empate
+   de especificidad gana la regla que aparece después en la hoja — así
+   nos aseguramos de que esta capa tipográfica quede por encima sin
+   tener que tocar cada regla existente una por una.
+
+   - Titulares, marca y badges → Plus Jakarta Sans, 700/800, -0.02em.
+   - Texto de interfaz y navegación → Inter, 500/600.
+   - Cifras destacadas (métricas, contadores) → Sora. */
+h1, h2,
+.brandblock .servicio,
+.topbar-tag, .hero-badge, .fcode, .status, .pattern-level, .func-chip, .legend-chip, .fmeta, .orient-code {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+h1, h2, .brandblock .servicio { font-weight: 800; }
+
+.stage-btn, .ftab, input, select, textarea {
+  font-family: var(--font-body);
+}
+.ftab { font-weight: 600; }
+input, select, textarea { font-weight: 500; }
+
+.lectura-metrics b, .home-card-num, .flow-num, .orient-summary-value, .stage-btn .num, .ambito-block-head .num {
+  font-family: var(--font-stat);
+  font-weight: 700;
 }

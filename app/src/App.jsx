@@ -41,7 +41,10 @@ function AppShell() {
         <main className="content">
           {etapa ? (
             <>
-              <Hero />
+              {/* Solo en Acceso y Admisión (etapa 01): el resto de etapas ya
+                  quedan orientadas por su propio encabezado en StagePanel,
+                  no hace falta repetir la presentación general del servicio. */}
+              {etapa.code === '01' && <Hero />}
               <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
             </>
           ) : herramientas ? (

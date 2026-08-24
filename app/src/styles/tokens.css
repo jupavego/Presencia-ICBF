@@ -17,4 +17,14 @@
   --gray-bg: #eef1f0;
   --radius: 12px;
   --shadow: 0 6px 24px -8px rgba(13, 59, 52, 0.14);
+
+  /* Tipografía: tres familias con roles distintos, no intercambiables.
+     - display: titulares, logotipo/marca y badges — Plus Jakarta Sans,
+       peso 700/800, letter-spacing -0.02em (más compacto, más "de marca").
+     - body: texto de interfaz y navegación — Inter, peso 500/600.
+     - stat: cifras destacadas (métricas, contadores) — Sora, para que un
+       número como "25/25" se lea como un dato, no como texto corrido. */
+  --font-display: 'Plus Jakarta Sans', 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, Arial, sans-serif;
+  --font-stat: 'Sora', 'Segoe UI', system-ui, Arial, sans-serif;
 }
