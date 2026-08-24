@@ -9,6 +9,7 @@ import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { MUNICIPIOS_ANTIOQUIA } from '../../data/municipiosAntioquia.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const ORIGENES = [
   { value: 'propia', label: 'Iniciativa propia', desc: 'La familia solicita directamente el acompañamiento.' },
@@ -77,6 +78,7 @@ function evaluarOrientacion(alerta) {
 export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
   const { crearCaso } = useCaso();
+  const { session } = useAuth();
   const [origen, setOrigen] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [zona, setZona] = useState('');
@@ -113,7 +115,11 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
     try {
       await crearCaso({ nombreParticipante: nombre, municipio });
     } catch (err) {
-      setErrorCaso('No se pudo registrar el caso en el servidor. La orientación se muestra igual, pero los datos de esta petición no quedaron guardados — intente de nuevo.');
+      setErrorCaso(
+        session
+          ? 'No se pudo registrar el caso en el servidor. La orientación se muestra igual, pero los datos de esta petición no quedaron guardados — intente de nuevo.'
+          : 'La orientación se muestra igual, pero para que esta petición quede guardada como un caso real necesita iniciar sesión (botón arriba a la derecha).'
+      );
     }
 
     const lectura = evaluarOrientacion(alerta);
@@ -137,7 +143,7 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
       <FormatHeader
         eyebrow={`${etapaCode} · ${etapaNombre} · Petición de vinculación`}
         title="Petición de Vinculación al Servicio"
-        description="Formato propio de la plataforma, complementario al registro en el Sistema de Información Oficial. Recoge cómo llega la familia, quién solicita el servicio, dónde se encuentra, sus condiciones de contexto, su pertenencia y el motivo que origina el contacto, para orientar el paso hacia Comprensión Familiar."
+        description="Formato propio de la plataforma, complementario al registro en el Sistema de Información Oficial. Recoge cómo llega la familia, quién solicita el servicio, dónde se encuentra, sus condiciones de contexto, su pertenencia y el motivo que origina el contacto, para orientar el paso hacia Comprensión y Planificación Familiar."
         metaTitle="Formato propio · Presencia"
         metaSub="Complementario al registro SIO"
       />
@@ -272,7 +278,7 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
           <p>{resultado.texto}</p>
           {resultado.resumen && (
             <>
-              <p style={{ marginTop: 12 }}><strong>Siguiente etapa:</strong> 02 · Comprensión Familiar</p>
+              <p style={{ marginTop: 12 }}><strong>Siguiente etapa:</strong> 02 · Comprensión y Planificación Familiar</p>
               <div className="orient-summary">
                 <div className="orient-summary-item"><div className="orient-summary-label">Municipio</div><div className="orient-summary-value">{resultado.resumen.municipio}</div></div>
                 <div className="orient-summary-item"><div className="orient-summary-label">Zona</div><div className="orient-summary-value">{resultado.resumen.zona}</div></div>

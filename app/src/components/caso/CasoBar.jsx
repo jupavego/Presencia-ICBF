@@ -1,14 +1,22 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 import { exportarResumenMaestro } from '../../lib/exportMaestro.js';
 
 // Barra compacta en el TopBar: qué caso está activo y un selector simple
 // para cambiar entre los ya existentes. La creación de un caso nuevo pasa
 // por Petición de Acceso (etapa 01) — es el punto de la app donde hoy ya
 // se inicia un caso, no se duplica ese flujo aquí.
+//
+// Sin sesión (modo invitado), las políticas RLS de Supabase ya rechazan
+// la lectura/escritura de `casos` — no tiene sentido ni consultarlos ni
+// ofrecer "exportar resumen maestro" (saldría vacío), así que esa parte
+// del panel se reemplaza por una nota explicando que hay que iniciar
+// sesión para guardar y consultar casos.
 export default function CasoBar() {
   const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
+  const { session } = useAuth();
   const [casos, setCasos] = useState([]);
   const [abierto, setAbierto] = useState(false);
   const [exportando, setExportando] = useState(false);
@@ -28,14 +36,14 @@ export default function CasoBar() {
   }
 
   useEffect(() => {
-    if (!abierto) return;
+    if (!abierto || !session) return;
     supabase
       .from('casos')
       .select('id, numero_peticion, nombre_participante, creado_en')
       .order('creado_en', { ascending: false })
       .limit(50)
       .then(({ data }) => setCasos(data || []));
-  }, [abierto]);
+  }, [abierto, session]);
 
   return (
     <div className="topbar-caso" style={{ position: 'relative' }}>
@@ -53,28 +61,34 @@ export default function CasoBar() {
             borderRadius: 10, boxShadow: 'var(--shadow)', padding: 8, minWidth: 240, zIndex: 20,
           }}
         >
-          {casos.length === 0 && <p className="fdesc" style={{ padding: 6 }}>Ningún caso creado todavía — cree uno desde Petición de Acceso.</p>}
-          {casos.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              className="fbtn"
-              style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 4, background: c.id === casoActivoId ? 'var(--verde-oscuro)' : undefined }}
-              onClick={() => { seleccionarCaso(c.id); setAbierto(false); }}
-            >
-              {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
-            </button>
-          ))}
-          <button
-            type="button"
-            className="fbtn"
-            style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }}
-            disabled={exportando}
-            onClick={exportarMaestro}
-          >
-            {exportando ? 'Generando…' : 'Exportar resumen maestro'}
-          </button>
-          {errorExportar && <p className="fdesc" style={{ padding: '4px 6px', color: '#a33' }}>{errorExportar}</p>}
+          {!session ? (
+            <p className="fdesc" style={{ padding: 6 }}>Inicie sesión para guardar y consultar casos — puede seguir diligenciando formatos y herramientas sin guardar mientras tanto.</p>
+          ) : (
+            <>
+              {casos.length === 0 && <p className="fdesc" style={{ padding: 6 }}>Ningún caso creado todavía — cree uno desde Petición de Acceso.</p>}
+              {casos.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="fbtn"
+                  style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 4, background: c.id === casoActivoId ? 'var(--verde-oscuro)' : undefined }}
+                  onClick={() => { seleccionarCaso(c.id); setAbierto(false); }}
+                >
+                  {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
+                </button>
+              ))}
+              <button
+                type="button"
+                className="fbtn"
+                style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }}
+                disabled={exportando}
+                onClick={exportarMaestro}
+              >
+                {exportando ? 'Generando…' : 'Exportar resumen maestro'}
+              </button>
+              {errorExportar && <p className="fdesc" style={{ padding: '4px 6px', color: '#a33' }}>{errorExportar}</p>}
+            </>
+          )}
           {caso && (
             <button type="button" className="fbtn" style={{ display: 'block', width: '100%', marginTop: 8, background: 'var(--gray-bg)', color: '#3a4d47' }} onClick={() => { cerrarCaso(); setAbierto(false); }}>
               Cerrar caso activo

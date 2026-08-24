@@ -1,7 +1,7 @@
 import CasoBar from '../caso/CasoBar.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
-export default function TopBar() {
+export default function TopBar({ onRequestLogin }) {
   const { session, signOut } = useAuth();
   return (
     <header className="topbar">
@@ -16,10 +16,17 @@ export default function TopBar() {
       </div>
       <div className="topbar-spacer" />
       <CasoBar />
-      {session && (
+      {session ? (
         <button type="button" className="ftab" onClick={signOut} title={session.user?.email}>
           Cerrar sesión
         </button>
+      ) : (
+        <>
+          <span className="topbar-tag" title="Puede diligenciar cualquier formato o herramienta, pero nada queda guardado">Modo invitado · sin guardado</span>
+          <button type="button" className="ftab" onClick={onRequestLogin}>
+            Iniciar sesión
+          </button>
+        </>
       )}
       <span className="topbar-tag">Prototipo interno · v0.2</span>
     </header>
