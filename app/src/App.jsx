@@ -18,10 +18,12 @@ import { CompromisosProvider } from './context/CompromisosContext.jsx';
 function AppShell() {
   const [activeIndex, setActiveIndex] = useState(-1); // -1 = Inicio, 'herramientas' = módulo de perfilamiento, 'perfil' = perfil de sesión, número = índice en ETAPAS
   const [openFormat, setOpenFormat] = useState(null);
+  const [mostrarLogin, setMostrarLogin] = useState(false);
+  const { session } = useAuth();
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === 'Escape') setOpenFormat(null);
+      if (e.key === 'Escape') { setOpenFormat(null); setMostrarLogin(false); }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -33,7 +35,7 @@ function AppShell() {
 
   return (
     <>
-      <TopBar />
+      <TopBar onRequestLogin={() => setMostrarLogin(true)} />
       <div className="shell">
         <Sidebar etapas={ETAPAS} activeIndex={activeIndex} onSelect={setActiveIndex} />
         <main className="content">
@@ -52,17 +54,26 @@ function AppShell() {
         </main>
       </div>
       <FormatViewer formato={openFormat} onClose={() => setOpenFormat(null)} />
+      {mostrarLogin && !session && <LoginScreen onClose={() => setMostrarLogin(false)} />}
     </>
   );
 }
 
-// Puerta de acceso: sin sesión de Supabase, no se monta nada del resto de
-// la app (ni el shell ni ningún dato) — solo LoginScreen. Ver
-// AuthContext.jsx.
+// Sin sesión de Supabase, el sitio sigue siendo utilizable en "modo
+// invitado": cualquier persona puede diligenciar cualquier formato o
+// herramienta y ver su lectura/orientación calculada en el navegador,
+// pero nada queda guardado en el servidor — toda la capa de persistencia
+// (CasoContext, PerfilSesionContext, FamiliaContext, CompromisosContext,
+// persistenciaCaso.js) ya está diseñada para degradar sin errores cuando
+// no hay `casoActivoId` (que nunca lo hay sin sesión, porque las
+// políticas RLS de Supabase rechazan la escritura anónima) — no fue
+// necesario tocar esa capa. Solo se retiró el bloqueo duro que existía
+// aquí antes (mostrar solo LoginScreen sin sesión); iniciar sesión ahora
+// es una acción opcional disponible desde la barra superior en cualquier
+// momento, para desbloquear el guardado.
 function AuthGate() {
-  const { session, cargando } = useAuth();
+  const { cargando } = useAuth();
   if (cargando) return null;
-  if (!session) return <LoginScreen />;
   return (
     <CasoProvider>
       <FamiliaProvider>

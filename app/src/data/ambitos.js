@@ -64,7 +64,7 @@ export const AMBITOS = [
     proposito: 'Con quién cuenta la persona: apoyo social percibido y composición de su red de vínculos.',
     herramientas: [
       { codigo: 'MSPSS', nombre: 'Apoyo Social Percibido (MSPSS)', desc: 'Qué tanto apoyo siente la persona que tiene disponible — de su familia, de sus amigos, o de alguien más significativo — para identificar si cuenta con red de apoyo o si esta es un punto a fortalecer.', estado: 'disponible', componentKey: 'MSPSS', nota: 'Instrumento real (MSPSS, 12 ítems), traducción propia.' },
-      { codigo: 'F1', nombre: 'Mapa de Pertenencia (motor de lectura de red)', desc: 'Mapa visual de la red de vínculos de la persona: con quién cuenta, en qué ámbitos de su vida y qué tan cerca los siente.', estado: 'disponible', componentKey: 'F1', nota: 'Mismo formato F1 de la etapa de Comprensión Familiar (etapa 03) — se reutiliza aquí, no se vuelve a diligenciar.' },
+      { codigo: 'F1', nombre: 'Mapa de Pertenencia (motor de lectura de red)', desc: 'Mapa visual de la red de vínculos de la persona: con quién cuenta, en qué ámbitos de su vida y qué tan cerca los siente.', estado: 'disponible', componentKey: 'F1', nota: 'Mismo formato F1 de la etapa de Acompañamiento (etapa 03) — se reutiliza aquí, no se vuelve a diligenciar.' },
     ],
   },
   {
