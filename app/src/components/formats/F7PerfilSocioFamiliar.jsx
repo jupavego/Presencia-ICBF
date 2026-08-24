@@ -53,6 +53,26 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const [aspiraciones, setAspiraciones] = useState([]);
   const [conclusiones, setConclusiones] = useState([]);
   const [integrantes, setIntegrantes] = useState([nuevoIntegrante()]);
+  const [modalidadIcbf, setModalidadIcbf] = useState('');
+  const [rutaContinuidad, setRutaContinuidad] = useState('');
+  // Detalle de texto libre de la opción "Otro/a" — ver el mismo patrón en
+  // F5EncuentrosComunitarios.jsx. Reemplaza los campos "¿Cuál?" que
+  // vivían siempre visibles debajo de cada lista (trOtraCual,
+  // ipOtroCual, aspiracionOtraCual, rutaOtraCual): ahora solo aparecen
+  // cuando la opción "Otro/a" está realmente seleccionada.
+  const [detalles, setDetalles] = useState({});
+  function setDetalle(campo, valor) {
+    setDetalles((d) => ({ ...d, [campo]: valor }));
+  }
+  function esOtro(valor) {
+    return typeof valor === 'string' && /^otr[oa]/i.test(valor);
+  }
+  function conDetalle(valor, campo) {
+    return esOtro(valor) && detalles[campo] ? detalles[campo] : valor;
+  }
+  function listaConDetalle(lista, campo) {
+    return lista.map((v) => (esOtro(v) && detalles[campo] ? detalles[campo] : v));
+  }
   const [cursoVida, setCursoVida] = useState('');
   const [padre, setPadre] = useState('');
   const [madre, setMadre] = useState('');
@@ -145,9 +165,9 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       procesosSiMarca: procesos === 'Sí' ? 'X' : '',
       procesosNoMarca: procesos === 'No' ? 'X' : '',
       procesosCuales: fd.get('procesosCuales') || '',
-      modalidadIcbf: fd.get('modalidadIcbf') || '',
-      ipOtroCual: fd.get('ipOtroCual') || '',
-      trOtraCual: fd.get('trOtraCual') || '',
+      modalidadIcbf: conDetalle(modalidadIcbf, 'modalidadIcbf'),
+      ipOtroCual: detalles.institucionesProf || '',
+      trOtraCual: detalles.trayectoria || '',
     };
 
     INGRESO_OPCIONES.forEach((opt, i) => { datos[INGRESO_TAGS[i]] = ''; });
@@ -183,21 +203,21 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     datos.ocEstudioX = ocupacionSocial.includes('Estudio') ? 'X' : '';
     datos.ocTrabajoX = ocupacionSocial.includes('Trabajo') ? 'X' : '';
 
+    const aspiracionesConDetalle = listaConDetalle(aspiraciones, 'aspiraciones');
     datos.aspiracionesTexto = [
-      aspiraciones.length ? aspiraciones.join('; ') : '',
+      aspiracionesConDetalle.length ? aspiracionesConDetalle.join('; ') : '',
       fd.get('aspiracionExpectativa') ? `Expectativa: ${fd.get('aspiracionExpectativa')}` : '',
-      fd.get('aspiracionOtraCual') ? `Otra: ${fd.get('aspiracionOtraCual')}` : '',
     ].filter(Boolean).join(' | ');
 
+    const conclusionesConDetalle = listaConDetalle(conclusiones, 'conclusiones');
     datos.conclusionesTexto = [
-      conclusiones.length ? conclusiones.join('; ') : '',
+      conclusionesConDetalle.length ? conclusionesConDetalle.join('; ') : '',
       fd.get('conclusionNarrativa') ? `Conclusión: ${fd.get('conclusionNarrativa')}` : '',
     ].filter(Boolean).join(' | ');
 
     datos.acuerdosTexto = [
       fd.get('acuerdosCompromisos') ? `Acuerdos: ${fd.get('acuerdosCompromisos')}` : '',
-      fd.get('rutaContinuidad') ? `Ruta: ${fd.get('rutaContinuidad')}` : '',
-      fd.get('rutaOtraCual') ? `Otra: ${fd.get('rutaOtraCual')}` : '',
+      rutaContinuidad ? `Ruta: ${conDetalle(rutaContinuidad, 'rutaContinuidad')}` : '',
     ].filter(Boolean).join(' | ');
 
     datos.integrantes = integrantes
@@ -331,7 +351,11 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
           tip="Son las entidades o profesionales que ya han intervenido en el manejo de la situación que motiva el contacto (salud, defensoría, comisaría, educación, entre otras)."
           options={TRAYECTORIA_SERVICIOS} selected={trayectoria} onChange={setTrayectoria}
         />
-        <div className="grid" style={{ marginTop: 10 }}><TextField name="trOtraCual" span="full" label='Si seleccionó "Otra", ¿cuál?' /></div>
+        {trayectoria.some(esOtro) && (
+          <div className="grid" style={{ marginTop: 10 }}>
+            <TextField span="full" label='¿Cuál "Otra"?' value={detalles.trayectoria || ''} onChange={(e) => setDetalle('trayectoria', e.target.value)} />
+          </div>
+        )}
       </Section>
 
       <Section title="9. Subsistemas que conviven" hint="Composición relacional de la familia y de las uniones actuales o anteriores.">
@@ -361,7 +385,10 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
         <div className="grid" style={{ marginTop: 12 }}>
           <Choice label="¿Actualmente están incursos en otros procesos?" name="procesos" options={['No', 'Sí']} value={procesos} onChange={setProcesos} />
           <TextField name="procesosCuales" span="wide" label="¿Cuáles?" placeholder="Legales, terapéuticos, médicos, etc." />
-          <SelectField name="modalidadIcbf" span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida']} />
+          <SelectField name="modalidadIcbf" span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida']} value={modalidadIcbf} onChange={(e) => setModalidadIcbf(e.target.value)} />
+          {esOtro(modalidadIcbf) && (
+            <TextField span="full" label='¿Cuál "Otra modalidad / medida"?' value={detalles.modalidadIcbf || ''} onChange={(e) => setDetalle('modalidadIcbf', e.target.value)} />
+          )}
         </div>
         <Callout><b>Control documental:</b> catálogo preliminar de parametrización; debe validarse contra el catálogo vigente del ICBF antes de producción.</Callout>
       </Section>
@@ -385,7 +412,9 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
             <label><input type="checkbox" checked={ocupacionSocial.includes('Estudio')} onChange={() => toggleEnArreglo(ocupacionSocial, setOcupacionSocial, 'Estudio')} /> Estudio</label>
             <label><input type="checkbox" checked={ocupacionSocial.includes('Trabajo')} onChange={() => toggleEnArreglo(ocupacionSocial, setOcupacionSocial, 'Trabajo')} /> Trabajo</label>
           </div></div>
-          <TextField name="ipOtroCual" span="wide" label="Otro, ¿cuál?" />
+          {institucionesProf.includes('Otro') && (
+            <TextField span="wide" label="Otro, ¿cuál?" value={detalles.institucionesProf || ''} onChange={(e) => setDetalle('institucionesProf', e.target.value)} />
+          )}
         </div>
       </Section>
 
@@ -393,17 +422,26 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
         <CheckboxGrid cols={3} options={ASPIRACIONES} selected={aspiraciones} onChange={setAspiraciones} />
         <div className="grid" style={{ marginTop: 10 }}>
           <TextAreaField name="aspiracionExpectativa" label="Expectativa expresada por la familia" />
-          <TextField name="aspiracionOtraCual" span="full" label='Si seleccionó "Otra", ¿cuál?' />
+          {aspiraciones.some(esOtro) && (
+            <TextField span="full" label='¿Cuál "Otra"?' value={detalles.aspiraciones || ''} onChange={(e) => setDetalle('aspiraciones', e.target.value)} />
+          )}
         </div>
       </Section>
 
       <Section title="13. Conclusiones y compromisos" hint="Orientadores estructurados para la decisión. La conclusión narrativa y los acuerdos conservan la valoración profesional y lo construido con la familia.">
         <CheckboxGrid options={CONCLUSIONES} selected={conclusiones} onChange={setConclusiones} />
+        {conclusiones.some(esOtro) && (
+          <div className="grid" style={{ marginTop: 10 }}>
+            <TextField span="full" label='¿Cuál "Otro resultado / conclusión"?' value={detalles.conclusiones || ''} onChange={(e) => setDetalle('conclusiones', e.target.value)} />
+          </div>
+        )}
         <div className="grid" style={{ marginTop: 12 }}>
           <TextAreaField name="conclusionNarrativa" label="Conclusión narrativa" placeholder="Propuestas adecuadas a la expectativa de la familia, respuesta brindada y decisión de continuidad o cierre." />
           <TextAreaField name="acuerdosCompromisos" label="Acuerdos y compromisos" placeholder="Qué se acordó, quién participa y qué acción se realizará." />
-          <SelectField name="rutaContinuidad" span="full" label="Ruta de continuidad propuesta" options={RUTA_CONTINUIDAD} />
-          <TextField name="rutaOtraCual" span="full" label='Si corresponde "Otra", especifique' />
+          <SelectField name="rutaContinuidad" span="full" label="Ruta de continuidad propuesta" options={RUTA_CONTINUIDAD} value={rutaContinuidad} onChange={(e) => setRutaContinuidad(e.target.value)} />
+          {esOtro(rutaContinuidad) && (
+            <TextField span="full" label='¿Cuál "Otra / por definir"?' value={detalles.rutaContinuidad || ''} onChange={(e) => setDetalle('rutaContinuidad', e.target.value)} />
+          )}
         </div>
       </Section>
 

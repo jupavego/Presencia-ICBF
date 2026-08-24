@@ -80,16 +80,36 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const { crearCaso } = useCaso();
   const { session } = useAuth();
   const [origen, setOrigen] = useState('');
+  const [tipoDocumento, setTipoDocumento] = useState('');
+  const [rol, setRol] = useState('');
+  const [canal, setCanal] = useState('');
   const [municipio, setMunicipio] = useState('');
   const [zona, setZona] = useState('');
+  const [vivienda, setVivienda] = useState('');
   const [subsidios, setSubsidios] = useState('');
   const [tiposApoyo, setTiposApoyo] = useState([]);
   const [pertenencia, setPertenencia] = useState('');
+  const [grupoEtnico, setGrupoEtnico] = useState('');
+  const [comunidad, setComunidad] = useState('');
   const [motivo, setMotivo] = useState('');
   const [expectativas, setExpectativas] = useState([]);
   const [alerta, setAlerta] = useState('');
   const [resultado, setResultado] = useState(null);
   const [errorCaso, setErrorCaso] = useState(null);
+  // Detalle de texto libre de la opción "Otro/a" de cada campo — ver el
+  // mismo patrón en F5EncuentrosComunitarios.jsx. PET es un formato
+  // propio de la plataforma (no digitaliza un documento oficial), pero
+  // varias de sus listas ya incluían "Otro" sin forma de precisarlo.
+  const [detalles, setDetalles] = useState({});
+  function setDetalle(campo, valor) {
+    setDetalles((d) => ({ ...d, [campo]: valor }));
+  }
+  function esOtro(valor) {
+    return typeof valor === 'string' && valor.toLowerCase().startsWith('otr');
+  }
+  function conDetalle(valor, campo) {
+    return esOtro(valor) && detalles[campo] ? detalles[campo] : valor;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -129,11 +149,11 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
         municipio,
         zona: zona || 'No registrado',
         ingreso: fd.get('ingreso') || 'No informado',
-        vivienda: fd.get('vivienda') || 'No informado',
+        vivienda: conDetalle(vivienda, 'vivienda') || 'No informado',
         pertenencia: pertenencia === 'si' ? 'Sí' : pertenencia === 'no' ? 'No' : 'No informado',
-        motivo,
+        motivo: conDetalle(motivo, 'motivo'),
         expectativas: expectativas.length,
-        origen: ORIGENES.find((o) => o.value === origen)?.label || origen,
+        origen: conDetalle(ORIGENES.find((o) => o.value === origen)?.label || origen, 'origen'),
       },
     });
   }
@@ -155,16 +175,30 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
 
       <Section title="1. Origen de la petición" hint="Identifica cómo llega la familia al servicio.">
         <OptionGrid name="origen" options={ORIGENES} selected={origen} onChange={setOrigen} />
+        {origen === 'otro' && (
+          <div style={{ marginTop: 16 }}>
+            <TextField label="¿Cuál otra forma de contacto?" value={detalles.origen || ''} onChange={(e) => setDetalle('origen', e.target.value)} placeholder="Especifique" />
+          </div>
+        )}
       </Section>
 
       <Section title="2. Identificación inicial" hint="Información básica de la persona que realiza la solicitud.">
         <div className="grid">
           <TextField name="nombre" label="Nombre completo" required placeholder="Nombre y apellidos" />
-          <SelectField name="tipoDocumento" label="Tipo de identificación" options={TIPOS_DOCUMENTO} />
+          <SelectField name="tipoDocumento" label="Tipo de identificación" options={TIPOS_DOCUMENTO} value={tipoDocumento} onChange={(e) => setTipoDocumento(e.target.value)} />
           <TextField name="documento" label="Número de identificación" />
-          <SelectField name="rol" label="Rol en la familia" options={ROLES_FAMILIA} />
+          <SelectField name="rol" label="Rol en la familia" options={ROLES_FAMILIA} value={rol} onChange={(e) => setRol(e.target.value)} />
           <TextField name="telefono" label="Teléfono" type="tel" placeholder="Número de contacto" />
-          <SelectField name="canal" label="Canal de contacto" options={CANALES} />
+          <SelectField name="canal" label="Canal de contacto" options={CANALES} value={canal} onChange={(e) => setCanal(e.target.value)} />
+          {esOtro(tipoDocumento) && (
+            <TextField label="¿Cuál tipo de identificación?" value={detalles.tipoDocumento || ''} onChange={(e) => setDetalle('tipoDocumento', e.target.value)} placeholder="Especifique" />
+          )}
+          {esOtro(rol) && (
+            <TextField label="¿Cuál rol en la familia?" value={detalles.rol || ''} onChange={(e) => setDetalle('rol', e.target.value)} placeholder="Especifique" />
+          )}
+          {esOtro(canal) && (
+            <TextField label="¿Cuál canal de contacto?" value={detalles.canal || ''} onChange={(e) => setDetalle('canal', e.target.value)} placeholder="Especifique" />
+          )}
         </div>
       </Section>
 
@@ -195,12 +229,20 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
         <div className="grid">
           <SelectField name="ingreso" label="Ingreso mensual aproximado del hogar" options={INGRESOS} />
           <SelectField name="aportantes" label="Personas que aportan económicamente" options={APORTANTES} />
-          <SelectField name="vivienda" label="Tenencia de la vivienda" options={VIVIENDAS} />
+          <SelectField name="vivienda" label="Tenencia de la vivienda" options={VIVIENDAS} value={vivienda} onChange={(e) => setVivienda(e.target.value)} />
+          {esOtro(vivienda) && (
+            <TextField label="¿Cuál tenencia de vivienda?" value={detalles.vivienda || ''} onChange={(e) => setDetalle('vivienda', e.target.value)} placeholder="Especifique" />
+          )}
           <Choice label="¿Recibe subsidios o apoyos?" name="subsidios" options={['Sí', 'No', 'No informa']} value={subsidios} onChange={setSubsidios} />
         </div>
         {subsidios === 'Sí' && (
           <div style={{ marginTop: 16 }}>
             <OptionGrid label="Tipo de apoyo o subsidio" options={TIPOS_APOYO} selected={tiposApoyo} onChange={setTiposApoyo} multiple cols={4} />
+            {tiposApoyo.includes('otro') && (
+              <div style={{ marginTop: 12 }}>
+                <TextField label="¿Cuál otro tipo de apoyo?" value={detalles.tiposApoyo || ''} onChange={(e) => setDetalle('tiposApoyo', e.target.value)} placeholder="Especifique" />
+              </div>
+            )}
           </div>
         )}
       </Section>
@@ -216,9 +258,15 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
         {pertenencia === 'si' && (
           <div style={{ marginTop: 16 }}>
             <div className="grid">
-              <SelectField name="grupoEtnico" label="Pertenencia étnica" options={GRUPOS_ETNICOS} />
-              <SelectField name="comunidad" label="Comunidad / organización / colectivo" options={COMUNIDADES} />
+              <SelectField name="grupoEtnico" label="Pertenencia étnica" options={GRUPOS_ETNICOS} value={grupoEtnico} onChange={(e) => setGrupoEtnico(e.target.value)} />
+              <SelectField name="comunidad" label="Comunidad / organización / colectivo" options={COMUNIDADES} value={comunidad} onChange={(e) => setComunidad(e.target.value)} />
               <TextField name="nombreComunidad" label="Nombre de la comunidad u organización" placeholder="Opcional" />
+              {esOtro(grupoEtnico) && (
+                <TextField label="¿Cuál pertenencia étnica?" value={detalles.grupoEtnico || ''} onChange={(e) => setDetalle('grupoEtnico', e.target.value)} placeholder="Especifique" />
+              )}
+              {esOtro(comunidad) && (
+                <TextField label="¿Cuál comunidad u organización?" value={detalles.comunidad || ''} onChange={(e) => setDetalle('comunidad', e.target.value)} placeholder="Especifique" />
+              )}
             </div>
             <div className="grid" style={{ marginTop: 12 }}>
               <TextAreaField
@@ -237,6 +285,9 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
             span="full" name="motivo" label="Situación principal" required
             options={MOTIVOS} value={motivo} onChange={(e) => setMotivo(e.target.value)}
           />
+          {esOtro(motivo) && (
+            <TextField span="full" label="¿Cuál situación?" value={detalles.motivo || ''} onChange={(e) => setDetalle('motivo', e.target.value)} placeholder="Especifique la situación principal" />
+          )}
           <TextAreaField
             span="full" name="relato" label="Relato inicial de la familia"
             tip="Se recomienda conservar el relato de la familia sin sustituirlo inicialmente por una interpretación profesional."
