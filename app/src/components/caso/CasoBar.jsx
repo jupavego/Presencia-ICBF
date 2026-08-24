@@ -45,14 +45,20 @@ export default function CasoBar() {
       .then(({ data }) => setCasos(data || []));
   }, [abierto, session]);
 
+  const estadoCaso = caso
+    ? `Caso: ${caso.nombre_participante || caso.numero_peticion || caso.id.slice(0, 8)}`
+    : casoActivoId
+      ? 'Cargando caso…'
+      : 'Sin caso activo';
+
   return (
     <div className="topbar-caso" style={{ position: 'relative' }}>
-      <button type="button" className="ftab" onClick={() => setAbierto((v) => !v)}>
-        {caso
-          ? `Caso: ${caso.nombre_participante || caso.numero_peticion || caso.id.slice(0, 8)}`
-          : casoActivoId
-            ? 'Cargando caso…'
-            : 'Sin caso activo'}
+      <button type="button" className="icon-btn" onClick={() => setAbierto((v) => !v)} title={estadoCaso} aria-label={estadoCaso}>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        {caso && <span className="notif-dot" />}
       </button>
       {abierto && (
         <div
@@ -61,6 +67,7 @@ export default function CasoBar() {
             borderRadius: 10, boxShadow: 'var(--shadow)', padding: 8, minWidth: 240, zIndex: 20,
           }}
         >
+          <p className="fnote-status" style={{ padding: '4px 6px 8px' }}>{estadoCaso}</p>
           {!session ? (
             <p className="fdesc" style={{ padding: 6 }}>Inicie sesión para guardar y consultar casos — puede seguir diligenciando formatos y herramientas sin guardar mientras tanto.</p>
           ) : (
