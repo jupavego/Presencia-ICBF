@@ -17,6 +17,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Salida local del seed de demo (documentos generados, datos simulados) —
+# ver scripts/seed-demo.mjs
+scripts-output/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

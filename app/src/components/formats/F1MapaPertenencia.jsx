@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import DataTable from '../ui/DataTable.jsx';
@@ -15,6 +15,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 import { svgElementConNotaAPng } from '../../lib/svgAImagen.js';
 import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
 
 // Fuente: f1.go3_.mt5_.pp_mapa_pertenencia_actual_potencial_v1.docx
 const CUADRANTES = ['Familia', 'Ocupación', 'Instituciones y profesionales', 'Vida Social'];
@@ -221,6 +222,16 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
   const setContactos = tipo === 'actual' ? setActual : setPotencial;
   const svgActualRef = useRef(null);
   const svgPotencialRef = useRef(null);
+
+  // Reabrir el mapa con lo último guardado (había quedado sin releer nunca
+  // formatos_oficiales_datos: cada apertura empezaba en blanco aunque ya
+  // hubiera vínculos registrados para este caso).
+  const datosGuardados = useUltimoFormatoOficial('F1');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    if (datosGuardados.actual?.length) setActual(datosGuardados.actual);
+    if (datosGuardados.potencial?.length) setPotencial(datosGuardados.potencial);
+  }, [datosGuardados]);
 
   async function handleSubmit(e) {
     e.preventDefault();

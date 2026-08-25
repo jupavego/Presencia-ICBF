@@ -22,6 +22,24 @@ export async function guardarFormatoBeneficiario(codigoAcceso, formatoKey, datos
   return { guardado: true };
 }
 
+// Trae el `datos` del diligenciamiento más reciente de un formato oficial
+// para el beneficiario anónimo (sin sesión) — hoy solo lo usa F1, el único
+// formato que un beneficiario puede diligenciar sin acompañamiento (ver
+// formatos_metadata). Requiere la función `obtener_ultimo_formato_por_codigo`
+// (0004_lectura_formato_beneficiario.sql).
+export async function obtenerUltimoFormatoBeneficiario(codigoAcceso, formatoKey) {
+  if (!codigoAcceso) return null;
+  const { data, error } = await supabase.rpc('obtener_ultimo_formato_por_codigo', {
+    p_codigo: codigoAcceso,
+    p_formato_key: formatoKey,
+  });
+  if (error) {
+    console.error(`No se pudo cargar el último ${formatoKey} guardado (beneficiario):`, error);
+    return null;
+  }
+  return data?.datos ?? null;
+}
+
 export async function obtenerPerfilamientoBeneficiario(codigoAcceso) {
   if (!codigoAcceso) return [];
   const { data, error } = await supabase.rpc('obtener_perfilamiento_por_codigo', { p_codigo: codigoAcceso });

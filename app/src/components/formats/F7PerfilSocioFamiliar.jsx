@@ -16,6 +16,8 @@ import { useFamilia } from '../../context/FamiliaContext.jsx';
 import { useCompromisos } from '../../context/CompromisosContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { supabase } from '../../lib/supabaseClient.js';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
+import { ddmmaaaaAIso, reconstruirChecklist } from '../../lib/hidratacionFormatos.js';
 
 const ESTADOS_CIVILES = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Separado(a)', 'Viudo(a)', 'Divorciado(a)', 'No aplica'];
 const NIVELES_ESCOLARES = ['Ninguno', 'Primaria completa', 'Primaria incompleta', 'Secundaria completa', 'Secundaria incompleta', 'Técnico completo', 'Técnico incompleto', 'Universitario completo', 'Universitario incompleto', 'Preescolar', 'Otro'];
@@ -30,6 +32,7 @@ const ASPIRACIONES = ['Fortalecer la comunicación familiar', 'Mejorar relacione
 const CONCLUSIONES = ['Respuesta satisfactoria y cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Profundizar la comprensión de la situación', 'Fortalecer capacidades de cuidado y crianza', 'Fortalecer redes familiares y sociales', 'Orientar acceso a oferta institucional', 'Articular con otra entidad o servicio', 'Hacer seguimiento a acuerdos', 'Fortalecer autonomía', 'Abordar situación familiar priorizada', 'Construir plan de acción con la familia', 'Realizar nueva valoración', 'Otro resultado / conclusión'];
 const RUTA_CONTINUIDAD = ['Cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Otra / por definir'];
 const COMPROMISOS_ACUERDO = ['Participar en los próximos encuentros de acompañamiento.', 'Suministrar la información requerida para el proceso.', 'Cumplir las fechas y horarios concertados.', 'Vincularse a las herramientas y actividades propuestas.', 'Fortalecer las prácticas de cuidado identificadas.', 'Activar o mantener las redes de apoyo identificadas.', 'Realizar las gestiones acordadas con otras instituciones.', 'Revisar conjuntamente los avances del proceso.', 'Mantener comunicación con el equipo profesional.', 'Otro compromiso'];
+const MODALIDADES_ICBF = ['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida'];
 
 const COMPROMISO_COLUMNS = [
   { key: 'descripcion', label: 'Descripción del Compromiso', placeholder: 'Ej. Participar en próximo encuentro' },
@@ -154,6 +157,79 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     setCompromisos(compromisosDelCaso.length ? compromisosDelCaso : [nuevoCompromiso()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [casoActivoId, cargandoCompromisos]);
+
+  // Reabrir el perfil con lo último guardado para este caso (fuera de
+  // integrantes/compromisos, ya hidratados arriba vía sus contexts
+  // compartidos). Los campos narrativos que solo viven embebidos en un
+  // texto compuesto para el .docx (relato dentro de aspiracionesTexto,
+  // conclusionNarrativa, acuerdosCompromisos, entidadesCursoVida,
+  // respuestaFamiliaRed) no se pueden separar de vuelta — se dejan en
+  // blanco, ver hidratacionFormatos.js.
+  const datosGuardados = useUltimoFormatoOficial('F7');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    const d = datosGuardados;
+    const el = formRef.current?.elements;
+    const CAMPOS_TEXTO = ['regional', 'centroZonal', 'numPeticion', 'profesionales', 'tipoDocumento', 'participantesEncuentro', 'direccion', 'barrio', 'municipio', 'telefono', 'numAportantes', 'subsidiosCual', 'relatoFamilia', 'familiaExtensa', 'otrasPersonas', 'hijosUnionActual', 'hijosUnionAnterior', 'procesosCuales'];
+    if (el) {
+      for (const campo of CAMPOS_TEXTO) {
+        if (el[campo] && d[campo] != null) el[campo].value = d[campo];
+      }
+      if (el.fecha && d.fecha) el.fecha.value = ddmmaaaaAIso(d.fecha);
+      const ingresoIdx = INGRESO_TAGS.findIndex((tag) => d[tag] === 'X');
+      if (el.ingreso && ingresoIdx >= 0) el.ingreso.value = INGRESO_OPCIONES[ingresoIdx];
+      const viviendaIdx = VIVIENDA_TAGS.findIndex((tag) => d[tag] === 'X');
+      if (el.vivienda && viviendaIdx >= 0) el.vivienda.value = VIVIENDA_OPCIONES[viviendaIdx];
+    }
+
+    setNombreParticipante(d.nombreParticipante || '');
+    if (ROLES_FAMILIA.includes(d.rolParticipante)) setRolParticipante(d.rolParticipante);
+
+    if (d.acudenPropiaMarca === 'X') setAcudenPor('Propia iniciativa');
+    else if (d.acudenRemitidosMarca === 'X') setAcudenPor('Remitidos');
+
+    if (d.subsidiosSiMarca === 'X') setRecibeSubsidios('Sí');
+    else if (d.subsidiosNoMarca === 'X') setRecibeSubsidios('No');
+    else if (d.subsidiosNoInformaMarca === 'X') setRecibeSubsidios('No informa');
+
+    if (d.padreX === 'X') setPadre('Sí');
+    if (d.madreX === 'X') setMadre('Sí');
+    if (['1', '2', '3', '4'].includes(d.ellaNum)) setElla(d.ellaNum);
+    if (['1', '2', '3', '4'].includes(d.elNum)) setEl(d.elNum);
+    if (d.procesosSiMarca === 'X') setProcesos('Sí');
+    else if (d.procesosNoMarca === 'X') setProcesos('No');
+
+    if (MODALIDADES_ICBF.includes(d.modalidadIcbf)) setModalidadIcbf(d.modalidadIcbf);
+
+    setTrayectoria(Object.entries(TRAYECTORIA_TAGS).filter(([, tag]) => d[tag] === 'X').map(([label]) => label));
+    setEventos(EVENTO_TAGS.map((tag, i) => (d[tag] === 'X' ? EVENTOS_SIGNIFICATIVOS[i] : null)).filter(Boolean));
+
+    const vs = [];
+    if (d.vsAmigosX === 'X') vs.push('Amigos');
+    if (d.vsVecinosX === 'X') vs.push('Vecinos');
+    if (d.vsGruposX === 'X') vs.push('Grupos informales');
+    if (d.vsFamiliaX === 'X') vs.push('Familia');
+    setVidaSocial(vs);
+
+    const ip = [];
+    if (d.ipSaludX === 'X') ip.push('Salud');
+    if (d.ipJusticiaX === 'X') ip.push('Justicia');
+    if (d.ipIglesiaX === 'X') ip.push('Iglesia');
+    if (d.ipOtroX === 'X') ip.push('Otro');
+    setInstitucionesProf(ip);
+
+    const oc = [];
+    if (d.ocEstudioX === 'X') oc.push('Estudio');
+    if (d.ocTrabajoX === 'X') oc.push('Trabajo');
+    setOcupacionSocial(oc);
+
+    setAspiraciones(reconstruirChecklist(d.aspiracionesTexto, ASPIRACIONES));
+    setConclusiones(reconstruirChecklist(d.conclusionesTexto, CONCLUSIONES));
+    setCompromisosAcuerdo(reconstruirChecklist(d.acuerdosTexto, COMPROMISOS_ACUERDO));
+    const rutaMatch = RUTA_CONTINUIDAD.find((r) => (d.acuerdosTexto || '').includes(`Ruta: ${r}`));
+    if (rutaMatch) setRutaContinuidad(rutaMatch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datosGuardados]);
 
   function actualizarCompromisos(nuevaLista) {
     setCompromisos(nuevaLista);
@@ -485,7 +561,7 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
         <div className="grid" style={{ marginTop: 12 }}>
           <Choice label="¿Actualmente están incursos en otros procesos?" name="procesos" options={['No', 'Sí']} value={procesos} onChange={setProcesos} />
           <TextField name="procesosCuales" span="wide" label="¿Cuáles?" placeholder="Legales, terapéuticos, médicos, etc." />
-          <SelectField name="modalidadIcbf" span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={['Hogar sustituto', 'Hogar de paso', 'Internado', 'Casa hogar', 'Casa de acogida', 'Apoyo y fortalecimiento a la familia', 'Intervención de apoyo', 'Externado', 'Seminternado', 'Centro de emergencia', 'Hogar gestor', 'Acogimiento familiar', 'Acogimiento residencial', 'Medida en medio familiar', 'Otra modalidad / medida']} value={modalidadIcbf} onChange={(e) => setModalidadIcbf(e.target.value)} />
+          <SelectField name="modalidadIcbf" span="full" label="Modalidad para el restablecimiento de derechos del ICBF, si aplica" options={MODALIDADES_ICBF} value={modalidadIcbf} onChange={(e) => setModalidadIcbf(e.target.value)} />
           {esOtro(modalidadIcbf) && (
             <TextField span="full" label='¿Cuál "Otra modalidad / medida"?' value={detalles.modalidadIcbf || ''} onChange={(e) => setDetalle('modalidadIcbf', e.target.value)} />
           )}

@@ -165,6 +165,30 @@ petición de vinculación al servicio (`PET`) es un formato propio de la
 plataforma, ya digitalizado. Si el ICBF define un instrumento propio para
 las actuaciones SIO restantes, se digitalizan igual que los demás.
 
+## Datos de demo (seed reutilizable)
+
+`scripts/seed-demo.mjs` es una automatización reutilizable que siembra un
+escenario completo de prueba directo en Supabase (sin pasar por la UI): 5
+cuentas de profesional ICBF + 5 casos-beneficiario, cada beneficiario con
+PET + F1 (Mapa de Pertenencia) + las 25 herramientas del Módulo de
+Perfilamiento diligenciadas con perfiles de respuesta realistas y variados
+(intermedio, extremo alto, extremo bajo, atípico — generados con el motor
+real de puntuación de `src/lib/motorInstrumento.js`, no inventados a mano),
+cada caso asignado 1 a 1 a un profesional, y ese profesional con
+F3/F5/F6/F7/F8/F10 diligenciados. Al final genera los documentos
+Word/Excel oficiales ya rellenados en `scripts-output/seed-demo/` (mismo
+árbol de carpetas que usa el respaldo real en Drive) y valida que ningún
+marcador de las plantillas oficiales quede sin dato.
+
+```bash
+# requiere SUPABASE_SERVICE_ROLE_KEY en .env (Project Settings → API →
+# Secret keys — nunca la anon/publishable key), además de las variables
+# VITE_SUPABASE_* ya descritas arriba
+npm run seed:demo            # primera vez, o si no hay demo previa
+npm run seed:demo -- --reset # borra la demo anterior (cuentas @presencia-icbf.demo
+                              # y casos con numero_peticion "DEMO-*") y la rehace
+```
+
 ## Configuración de Supabase
 
 La app requiere un proyecto de Supabase para funcionar — sin credenciales

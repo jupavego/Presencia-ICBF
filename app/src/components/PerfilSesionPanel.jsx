@@ -30,7 +30,7 @@ const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fo
 // primera versión.
 export default function PerfilSesionPanel({ onOpenFormat }) {
   const { registro } = usePerfilSesion();
-  const { caso, casoActivoId, seleccionarCaso } = useCaso();
+  const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
   const { compromisos } = useCompromisos();
   const { profile } = useAuth();
 
@@ -133,7 +133,7 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
       </div>
 
       {esStaff && (
-        <ListaCasosPerfil esAdmin={esAdmin} uid={profile?.id} casoActivoId={casoActivoId} onSeleccionar={seleccionarCaso} />
+        <ListaCasosPerfil esAdmin={esAdmin} uid={profile?.id} casoActivoId={casoActivoId} onSeleccionar={seleccionarCaso} onQuitar={cerrarCaso} />
       )}
 
       {!casoActivoId ? (
