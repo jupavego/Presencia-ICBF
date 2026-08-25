@@ -145,25 +145,16 @@ details.about summary { cursor: pointer; font-size: 11px; font-weight: 700; colo
 .ambito-objetivos-footer { border-top: 1px dashed var(--border); padding-top: 12px; }
 .ambito-objetivos-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 
-/* Relleno al hover: en vez de una burbuja flotante aparte, el propio
-   contenedor de la esfera se llena de verde corporativo de izquierda a
-   derecha, y el texto "clic para ver instrumentos" aparece encima una vez
-   que el relleno ya lo cubre (transition-delay), no antes. */
-.ambito-fill-overlay {
-  position: absolute; inset: 0; z-index: 4;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(120deg, var(--verde), var(--verde-oscuro));
-  transform: scaleX(0); transform-origin: left;
-  transition: transform .4s ease;
-  pointer-events: none;
+/* Pista de clic sutil: todo el contenido (título, descripción, chips)
+   queda siempre visible; al hover solo aparece este texto, sin fondo
+   ni superposición que tape nada. */
+.ambito-hint {
+  font-size: 10.5px; font-weight: 700; color: var(--verde-oscuro);
+  white-space: nowrap; align-self: center;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity .18s ease, transform .18s ease;
 }
-.ambito-fill-overlay-text {
-  color: #fff; font-size: 12.5px; font-weight: 800; letter-spacing: 0.3px;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  opacity: 0; transition: opacity .2s ease .18s;
-}
-.ambito-block-head:hover .ambito-fill-overlay { transform: scaleX(1); }
-.ambito-block-head:hover .ambito-fill-overlay-text { opacity: 1; }
+.ambito-block-head:hover .ambito-hint { opacity: 1; transform: translateX(0); }
 .ambito-nota-diseno { font-size: 10.5px; color: var(--muted); font-style: italic; margin: 10px 2px 0; }
 
 /* ---------- Listas de casos (Bolsa de casos, Perfil de sesión) ----------
