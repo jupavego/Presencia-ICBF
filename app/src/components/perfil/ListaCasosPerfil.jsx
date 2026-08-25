@@ -13,7 +13,7 @@ function nombreCaso(c) {
 // PostgREST no soporta GROUP BY arbitrario, así que los conteos se arman
 // en el cliente sobre las filas crudas — a la escala de una bandeja de
 // casos esto es trivial.
-export default function ListaCasosPerfil({ esAdmin, uid, casoActivoId, onSeleccionar }) {
+export default function ListaCasosPerfil({ esAdmin, uid, casoActivoId, onSeleccionar, onQuitar }) {
   const [casos, setCasos] = useState([]);
   const [evidencia, setEvidencia] = useState({});
   const [cargando, setCargando] = useState(false);
@@ -86,7 +86,11 @@ export default function ListaCasosPerfil({ esAdmin, uid, casoActivoId, onSelecci
                 </span>
               )}
             </span>
-            <button type="button" className="fbtn2" onClick={() => onSeleccionar(c.id)}>Ver detalle</button>
+            {c.id === casoActivoId ? (
+              <button type="button" className="fbtn2" onClick={onQuitar}>Quitar selección</button>
+            ) : (
+              <button type="button" className="fbtn2" onClick={() => onSeleccionar(c.id)}>Ver detalle</button>
+            )}
           </div>
         );
       })}

@@ -17,6 +17,10 @@ dist-ssr
 .env.*
 !.env.example
 
+# Salida local del seed de demo (documentos generados, datos simulados) —
+# ver scripts/seed-demo.mjs
+scripts-output/
+
 # Llave de la cuenta de servicio de Google Drive — nunca comitear. Vive
 # aquí solo temporalmente mientras se sube como secreto a Supabase; una
 # vez ahí, este archivo local se puede borrar.

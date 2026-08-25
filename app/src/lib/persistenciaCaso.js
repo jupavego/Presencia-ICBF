@@ -26,3 +26,27 @@ export async function guardarDatosFormatoOficial(casoId, formatoKey, datos) {
   }
   return { guardado: true };
 }
+
+// Trae el `datos` del diligenciamiento más reciente de un formato para el
+// caso activo — para que el formulario se abra con lo último guardado en
+// vez de en blanco cada vez (hay historial, no upsert, así que puede haber
+// varias filas por formato: se toma la de `actualizado_en` más reciente).
+// Solo para staff con sesión — la RLS de formatos_oficiales_datos exige
+// `casos.asignado_a = auth.uid()` o admin; el beneficiario anónimo (sin
+// sesión) usa obtenerUltimoFormatoBeneficiario en persistenciaBeneficiario.js.
+export async function obtenerUltimoFormatoOficial(casoId, formatoKey) {
+  if (!casoId) return null;
+  const { data, error } = await supabase
+    .from('formatos_oficiales_datos')
+    .select('datos')
+    .eq('caso_id', casoId)
+    .eq('formato_key', formatoKey)
+    .order('actualizado_en', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.error(`No se pudo cargar el último ${formatoKey} guardado:`, error);
+    return null;
+  }
+  return data?.datos ?? null;
+}

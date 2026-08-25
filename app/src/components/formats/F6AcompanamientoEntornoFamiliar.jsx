@@ -12,26 +12,30 @@ import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useCompromisos } from '../../context/CompromisosContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
+import { ddmmaaaaAIso, reconstruirChecklist } from '../../lib/hidratacionFormatos.js';
+
+const CAMPOS_TEXTO_F6 = ['regional', 'centroZonal', 'numPeticion', 'telefono', 'municipio', 'direccion', 'barrio', 'profesionales', 'participantes'];
 
 // El documento oficial de F6 es de texto libre (10 preguntas abiertas)
 // -- estas listas de opciones son un agregado propio del formulario web
 // (ver docs/exportacion-formatos-oficiales.md). Por eso cada una termina
 // en una opción "Otro/a" con campo de detalle, igual que en F5.
-const MOTIVOS = ['Fortalecimiento de relaciones familiares.', 'Dificultades en la convivencia familiar.', 'Fortalecimiento de capacidades de cuidado.', 'Necesidad de fortalecer redes de apoyo.', 'Situación relacionada con condiciones económicas.', 'Situación relacionada con acceso a servicios.', 'Necesidad de orientación frente a una situación familiar.', 'Situación relacionada con cambios o transiciones familiares.', 'Interés en fortalecer recursos y capacidades existentes.', 'Solicitud de orientación o acompañamiento frente a una situación específica.', 'Otro motivo'];
+export const MOTIVOS = ['Fortalecimiento de relaciones familiares.', 'Dificultades en la convivencia familiar.', 'Fortalecimiento de capacidades de cuidado.', 'Necesidad de fortalecer redes de apoyo.', 'Situación relacionada con condiciones económicas.', 'Situación relacionada con acceso a servicios.', 'Necesidad de orientación frente a una situación familiar.', 'Situación relacionada con cambios o transiciones familiares.', 'Interés en fortalecer recursos y capacidades existentes.', 'Solicitud de orientación o acompañamiento frente a una situación específica.', 'Otro motivo'];
 
-const OBJETIVOS = ['Fortalecer capacidades familiares para el cuidado.', 'Fortalecer relaciones y vínculos familiares.', 'Favorecer estrategias para mejorar la convivencia.', 'Fortalecer redes de apoyo familiares y comunitarias.', 'Identificar recursos y fortalezas de la familia.', 'Promover autonomía y toma de decisiones.', 'Fortalecer capacidades para afrontar situaciones familiares.', 'Promover participación y corresponsabilidad familiar.', 'Favorecer la articulación con recursos institucionales o comunitarios.', 'Construir acuerdos y acciones de acompañamiento con la familia.', 'Otro objetivo'];
+export const OBJETIVOS = ['Fortalecer capacidades familiares para el cuidado.', 'Fortalecer relaciones y vínculos familiares.', 'Favorecer estrategias para mejorar la convivencia.', 'Fortalecer redes de apoyo familiares y comunitarias.', 'Identificar recursos y fortalezas de la familia.', 'Promover autonomía y toma de decisiones.', 'Fortalecer capacidades para afrontar situaciones familiares.', 'Promover participación y corresponsabilidad familiar.', 'Favorecer la articulación con recursos institucionales o comunitarios.', 'Construir acuerdos y acciones de acompañamiento con la familia.', 'Otro objetivo'];
 
-const HERRAMIENTAS = ['Diálogo para el Cuidado y el Buen Vivir.', 'Entrevista familiar.', 'Escucha activa y conversación reflexiva.', 'Cartografía de redes de apoyo.', 'Mapa de pertenencia.', 'Identificación de recursos y fortalezas familiares.', 'Análisis participativo de situaciones familiares.', 'Ejercicio de construcción de acuerdos.', 'Orientación y fortalecimiento de capacidades.', 'Identificación de necesidades de articulación institucional.', 'Otra herramienta'];
+export const HERRAMIENTAS = ['Diálogo para el Cuidado y el Buen Vivir.', 'Entrevista familiar.', 'Escucha activa y conversación reflexiva.', 'Cartografía de redes de apoyo.', 'Mapa de pertenencia.', 'Identificación de recursos y fortalezas familiares.', 'Análisis participativo de situaciones familiares.', 'Ejercicio de construcción de acuerdos.', 'Orientación y fortalecimiento de capacidades.', 'Identificación de necesidades de articulación institucional.', 'Otra herramienta'];
 
-const COMPROMISOS_FAMILIA = ['Participar en los encuentros acordados.', 'Cumplir las fechas y horarios concertados.', 'Informar oportunamente dificultades para asistir.', 'Participar activamente en las actividades propuestas.', 'Implementar acuerdos construidos durante el acompañamiento.', 'Fortalecer prácticas de cuidado acordadas.', 'Activar o fortalecer redes de apoyo identificadas.', 'Realizar gestiones acordadas con otras instituciones o servicios.', 'Compartir información relevante para el desarrollo del acompañamiento.', 'Revisar conjuntamente los avances y dificultades del proceso.', 'Otro compromiso'];
+export const COMPROMISOS_FAMILIA = ['Participar en los encuentros acordados.', 'Cumplir las fechas y horarios concertados.', 'Informar oportunamente dificultades para asistir.', 'Participar activamente en las actividades propuestas.', 'Implementar acuerdos construidos durante el acompañamiento.', 'Fortalecer prácticas de cuidado acordadas.', 'Activar o fortalecer redes de apoyo identificadas.', 'Realizar gestiones acordadas con otras instituciones o servicios.', 'Compartir información relevante para el desarrollo del acompañamiento.', 'Revisar conjuntamente los avances y dificultades del proceso.', 'Otro compromiso'];
 
-const COMPROMISOS_ICBF = ['Realizar el acompañamiento acordado.', 'Cumplir las fechas y horarios concertados.', 'Brindar orientación relacionada con las necesidades identificadas.', 'Mantener confidencialidad sobre la información suministrada.', 'Realizar seguimiento a los acuerdos establecidos.', 'Facilitar información sobre servicios y recursos disponibles.', 'Orientar sobre rutas institucionales cuando corresponda.', 'Gestionar las articulaciones internas necesarias.', 'Orientar o facilitar articulaciones con actores externos cuando corresponda.', 'Revisar conjuntamente con la familia los resultados del acompañamiento.', 'Otro compromiso institucional'];
+export const COMPROMISOS_ICBF = ['Realizar el acompañamiento acordado.', 'Cumplir las fechas y horarios concertados.', 'Brindar orientación relacionada con las necesidades identificadas.', 'Mantener confidencialidad sobre la información suministrada.', 'Realizar seguimiento a los acuerdos establecidos.', 'Facilitar información sobre servicios y recursos disponibles.', 'Orientar sobre rutas institucionales cuando corresponda.', 'Gestionar las articulaciones internas necesarias.', 'Orientar o facilitar articulaciones con actores externos cuando corresponda.', 'Revisar conjuntamente con la familia los resultados del acompañamiento.', 'Otro compromiso institucional'];
 
-const ASPECTOS_COMUNIDAD = ['Existencia de redes familiares activas.', 'Existencia de redes comunitarias activas.', 'Participación de la familia en espacios comunitarios.', 'Disponibilidad de personas significativas para la familia.', 'Presencia de relaciones de solidaridad.', 'Vinculación con organizaciones comunitarias.', 'Acceso a instituciones o servicios del territorio.', 'Potencial para fortalecer redes existentes.', 'Necesidad de ampliar o diversificar redes de apoyo.', 'Identificación de recursos comunitarios susceptibles de activación.', 'Otro aspecto'];
+export const ASPECTOS_COMUNIDAD = ['Existencia de redes familiares activas.', 'Existencia de redes comunitarias activas.', 'Participación de la familia en espacios comunitarios.', 'Disponibilidad de personas significativas para la familia.', 'Presencia de relaciones de solidaridad.', 'Vinculación con organizaciones comunitarias.', 'Acceso a instituciones o servicios del territorio.', 'Potencial para fortalecer redes existentes.', 'Necesidad de ampliar o diversificar redes de apoyo.', 'Identificación de recursos comunitarios susceptibles de activación.', 'Otro aspecto'];
 
-const CONTEXTO_TERRITORIAL = ['Barreras de acceso geográfico.', 'Dificultades de movilidad o transporte.', 'Condiciones de seguridad del territorio.', 'Limitaciones en la oferta institucional.', 'Dificultades de acceso a servicios sociales.', 'Condiciones económicas del territorio.', 'Dinámicas comunitarias que afectan a la familia.', 'Situaciones ambientales o territoriales relevantes.', 'Débil articulación entre actores institucionales y comunitarios.', 'Oportunidades o recursos territoriales susceptibles de aprovechamiento.', 'Otro elemento'];
+export const CONTEXTO_TERRITORIAL = ['Barreras de acceso geográfico.', 'Dificultades de movilidad o transporte.', 'Condiciones de seguridad del territorio.', 'Limitaciones en la oferta institucional.', 'Dificultades de acceso a servicios sociales.', 'Condiciones económicas del territorio.', 'Dinámicas comunitarias que afectan a la familia.', 'Situaciones ambientales o territoriales relevantes.', 'Débil articulación entre actores institucionales y comunitarios.', 'Oportunidades o recursos territoriales susceptibles de aprovechamiento.', 'Otro elemento'];
 
-const RETOS = ['Fortalecer la participación de la familia.', 'Fortalecer redes familiares y comunitarias.', 'Mejorar la articulación institucional.', 'Ampliar el acceso a recursos y servicios.', 'Fortalecer capacidades familiares.', 'Mejorar la continuidad del acompañamiento.', 'Fortalecer el seguimiento a los acuerdos.', 'Aprovechar recursos existentes en el territorio.', 'Generar nuevas estrategias de acompañamiento.', 'Consolidar acciones de autonomía y sostenibilidad del proceso.', 'Otro reto'];
+export const RETOS = ['Fortalecer la participación de la familia.', 'Fortalecer redes familiares y comunitarias.', 'Mejorar la articulación institucional.', 'Ampliar el acceso a recursos y servicios.', 'Fortalecer capacidades familiares.', 'Mejorar la continuidad del acompañamiento.', 'Fortalecer el seguimiento a los acuerdos.', 'Aprovechar recursos existentes en el territorio.', 'Generar nuevas estrategias de acompañamiento.', 'Consolidar acciones de autonomía y sostenibilidad del proceso.', 'Otro reto'];
 
 const COMPROMISO_COLUMNS = [
   { key: 'descripcion', label: 'Descripción del Compromiso', placeholder: 'Ej. Participar en próximo encuentro' },
@@ -77,6 +81,32 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
     setCompromisos(compromisosDelCaso.length ? compromisosDelCaso : [nuevoCompromiso()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [casoActivoId, cargandoCompromisos]);
+
+  // Reabrir el registro con lo último guardado (fuera de la matriz de
+  // compromisos, ya hidratada arriba vía CompromisosContext). Los campos
+  // compuestos para el .docx (motivo, y la parte de matriz embebida en
+  // compromisoFamilia) no se pueden reconstruir limpio — se dejan como
+  // están, ver hidratacionFormatos.js.
+  const datosGuardados = useUltimoFormatoOficial('F6');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    const el = formRef.current?.elements;
+    if (el) {
+      for (const campo of CAMPOS_TEXTO_F6) {
+        if (el[campo] && datosGuardados[campo] != null) el[campo].value = datosGuardados[campo];
+      }
+      if (el.fecha && datosGuardados.fecha) el.fecha.value = ddmmaaaaAIso(datosGuardados.fecha);
+    }
+    if (OBJETIVOS.includes(datosGuardados.objetivo)) setObjetivo(datosGuardados.objetivo);
+    setHerramientas(reconstruirChecklist(datosGuardados.herramientas, HERRAMIENTAS));
+    const [checklistFamilia] = (datosGuardados.compromisoFamilia || '').split(' | Matriz:');
+    setCompromisosFamilia(reconstruirChecklist(checklistFamilia, COMPROMISOS_FAMILIA));
+    setCompromisosIcbf(reconstruirChecklist(datosGuardados.compromisoIcbf, COMPROMISOS_ICBF));
+    setAspectosComunidad(reconstruirChecklist(datosGuardados.aspectosComunidad, ASPECTOS_COMUNIDAD));
+    setContextoTerritorial(reconstruirChecklist(datosGuardados.contextoTerritorial, CONTEXTO_TERRITORIAL));
+    setRetos(reconstruirChecklist(datosGuardados.retos, RETOS));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datosGuardados]);
 
   function actualizarCompromisos(nuevaLista) {
     setCompromisos(nuevaLista);

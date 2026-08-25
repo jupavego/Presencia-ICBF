@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField } from '../ui/Field.jsx';
@@ -11,6 +11,7 @@ import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
 
 // Fuente: F3.GO3_.MT5_.PP Formato Acuerdo de Vinculacion v2.docx
 const COLUMNAS_MENORES = [
@@ -30,6 +31,21 @@ function marcarBlanco(texto, respuesta) {
 function textoSiNo(valor) {
   return marcarBlanco('Si __ No__', valor);
 }
+// Inverso de textoSiNo(), para reconstruir la respuesta Sí/No a partir del
+// texto ya marcado que quedó guardado (ver useUltimoFormatoOficial).
+function leerSiNo(texto) {
+  if (!texto) return '';
+  if (/si\s*x/i.test(texto)) return 'Sí';
+  if (/no\s*x/i.test(texto)) return 'No';
+  return '';
+}
+
+const CAMPOS_TEXTO_F3 = [
+  'fechaCiudad', 'fechaDia', 'fechaMes', 'fechaAnio',
+  'declaranteNombre', 'declaranteTipoDoc', 'declaranteNumeroDoc', 'declaranteExpedicion',
+  'declaranteDireccion', 'declaranteCiudad', 'declaranteTelFijo', 'declaranteCelular',
+  'titularNombre', 'titularDocumento', 'firmante1Nombre', 'firmante2Nombre',
+];
 
 export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
@@ -43,6 +59,33 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
   const [audiosTitular, setAudiosTitular] = useState('');
   const [videosTitular, setVideosTitular] = useState('');
   const [menores, setMenores] = useState([nuevoMenor()]);
+
+  // Reabrir el acuerdo con lo último guardado para este caso, en vez de en
+  // blanco cada vez (los campos de texto son no controlados vía formRef, así
+  // que se asignan directo al DOM; los Sí/No se reconstruyen a partir del
+  // texto ya marcado con leerSiNo()).
+  const datosGuardados = useUltimoFormatoOficial('F3');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    const el = formRef.current?.elements;
+    if (el) {
+      for (const campo of CAMPOS_TEXTO_F3) {
+        if (el[campo] && datosGuardados[campo] != null) el[campo].value = datosGuardados[campo];
+      }
+    }
+    setTratamientoDatos(leerSiNo(datosGuardados.autDatosTexto));
+    setMensajesTexto(leerSiNo(datosGuardados.autSmsTexto));
+    setFotosMenores(leerSiNo(datosGuardados.menorFotosTexto));
+    setAudiosMenores(leerSiNo(datosGuardados.menorAudiosTexto));
+    setVideosMenores(leerSiNo(datosGuardados.menorVideosTexto));
+    setFotosTitular(leerSiNo(datosGuardados.titularFotosTexto));
+    setAudiosTitular(leerSiNo(datosGuardados.titularAudiosTexto));
+    setVideosTitular(leerSiNo(datosGuardados.titularVideosTexto));
+    const menoresGuardados = [1, 2, 3, 4]
+      .map((i) => ({ nombre: datosGuardados[`menor${i}Nombre`] || '', documento: datosGuardados[`menor${i}Documento`] || '' }))
+      .filter((m) => m.nombre || m.documento);
+    setMenores(menoresGuardados.length ? menoresGuardados : [nuevoMenor()]);
+  }, [datosGuardados]);
 
   function handleSubmit(e) {
     e.preventDefault();

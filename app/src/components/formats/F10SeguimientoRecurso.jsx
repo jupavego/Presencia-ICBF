@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, TextAreaField } from '../ui/Field.jsx';
@@ -11,6 +11,8 @@ import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
+import { ddmmaaaaAIso, moneyAJsNumero } from '../../lib/hidratacionFormatos.js';
 
 const CAT_KEYS = { Física: 'catFisica', Visual: 'catVisual', Auditiva: 'catAuditiva', Sordoceguera: 'catSordoceguera', Psicosocial: 'catPsicosocial', Intelectual: 'catIntelectual', Múltiple: 'catMultiple' };
 const MONEY = (n) => (n ? Number(n).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '');
@@ -37,6 +39,34 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
     () => compras.reduce((sum, c) => sum + (parseFloat(c.valor) || 0), 0),
     [compras]
   );
+
+  // Reabrir el seguimiento con lo último guardado. `totalInvertido` no se
+  // reasigna (se recalcula solo, arriba, a partir de `compras`).
+  const datosGuardados = useUltimoFormatoOficial('F10');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    const d = datosGuardados;
+    const el = formRef.current?.elements;
+    const CAMPOS_TEXTO = ['numSolicitud', 'centroZonal', 'responsable', 'titularCuenta', 'nombreParticipante', 'coordinador', 'profesionales'];
+    if (el) {
+      for (const campo of CAMPOS_TEXTO) {
+        if (el[campo] && d[campo] != null) el[campo].value = d[campo];
+      }
+      if (el.fecha && d.fecha) el.fecha.value = ddmmaaaaAIso(d.fecha);
+    }
+    setCategorias(CATEGORIAS_DISCAPACIDAD.filter((label) => d[CAT_KEYS[label]] === '☒'));
+    setSaldoPendiente(moneyAJsNumero(d.saldoPendiente));
+    const comprasGuardadas = [];
+    for (let i = 1; i <= 8; i += 1) {
+      const soporte = d[`fila${i}Soporte`] || '';
+      const establecimiento = d[`fila${i}Establecimiento`] || '';
+      const detalle = d[`fila${i}Detalle`] || '';
+      const valor = moneyAJsNumero(d[`fila${i}Valor`]);
+      if (!soporte && !establecimiento && !detalle && !valor) continue;
+      comprasGuardadas.push({ fecha: ddmmaaaaAIso(d[`fila${i}Fecha`]), soporte, establecimiento, detalle, valor });
+    }
+    setCompras(comprasGuardadas.length ? comprasGuardadas : [nuevaCompra()]);
+  }, [datosGuardados]);
 
   function handleSubmit(e) {
     e.preventDefault();

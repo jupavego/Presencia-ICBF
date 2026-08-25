@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField } from '../ui/Field.jsx';
@@ -9,6 +9,8 @@ import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
+import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
+import { ddmmaaaaAIso } from '../../lib/hidratacionFormatos.js';
 
 const COLUMNAS_FAMILIAR = [
   { key: 'num', label: '# Acomp.', width: '50px' },
@@ -70,6 +72,28 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
   const [familiar, setFamiliar] = useState([nuevaVisitaFamiliar(0)]);
   const [comunitario, setComunitario] = useState([nuevoEncuentro(0)]);
 
+  // Reabrir el cronograma con lo último guardado — las fechas vuelven a
+  // AAAA-MM-DD (lo que guardarDatosFormatoOficial guardó ya en DD/MM/AAAA,
+  // ver handleExportarOficial más abajo) para que el <input type="date">
+  // las acepte.
+  const datosGuardados = useUltimoFormatoOficial('F8');
+  useEffect(() => {
+    if (!datosGuardados) return;
+    const el = formRef.current?.elements;
+    if (el) {
+      if (el.regional && datosGuardados.regional) el.regional.value = datosGuardados.regional;
+      if (el.centroZonal && datosGuardados.centroZonal != null) el.centroZonal.value = datosGuardados.centroZonal;
+      if (el.profesional && datosGuardados.profesional != null) el.profesional.value = datosGuardados.profesional;
+      if (el.telefonoEquipo && datosGuardados.telefono != null) el.telefonoEquipo.value = datosGuardados.telefono;
+    }
+    if (datosGuardados.familiar?.length) {
+      setFamiliar(datosGuardados.familiar.map((f) => ({ ...f, fecha: ddmmaaaaAIso(f.fecha) })));
+    }
+    if (datosGuardados.comunitario?.length) {
+      setComunitario(datosGuardados.comunitario.map((c) => ({ ...c, fecha: ddmmaaaaAIso(c.fecha) })));
+    }
+  }, [datosGuardados]);
+
   function handleSubmit(e) {
     e.preventDefault();
     alert('¡Cronograma validado y estructurado correctamente!');
@@ -82,7 +106,19 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
     const profesional = fd.get('profesional') || '';
     const telefono = fd.get('telefonoEquipo') || '';
 
-    await guardarDatosFormatoOficial(casoActivoId, 'F8', { regional, centroZonal, profesional, telefono, familiar, comunitario });
+    // Se guarda con la fecha ya en DD/MM/AAAA (igual que F3/F4/F6/F7/F10) en
+    // vez del AAAA-MM-DD nativo del <input type="date"> — el estado local
+    // (`familiar`/`comunitario`) sigue en ISO sin tocar, porque el .xlsx se
+    // escribe a partir de ese mismo estado y ya aplica formatoFecha() por su
+    // cuenta al escribir la celda (ver escribirFilas()).
+    await guardarDatosFormatoOficial(casoActivoId, 'F8', {
+      regional,
+      centroZonal,
+      profesional,
+      telefono,
+      familiar: familiar.map((f) => ({ ...f, fecha: formatoFecha(f.fecha) })),
+      comunitario: comunitario.map((c) => ({ ...c, fecha: formatoFecha(c.fecha) })),
+    });
 
     const nombreArchivo = 'F8-Cronograma-diligenciado.xlsx';
     const blob = await descargarXlsxOficial('/plantillas/F8-Cronograma.xlsx', (workbook) => {
