@@ -53,13 +53,13 @@ export default function ListaCasosPerfil({ esAdmin, uid, casoActivoId, onSelecci
   }, [uid, esAdmin]);
 
   return (
-    <div className="ambito-block">
-      <div className="ambito-block-head">
+    <details className="ambito-block">
+      <summary className="ambito-block-head">
         <div className="ambito-block-title">
-          <h3>{esAdmin ? 'Todos los casos asignados' : 'Mis casos asignados'}</h3>
+          <h3>{esAdmin ? 'Todos los casos asignados' : 'Mis casos asignados'} ({casos.length})</h3>
           <p>Evidencia diligenciada por caso — formatos oficiales y herramientas del Módulo de Perfilamiento.</p>
         </div>
-      </div>
+      </summary>
       {cargando && <p className="fdesc">Cargando…</p>}
       {!cargando && casos.length === 0 && (
         <p className="fdesc">
@@ -90,6 +90,6 @@ export default function ListaCasosPerfil({ esAdmin, uid, casoActivoId, onSelecci
           </div>
         );
       })}
-    </div>
+    </details>
   );
 }

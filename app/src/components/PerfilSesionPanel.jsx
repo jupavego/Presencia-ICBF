@@ -121,8 +121,10 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
       : null;
   }
 
+  const pctHerramientas = totalHerramientas ? Math.round((completadas.length / totalHerramientas) * 100) : 0;
+
   return (
-    <section className="stage-panel">
+    <section className="stage-panel perfil-dashboard">
       <div className="stage-head">
         <div className="eyebrow">Módulo de Perfilamiento · Perfil de sesión</div>
         <h2>Perfil de la sesión</h2>
@@ -131,6 +133,8 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
           Perfilamiento— en un solo lugar, sin tener que abrir cada uno para recordarlo.
         </p>
       </div>
+
+      {esAdmin && <UsuariosTrazabilidad />}
 
       {esStaff && (
         <ListaCasosPerfil esAdmin={esAdmin} uid={profile?.id} casoActivoId={casoActivoId} onSeleccionar={seleccionarCaso} />
@@ -151,145 +155,169 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
         </Callout>
       )}
 
-      <div className="lectura-metrics">
-        <div><b>{completadas.length}/{totalHerramientas}</b><span>Herramientas completadas</span></div>
-        <div><b>{calificacionGlobal != null ? `${calificacionGlobal}/5` : '—'}</b><span>Calificación global</span></div>
-        <div><b>{porNivel.fortaleza.length}</b><span>Fortalezas</span></div>
-        <div><b>{porNivel.oportunidad.length}</b><span>Oportunidades</span></div>
-        <div><b>{porNivel.profundizacion.length}</b><span>A priorizar</span></div>
+      <div className="perfil-kpis">
+        <div className="perfil-kpi">
+          <b>{completadas.length}/{totalHerramientas}</b>
+          <span>Herramientas completadas</span>
+          <div className="progreso-barra"><span style={{ width: `${pctHerramientas}%` }} /></div>
+        </div>
+        <div className="perfil-kpi">
+          <b>{calificacionGlobal != null ? `${calificacionGlobal}/5` : '—'}</b>
+          <span>Calificación global</span>
+        </div>
+        <div className="perfil-kpi acento-verde">
+          <b>{porNivel.fortaleza.length}</b>
+          <span>Fortalezas</span>
+        </div>
+        <div className="perfil-kpi acento-amber">
+          <b>{porNivel.oportunidad.length}</b>
+          <span>Oportunidades</span>
+        </div>
+        <div className="perfil-kpi acento-azul">
+          <b>{porNivel.profundizacion.length}</b>
+          <span>A priorizar</span>
+        </div>
       </div>
 
-      {completadas.length === 0 ? (
-        <Callout>
-          Todavía no se ha completado ninguna herramienta en esta visita. Abra cualquiera desde{' '}
-          <b>Herramientas</b> en el menú lateral — al completarla, su perfil descriptivo aparecerá aquí también.
-        </Callout>
-      ) : (
-        <>
-          {['profundizacion', 'oportunidad', 'fortaleza'].map((nivel) => porNivel[nivel].length > 0 && (
-            <div key={nivel} className="ambito-block">
+      <div className="perfil-grid">
+        <div className="perfil-main">
+          {completadas.length === 0 ? (
+            <Callout>
+              Todavía no se ha completado ninguna herramienta en esta visita. Abra cualquiera desde{' '}
+              <b>Herramientas</b> en el menú lateral — al completarla, su perfil descriptivo aparecerá aquí también.
+            </Callout>
+          ) : (
+            ['profundizacion', 'oportunidad', 'fortaleza'].map((nivel) => porNivel[nivel].length > 0 && (
+              <div key={nivel} className="ambito-block">
+                <div className="ambito-block-head">
+                  <div className="ambito-block-title">
+                    <h3>{NIVEL_LABEL[nivel]}</h3>
+                  </div>
+                </div>
+                <div className="pattern-list">
+                  {porNivel[nivel].map((p, i) => (
+                    <div key={`${p.origenId}_${p.codigo}_${i}`}>
+                      <div className="fnote-status" style={{ marginBottom: 4 }}>{p.origenNombre}</div>
+                      <PatternCard patron={p} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="perfil-sidebar">
+          {casoActivoId && compromisos.length > 0 && (
+            <div className="ambito-block">
               <div className="ambito-block-head">
                 <div className="ambito-block-title">
-                  <h3>{NIVEL_LABEL[nivel]}</h3>
+                  <h3>Compromisos del caso</h3>
+                  <p>Acuerdos registrados desde cualquier formato del caso (hoy: F6), reunidos en un solo lugar.</p>
                 </div>
               </div>
-              <div className="pattern-list">
-                {porNivel[nivel].map((p, i) => (
-                  <div key={`${p.origenId}_${p.codigo}_${i}`}>
-                    <div className="fnote-status" style={{ marginBottom: 4 }}>{p.origenNombre}</div>
-                    <PatternCard patron={p} />
-                  </div>
-                ))}
+              <div className="perfil-kpis">
+                <div className="perfil-kpi acento-amber"><b>{compromisosPendientes.length}</b><span>Pendientes</span></div>
+                <div className="perfil-kpi acento-azul"><b>{compromisosEnProceso.length}</b><span>En proceso</span></div>
+                <div className="perfil-kpi acento-verde"><b>{compromisosCumplidos.length}</b><span>Cumplidos</span></div>
               </div>
-            </div>
-          ))}
-        </>
-      )}
-
-      {casoActivoId && compromisos.length > 0 && (
-        <div className="ambito-block">
-          <div className="ambito-block-head">
-            <div className="ambito-block-title">
-              <h3>Compromisos del caso</h3>
-              <p>Acuerdos registrados desde cualquier formato del caso (hoy: F6), reunidos en un solo lugar.</p>
-            </div>
-          </div>
-          <div className="lectura-metrics">
-            <div><b>{compromisosPendientes.length}</b><span>Pendientes</span></div>
-            <div><b>{compromisosEnProceso.length}</b><span>En proceso</span></div>
-            <div><b>{compromisosCumplidos.length}</b><span>Cumplidos</span></div>
-          </div>
-          {compromisosPendientes.length > 0 && (
-            <div style={{ marginTop: 12 }}>
-              {compromisosPendientes.map((c) => (
-                <div key={c.id} className="repeater-item" style={{ marginBottom: 8 }}>
-                  <div>{c.descripcion || '(sin descripción)'}</div>
-                  <div className="fnote-status" style={{ marginTop: 4 }}>
-                    {c.responsable}{c.fecha ? ` · ${formatoFecha(c.fecha)}` : ''} · desde {c.origen || '—'}
-                  </div>
+              {compromisosPendientes.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  {compromisosPendientes.map((c) => (
+                    <div key={c.id} className="repeater-item" style={{ marginBottom: 8 }}>
+                      <div>{c.descripcion || '(sin descripción)'}</div>
+                      <div className="fnote-status" style={{ marginTop: 4 }}>
+                        {c.responsable}{c.fecha ? ` · ${formatoFecha(c.fecha)}` : ''} · desde {c.origen || '—'}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {casoActivoId && (
-        <div className="ambito-block">
-          <div className="ambito-block-head">
-            <div className="ambito-block-title">
-              <h3>Formatos oficiales diligenciados</h3>
-              <p>F1-F10 guardados para este caso — incluye lo que el propio beneficiario diligenció (ej. F1), no solo lo hecho por el profesional.</p>
-            </div>
-          </div>
-          {formatosOficiales.length === 0 ? (
-            <p className="fdesc">Ningún formato oficial diligenciado todavía para este caso.</p>
-          ) : (
-            <div className="format-grid">
-              {formatosOficiales.map(([codigo, veces]) => {
-                const info = infoFormatoOficial[codigo];
-                return (
-                  <button
-                    key={codigo}
-                    type="button"
-                    className="fbtn"
-                    onClick={() => info && onOpenFormat(info)}
-                    style={{ textAlign: 'left' }}
-                    disabled={!info}
-                  >
-                    ✓ {codigo} · {info?.nombre || 'Formato'}{veces > 1 ? ` (${veces})` : ''}
-                  </button>
-                );
-              })}
+          {casoActivoId && (
+            <div className="ambito-block">
+              <div className="ambito-block-head">
+                <div className="ambito-block-title">
+                  <h3>Formatos oficiales diligenciados</h3>
+                  <p>F1-F10 guardados para este caso — incluye lo que el propio beneficiario diligenció (ej. F1), no solo lo hecho por el profesional.</p>
+                </div>
+              </div>
+              {formatosOficiales.length === 0 ? (
+                <p className="fdesc">Ningún formato oficial diligenciado todavía para este caso.</p>
+              ) : (
+                <div className="format-grid">
+                  {formatosOficiales.map(([codigo, veces]) => {
+                    const info = infoFormatoOficial[codigo];
+                    return (
+                      <button
+                        key={codigo}
+                        type="button"
+                        className="fbtn"
+                        onClick={() => info && onOpenFormat(info)}
+                        style={{ textAlign: 'left' }}
+                        disabled={!info}
+                      >
+                        ✓ {codigo} · {info?.nombre || 'Formato'}{veces > 1 ? ` (${veces})` : ''}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {casoActivoId && (
-      <details className="ambito-block">
-        <summary style={{ cursor: 'pointer', listStylePosition: 'outside' }}>
-          <div className="ambito-block-head" style={{ display: 'inline-flex', marginBottom: 0, verticalAlign: 'middle' }}>
-            <div className="ambito-block-title">
-              <h3>Cobertura por esfera ({completadas.length}/{totalHerramientas})</h3>
-              <p>Qué se ha completado hasta ahora, esfera por esfera — clic para expandir.</p>
-            </div>
-          </div>
-        </summary>
-        <div style={{ marginTop: 14 }}>
-        {AMBITOS.map((ambito) => {
-          const herramientasEsfera = ambito.herramientas.filter((h) => h.componentKey && h.componentKey !== 'F1');
-          if (herramientasEsfera.length === 0) return null;
-          return (
-            <div key={ambito.codigo} style={{ marginBottom: 10 }}>
-              <span className="fnote-status">
-                {ambito.codigo} · {ambito.nombre}
-                {calificacionPorEsfera[ambito.codigo] != null && ` · ${calificacionPorEsfera[ambito.codigo]}/5`}
-              </span>
-              <div className="format-grid">
-                {herramientasEsfera.map((h) => {
-                  const hecha = !!registro[h.componentKey]?.completo;
+          {casoActivoId && (
+            <div className="ambito-block">
+              <div className="ambito-block-head">
+                <div className="ambito-block-title">
+                  <h3>Cobertura por esfera ({completadas.length}/{totalHerramientas})</h3>
+                  <p>Qué se ha completado hasta ahora, esfera por esfera.</p>
+                </div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                {AMBITOS.map((ambito) => {
+                  const herramientasEsfera = ambito.herramientas.filter((h) => h.componentKey && h.componentKey !== 'F1');
+                  if (herramientasEsfera.length === 0) return null;
+                  const hechasEsfera = herramientasEsfera.filter((h) => registro[h.componentKey]?.completo).length;
+                  const pctEsfera = Math.round((hechasEsfera / herramientasEsfera.length) * 100);
                   return (
-                    <button
-                      key={ambito.codigo + h.codigo}
-                      type="button"
-                      className="fbtn"
-                      onClick={() => onOpenFormat(h)}
-                      style={{ textAlign: 'left' }}
-                    >
-                      {hecha ? '✓' : '○'} {h.nombre}
-                    </button>
+                    <details key={ambito.codigo} className="esfera-row">
+                      <summary>
+                        <div className="esfera-row-head">
+                          <b>{ambito.codigo} · {ambito.nombre}</b>
+                          <span>
+                            {hechasEsfera}/{herramientasEsfera.length}
+                            {calificacionPorEsfera[ambito.codigo] != null && ` · ${calificacionPorEsfera[ambito.codigo]}/5`}
+                          </span>
+                        </div>
+                        <div className="progreso-barra"><span style={{ width: `${pctEsfera}%` }} /></div>
+                      </summary>
+                      <div className="format-grid">
+                        {herramientasEsfera.map((h) => {
+                          const hecha = !!registro[h.componentKey]?.completo;
+                          return (
+                            <button
+                              key={ambito.codigo + h.codigo}
+                              type="button"
+                              className="fbtn"
+                              onClick={() => onOpenFormat(h)}
+                              style={{ textAlign: 'left' }}
+                            >
+                              {hecha ? '✓' : '○'} {h.nombre}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </details>
                   );
                 })}
               </div>
             </div>
-          );
-        })}
+          )}
         </div>
-      </details>
-      )}
-
-      {esAdmin && <UsuariosTrazabilidad />}
+      </div>
     </section>
   );
 }
