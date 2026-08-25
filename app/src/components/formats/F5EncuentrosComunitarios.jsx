@@ -1,14 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import Callout from '../ui/Callout.jsx';
-import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarDocxOficial, formatoFecha, DOCX_MIME } from '../../lib/exportOficial.js';
 import { guardarEncuentroComunitario } from '../../lib/persistenciaEncuentro.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { supabase } from '../../lib/supabaseClient.js';
+import SelectorCasosAsignadosMultiple from './SelectorCasosAsignadosMultiple.jsx';
 
 // El documento oficial de F5 es de texto libre (líneas en blanco por
 // sección) — estas listas de opciones son un agregado propio del
@@ -64,29 +65,9 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
   // asisten varios beneficiarios a la vez — ya no cuelga de un solo caso
   // activo (ver encuentros_comunitarios/encuentro_participantes en
   // 0003_roles_bolsa_asignacion.sql). Se marcan aquí cuáles de los propios
-  // casos asignados participaron.
-  const [misCasos, setMisCasos] = useState([]);
+  // casos asignados participaron, con la misma fuente de datos que
+  // SelectorCasoAsignado.jsx pero en su variante de selección múltiple.
   const [casosSeleccionados, setCasosSeleccionados] = useState([]);
-
-  useEffect(() => {
-    if (!session) {
-      setMisCasos([]);
-      return;
-    }
-    supabase
-      .from('casos')
-      .select('id, nombre_participante, numero_peticion')
-      .eq('asignado_a', session.user.id)
-      .eq('estado', 'asignado')
-      .then(({ data, error }) => {
-        if (error) console.error('No se pudieron cargar los casos asignados:', error);
-        setMisCasos(data || []);
-      });
-  }, [session]);
-
-  function toggleCaso(id) {
-    setCasosSeleccionados((sel) => (sel.includes(id) ? sel.filter((c) => c !== id) : [...sel, id]));
-  }
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -142,11 +123,13 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
     } catch (err) {
       console.error('No se pudo guardar el encuentro comunitario:', err);
     }
-    await descargarDocxOficial(
-      '/plantillas/F5-Encuentros-Comunitarios.docx',
-      datos,
-      'F5-Encuentros-Comunitarios-diligenciado.docx'
-    );
+    const nombreArchivo = 'F5-Encuentros-Comunitarios-diligenciado.docx';
+    const blob = await descargarDocxOficial('/plantillas/F5-Encuentros-Comunitarios.docx', datos, nombreArchivo);
+    // Un mismo encuentro puede tener varias familias participantes — el
+    // respaldo queda en la carpeta de cada una, no solo en la primera.
+    for (const casoId of casosSeleccionados) {
+      respaldarEnDrive({ casoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
+    }
   }
 
   return (
@@ -171,22 +154,7 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
       </Section>
 
       <Section title="Casos participantes" hint="Un mismo encuentro suele reunir a varias familias a la vez — márquelas para que este registro quede en el expediente de cada una, sin tener que diligenciarlo varias veces.">
-        {!session && (
-          <Callout variant="warn">Inicie sesión para ver sus casos asignados y poder registrar este encuentro.</Callout>
-        )}
-        {session && !misCasos.length && (
-          <Callout>No tiene casos asignados todavía. Asigne al menos uno desde Bolsa de casos antes de registrar un encuentro comunitario.</Callout>
-        )}
-        {misCasos.length > 0 && (
-          <div className="check-grid cols-3">
-            {misCasos.map((c) => (
-              <label key={c.id}>
-                <input type="checkbox" checked={casosSeleccionados.includes(c.id)} onChange={() => toggleCaso(c.id)} />
-                {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
-              </label>
-            ))}
-          </div>
-        )}
+        <SelectorCasosAsignadosMultiple selected={casosSeleccionados} onChange={setCasosSeleccionados} label={null} />
       </Section>
 
       <Section title="Caracterización y desarrollo del encuentro">

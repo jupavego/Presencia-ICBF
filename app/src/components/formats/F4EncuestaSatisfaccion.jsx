@@ -5,7 +5,8 @@ import { TextField, TextAreaField } from '../ui/Field.jsx';
 import Choice from '../ui/Choice.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
-import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarXlsxOficial, formatoFecha, XLSX_MIME } from '../../lib/exportOficial.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
@@ -106,7 +107,8 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
       sugerencias: fd.get('sugerencias') || '',
     });
 
-    await descargarXlsxOficial('/plantillas/F4-Encuesta-Satisfaccion.xlsx', (workbook) => {
+    const nombreArchivo = 'F4-Encuesta-Satisfaccion-diligenciada.xlsx';
+    const blob = await descargarXlsxOficial('/plantillas/F4-Encuesta-Satisfaccion.xlsx', (workbook) => {
       const ws = workbook.worksheets[0];
       ws.getCell('C6').value = fd.get('departamento') || '';
       ws.getCell('C7').value = fd.get('municipio') || '';
@@ -129,7 +131,8 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
         if (col) ws.getCell(`${col}${FILA_ITEM[i]}`).value = 'X';
       }
       ws.getCell('A30').value = fd.get('sugerencias') || '';
-    }, 'F4-Encuesta-Satisfaccion-diligenciada.xlsx');
+    }, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob });
   }
 
   return (

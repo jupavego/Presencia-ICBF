@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { forwardRef, useMemo, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import DataTable from '../ui/DataTable.jsx';
@@ -6,13 +6,15 @@ import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
-import { TIPOS_APOYO, leerRed, compararActualPotencial } from '../../lib/lecturaRed.js';
+import { TIPOS_APOYO, leerRed, compararActualPotencial, resumenLecturaParaExport } from '../../lib/lecturaRed.js';
 import { GLOSARIO_AMBITOS, GLOSARIO_CIRCULOS, GLOSARIO_APOYOS, GLOSARIO_MAPAS } from '../../data/glosarioMapaPertenencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { guardarFormatoBeneficiario } from '../../lib/persistenciaBeneficiario.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
+import { svgElementConNotaAPng } from '../../lib/svgAImagen.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 
 // Fuente: f1.go3_.mt5_.pp_mapa_pertenencia_actual_potencial_v1.docx
 const CUADRANTES = ['Familia', 'Ocupación', 'Instituciones y profesionales', 'Vida Social'];
@@ -98,11 +100,15 @@ function Leyenda() {
   );
 }
 
-function MapaSVG({ contactos }) {
+// forwardRef: el nodo real del <svg> hace falta para exportarlo a PNG al
+// guardar (ver handleSubmit) — incluso el que no está visible en pantalla
+// en ese momento, porque solo se muestra un mapa (actual/potencial) a la
+// vez pero el respaldo en Drive necesita los dos.
+const MapaSVG = forwardRef(function MapaSVG({ contactos }, ref) {
   const posiciones = useMemo(() => calcularPosiciones(contactos), [contactos]);
   const borde = CENTRO * 2;
   return (
-    <svg viewBox={`0 0 ${borde} ${borde}`} style={{ width: '100%', maxWidth: 460, display: 'block', margin: '0 auto' }}>
+    <svg ref={ref} viewBox={`0 0 ${borde} ${borde}`} style={{ width: '100%', maxWidth: 460, display: 'block', margin: '0 auto' }}>
       {[
         { r: 134, nombre: 'Externo' },
         { r: 92, nombre: 'Intermedio' },
@@ -142,7 +148,7 @@ function MapaSVG({ contactos }) {
       })}
     </svg>
   );
-}
+});
 
 function LecturaDelMapa({ contactos }) {
   const lectura = leerRed(contactos);
@@ -213,6 +219,8 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
   const [potencial, setPotencial] = useState([nuevoVinculo()]);
   const contactos = tipo === 'actual' ? actual : potencial;
   const setContactos = tipo === 'actual' ? setActual : setPotencial;
+  const svgActualRef = useRef(null);
+  const svgPotencialRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -224,6 +232,26 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
       ? await guardarDatosFormatoOficial(casoActivoId, 'F1', { actual, potencial })
       : await guardarFormatoBeneficiario(codigoAcceso, 'F1', { actual, potencial });
     alert(guardado ? '¡Mapa de pertenencia guardado con éxito!' : 'No hay un caso activo (o falló el guardado) — el mapa no quedó guardado en el servidor.');
+
+    // El documento oficial de F1 no trae líneas de texto para diligenciar
+    // (son dos diagramas en blanco para dibujar a mano) — el respaldo en
+    // Drive es una imagen del mapa que ya se construyó en pantalla, no un
+    // .docx con datos. Se exportan los dos (actual y potencial) sin
+    // importar cuál esté visible en este momento — ver forwardRef en
+    // MapaSVG, ambos quedan siempre montados en el DOM.
+    if (casoActivoId && guardado) {
+      const fase = `${etapaCode} · ${etapaNombre}`;
+      if (svgActualRef.current) {
+        const nota = resumenLecturaParaExport(leerRed(actual));
+        const blob = await svgElementConNotaAPng(svgActualRef.current, nota);
+        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Actual.png', mimeType: 'image/png', blob });
+      }
+      if (svgPotencialRef.current) {
+        const nota = resumenLecturaParaExport(leerRed(potencial));
+        const blob = await svgElementConNotaAPng(svgPotencialRef.current, nota);
+        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Potencial.png', mimeType: 'image/png', blob });
+      }
+    }
   }
 
   return (
@@ -262,7 +290,12 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
       </Section>
 
       <Section title="Visualización del mapa" hint="Se genera automáticamente a partir de los vínculos registrados. Pase el cursor sobre los ámbitos, los círculos o cada punto para ver su explicación.">
-        <MapaSVG contactos={contactos} />
+        <div style={{ display: tipo === 'actual' ? 'block' : 'none' }}>
+          <MapaSVG ref={svgActualRef} contactos={actual} />
+        </div>
+        <div style={{ display: tipo === 'potencial' ? 'block' : 'none' }}>
+          <MapaSVG ref={svgPotencialRef} contactos={potencial} />
+        </div>
       </Section>
 
       <Section title="Lectura del mapa" hint="Motor de lectura de red: convierte los vínculos registrados en patrones, hipótesis orientadoras y preguntas para conversar con la familia.">

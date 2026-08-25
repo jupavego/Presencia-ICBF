@@ -8,7 +8,8 @@ import DataTable from '../ui/DataTable.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
-import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarDocxOficial, formatoFecha, DOCX_MIME } from '../../lib/exportOficial.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useFamilia } from '../../context/FamiliaContext.jsx';
@@ -305,11 +306,9 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     }
 
     await guardarDatosFormatoOficial(casoActivoId, 'F7', datos);
-    await descargarDocxOficial(
-      '/plantillas/F7-Perfil-Socio-Familiar.docx',
-      datos,
-      'F7-Perfil-Socio-Familiar-diligenciado.docx'
-    );
+    const nombreArchivo = 'F7-Perfil-Socio-Familiar-diligenciado.docx';
+    const blob = await descargarDocxOficial('/plantillas/F7-Perfil-Socio-Familiar.docx', datos, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
   }
 
   return (
