@@ -53,10 +53,22 @@ async function main() {
   });
 
   try {
-    const browser = await puppeteer.launch({ headless: true });
+    // --no-sandbox: el contenedor de build de Vercel (y la mayoría de CI)
+    // no tiene el sandbox de kernel que Chromium pide por defecto — sin
+    // este flag, `puppeteer.launch()` falla ahí aunque funcione en una
+    // máquina normal.
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    });
     try {
       for (const ruta of RUTAS_PUBLICAS) {
         const page = await browser.newPage();
+        // Si React nunca llega a pintar (p. ej. faltan las variables de
+        // entorno de Supabase en este build y supabaseClient.js revienta al
+        // cargar), sin esto el único síntoma sería un timeout genérico de
+        // waitForFunction — con esto, el error real queda en el log del build.
+        page.on('pageerror', (err) => console.error(`[prerender] error de página en ${ruta}:`, err.message));
         await page.goto(`${BASE_URL}${ruta}`, { waitUntil: 'networkidle0' });
         // La Home (etapa 01) y las demás etapas tardan un tick extra en
         // pintar su contenido tras el mount inicial de React — esperamos a
