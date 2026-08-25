@@ -12,7 +12,7 @@ export default function TopBar({ onRequestLogin, onRequestRetomar, onOpenPerfilS
       </svg>
       <div className="brandblock">
         <span className="icbf">ICBF · Bienestar Familiar</span>
-        <span className="servicio">Servicio <b>PRESENCIA</b> — Panel de Etapas y Formatos</span>
+        <span className="servicio">Servicio <b>PRESENCIA</b> — Portal de Gestión y Acompañamiento</span>
       </div>
       <div className="topbar-spacer" />
       <CasoBar />
