@@ -62,7 +62,7 @@ const nuevoIntegrante = () => ({
 
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId, seleccionarCaso } = useCaso();
+  const { casoActivoId, codigoAcceso, seleccionarCaso } = useCaso();
   const { session } = useAuth();
   const { integrantes: integrantesDelCaso, guardarIntegrantes, cargando: cargandoFamilia } = useFamilia();
   const { compromisos: compromisosDelCaso, guardarCompromisos, cargando: cargandoCompromisos } = useCompromisos();
@@ -384,7 +384,7 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     await guardarDatosFormatoOficial(casoActivoId, 'F7', datos);
     const nombreArchivo = 'F7-Perfil-Socio-Familiar-diligenciado.docx';
     const blob = await descargarDocxOficial('/plantillas/F7-Perfil-Socio-Familiar.docx', datos, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
   }
 
   return (

@@ -49,7 +49,7 @@ const CAMPOS_TEXTO_F3 = [
 
 export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
   const [tratamientoDatos, setTratamientoDatos] = useState('');
   const [mensajesTexto, setMensajesTexto] = useState('');
   const [fotosMenores, setFotosMenores] = useState('');
@@ -139,7 +139,7 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
     await guardarDatosFormatoOficial(casoActivoId, 'F3', datos);
     const nombreArchivo = 'F3-Acuerdo-Vinculacion-diligenciado.docx';
     const blob = await descargarDocxOficial('/plantillas/F3-Acuerdo-Vinculacion.docx', datos, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
   }
 
   return (

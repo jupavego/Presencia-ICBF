@@ -75,10 +75,23 @@ function evaluarOrientacion(alerta) {
   };
 }
 
+// Contraseña temporal para la cuenta que se crea si el beneficiario deja
+// su correo en el PET — nunca se le pide que elija una, así que se genera
+// aquí. No se deriva del nombre (sería adivinable a partir de un dato
+// público del propio formulario); se muestra una sola vez en el
+// resultado para que la anote, igual que antes pasaba con el código de
+// acceso.
+function generarPassword() {
+  const alfabeto = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+  const bytes = new Uint8Array(12);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => alfabeto[b % alfabeto.length]).join('');
+}
+
 export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
   const { crearCaso } = useCaso();
-  const { session } = useAuth();
+  const { session, signUp } = useAuth();
   const [origen, setOrigen] = useState('');
   const [tipoDocumento, setTipoDocumento] = useState('');
   const [rol, setRol] = useState('');
@@ -97,6 +110,8 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const [resultado, setResultado] = useState(null);
   const [errorCaso, setErrorCaso] = useState(null);
   const [codigoNuevoCaso, setCodigoNuevoCaso] = useState(null);
+  const [cuentaCreada, setCuentaCreada] = useState(null); // { email, password } — se muestra una sola vez
+  const [errorCuenta, setErrorCuenta] = useState(null);
   // Detalle de texto libre de la opción "Otro/a" de cada campo — ver el
   // mismo patrón en F5EncuentrosComunitarios.jsx. PET es un formato
   // propio de la plataforma (no digitaliza un documento oficial), pero
@@ -116,6 +131,7 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
     e.preventDefault();
     const fd = new FormData(formRef.current);
     const nombre = (fd.get('nombre') || '').trim();
+    const correo = (fd.get('correo') || '').trim();
 
     if (!nombre || !municipio || !motivo || !origen) {
       setResultado({
@@ -128,14 +144,35 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
       return;
     }
 
+    setErrorCaso(null);
+    setCodigoNuevoCaso(null);
+    setErrorCuenta(null);
+    setCuentaCreada(null);
+
+    // Si dejó un correo y no hay sesión, se crea la cuenta ANTES del
+    // caso: crear_caso_beneficiario usa auth.uid() del lado del servidor,
+    // así que si ya hay sesión para ese momento, el caso queda atribuido
+    // a esa cuenta automáticamente (0004_beneficiario_autenticado.sql).
+    // Un fallo aquí no bloquea el guardado del caso — se sigue igual,
+    // como invitado, y se avisa del error de la cuenta aparte.
+    if (!session && correo) {
+      const password = generarPassword();
+      try {
+        await signUp(correo, password);
+        setCuentaCreada({ email: correo, password });
+      } catch (err) {
+        setErrorCuenta(err?.message === 'User already registered'
+          ? 'Ya existe una cuenta con ese correo — la petición se guarda igual, pero no se creó una cuenta nueva.'
+          : 'No se pudo crear la cuenta con ese correo — la petición se guarda igual, sin cuenta asociada.');
+      }
+    }
+
     // Esta petición es el punto donde nace el caso: crea la fila raíz en
     // Supabase (vía crear_caso_beneficiario, security definer — funciona
     // igual con o sin sesión, entra a la bolsa común) y la deja como caso
     // activo para que el resto de formatos y herramientas (F1-F10, Módulo
     // de Perfilamiento) cuelguen sus datos de este mismo id — ver
     // CasoContext.jsx.
-    setErrorCaso(null);
-    setCodigoNuevoCaso(null);
     try {
       const caso = await crearCaso({ nombreParticipante: nombre, municipio });
       setCodigoNuevoCaso(caso.codigo_acceso);
@@ -191,6 +228,13 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
           <SelectField name="rol" label="Rol en la familia" options={ROLES_FAMILIA} value={rol} onChange={(e) => setRol(e.target.value)} />
           <TextField name="telefono" label="Teléfono" type="tel" placeholder="Número de contacto" />
           <SelectField name="canal" label="Canal de contacto" options={CANALES} value={canal} onChange={(e) => setCanal(e.target.value)} />
+          {!session && (
+            <TextField
+              name="correo" label="Correo electrónico (opcional)" type="email"
+              placeholder="Para poder entrar después con una cuenta"
+              tip="Si lo deja en blanco, la petición se guarda igual, pero solo se podrá ver desde este navegador — con un correo, se crea una cuenta para entrar desde cualquier dispositivo."
+            />
+          )}
           {esOtro(tipoDocumento) && (
             <TextField label="¿Cuál tipo de identificación?" value={detalles.tipoDocumento || ''} onChange={(e) => setDetalle('tipoDocumento', e.target.value)} placeholder="Especifique" />
           )}
@@ -323,17 +367,20 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
 
       {errorCaso && <Callout variant="warn">{errorCaso}</Callout>}
 
-      {codigoNuevoCaso && !session && (
+      {cuentaCreada && (
         <Callout>
-          <b>Guarda este código para retomar tu caso más adelante: {codigoNuevoCaso}</b><br />
-          En este mismo navegador no lo necesitas — el caso queda abierto automáticamente. Si cambias de
-          dispositivo o borras los datos del navegador, usa "Retomar con código" arriba, en la barra superior.
+          <b>Se creó una cuenta para entrar después: {cuentaCreada.email}</b><br />
+          Contraseña temporal: <b>{cuentaCreada.password}</b> — anótela, no se vuelve a mostrar. Con esa
+          cuenta podrá iniciar sesión desde cualquier dispositivo para ver el avance de este caso.
         </Callout>
       )}
-      {codigoNuevoCaso && session && (
-        <p style={{ fontSize: 13, color: 'var(--muted, #6b7a74)' }}>
-          Código de acceso del caso (por si la familia necesita retomarlo sin cuenta): {codigoNuevoCaso}
-        </p>
+      {errorCuenta && <Callout variant="warn">{errorCuenta}</Callout>}
+      {codigoNuevoCaso && !session && !cuentaCreada && !errorCuenta && (
+        <Callout variant="warn">
+          Este caso quedó guardado en este navegador, sin cuenta asociada — si borra los datos del navegador
+          o cambia de dispositivo, no podrá volver a verlo. Para evitarlo, incluya su correo electrónico la
+          próxima vez que diligencie una petición.
+        </Callout>
       )}
 
       {resultado && (

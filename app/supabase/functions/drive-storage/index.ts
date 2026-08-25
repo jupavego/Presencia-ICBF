@@ -7,7 +7,10 @@
 // vive como secreto; esta función lo cambia por un access token nuevo en
 // cada llamada. Nunca se llama directo desde el navegador — es el único
 // lugar que toca estas credenciales, autenticada con el JWT del usuario
-// de Supabase.
+// de Supabase (staff, o un beneficiario con cuenta propia — ver
+// 0004_beneficiario_autenticado.sql) o, sin sesión, con un `codigoAcceso`
+// válido para ESE caso puntual (mismo mecanismo que ya usan
+// crear_caso_beneficiario/obtener_caso_por_codigo).
 //
 // El folder raíz NO es el creado a mano en la UI de Drive: el scope
 // usado (drive.file) solo da acceso a archivos/carpetas que esta misma
@@ -19,8 +22,8 @@
 //   <Profesional o "Sin asignar"> / <Beneficiario> / <Fase>
 //
 // Acciones (POST, body JSON):
-//   { action: 'upload', casoId, fase, fileName, mimeType, contentBase64 }
-//   { action: 'list', casoId }
+//   { action: 'upload', casoId, fase, fileName, mimeType, contentBase64, codigoAcceso? }
+//   { action: 'list', casoId, codigoAcceso? }
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -138,29 +141,54 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { global: { headers: { Authorization: authHeader } } });
 
-    const { data: userData, error: userError } = await supabase.auth.getUser();
-    if (userError || !userData?.user) return json({ error: 'No autenticado' }, 401);
-
-    const { data: profile } = await supabase.from('profiles').select('rol, nombre').eq('id', userData.user.id).single();
-    if (!profile || (profile.rol !== 'profesional_icbf' && profile.rol !== 'admin')) {
-      return json({ error: 'Solo el equipo ICBF puede gestionar evidencias en Drive' }, 403);
-    }
-
     const body = await req.json();
-    const { action, casoId } = body ?? {};
+    const { action, casoId, codigoAcceso } = body ?? {};
     if (!casoId) return json({ error: 'Falta casoId' }, 400);
 
-    const { data: caso, error: casoError } = await supabase
-      .from('casos')
-      .select('id, nombre_participante, numero_peticion, asignado_a')
-      .eq('id', casoId)
-      .single();
-    if (casoError || !caso) return json({ error: 'Caso no encontrado' }, 404);
+    // Autorización — dos caminos posibles, probados en orden. No se
+    // ramifica según si vino un header Authorization: el cliente de
+    // supabase-js manda uno siempre (la anon key, si no hay sesión), así
+    // que lo que importa es si `getUser()` resuelve un usuario real, no
+    // si el header está presente.
+    //  1. Con sesión real (staff, o beneficiario con cuenta): se intenta
+    //     leer el caso con el JWT del que llama. Para staff, la RLS de
+    //     `casos` deja ver cualquiera; para un beneficiario con cuenta,
+    //     solo el suyo (creado_por = auth.uid(), vía
+    //     0004_beneficiario_autenticado.sql) — si no es su caso, la
+    //     consulta no devuelve nada y se sigue al paso 2 por si acaso
+    //     mandó también un código válido.
+    //  2. Sin sesión resuelta (invitado): solo se acepta si el body trae
+    //     un `codigoAcceso` que resuelva, vía obtener_caso_por_codigo
+    //     (security definer, ya otorgada a anon), exactamente al
+    //     `casoId` pedido — nunca se confía en un `casoId` suelto sin
+    //     validar contra el código.
+    let caso: { id: string; nombre_participante: string | null; numero_peticion: string | null; asignado_a: string | null } | null = null;
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData?.user) {
+      const { data: casoRow } = await supabase
+        .from('casos')
+        .select('id, nombre_participante, numero_peticion, asignado_a')
+        .eq('id', casoId)
+        .maybeSingle();
+      caso = casoRow ?? null;
+    }
+
+    if (!caso && codigoAcceso) {
+      const { data: casoPorCodigo } = await supabase.rpc('obtener_caso_por_codigo', { p_codigo: codigoAcceso });
+      if (casoPorCodigo && casoPorCodigo.id === casoId) caso = casoPorCodigo;
+    }
+
+    if (!caso) return json({ error: 'No autorizado para este caso' }, 401);
 
     let profesionalNombre = 'Sin asignar';
     if (caso.asignado_a) {
-      const { data: prof } = await supabase.from('profiles').select('nombre').eq('id', caso.asignado_a).single();
-      profesionalNombre = prof?.nombre || 'Profesional sin nombre';
+      // RPC en vez de select directo a `profiles`: esa tabla es staff-only
+      // desde 0004_beneficiario_autenticado.sql, y quien sube evidencia
+      // puede ser un beneficiario (con cuenta o con código) — esta función
+      // (0005_nombre_staff_rpc.sql) solo expone el nombre, nada más.
+      const { data: nombreProf } = await supabase.rpc('obtener_nombre_staff', { p_id: caso.asignado_a });
+      profesionalNombre = nombreProf || 'Profesional sin nombre';
     }
     const beneficiarioNombre = caso.nombre_participante || caso.numero_peticion || String(caso.id).slice(0, 8);
 

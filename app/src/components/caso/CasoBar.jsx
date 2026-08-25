@@ -10,10 +10,12 @@ import { exportarResumenMaestro } from '../../lib/exportMaestro.js';
 // se inicia un caso, no se duplica ese flujo aquí.
 //
 // Sin sesión (modo invitado), las políticas RLS de Supabase ya rechazan
-// la lectura/escritura de `casos` — no tiene sentido ni consultarlos ni
-// ofrecer "exportar resumen maestro" (saldría vacío), así que esa parte
-// del panel se reemplaza por una nota explicando que hay que iniciar
-// sesión para guardar y consultar casos.
+// listar todos los `casos` — no tiene sentido ofrecer el selector ni
+// "exportar resumen maestro" (saldría vacío). El caso se identifica de
+// todas formas por `codigo_acceso` puertas adentro (RPCs de
+// 0003_roles_bolsa_asignacion.sql), pero eso ya no se expone para
+// retomarlo manualmente desde otro dispositivo — si el beneficiario dejó
+// su correo en el PET, entra con esa cuenta en su lugar.
 export default function CasoBar() {
   const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
   const { session } = useAuth();
@@ -69,7 +71,13 @@ export default function CasoBar() {
         >
           <p className="fnote-status" style={{ padding: '4px 6px 8px' }}>{estadoCaso}</p>
           {!session ? (
-            <p className="fdesc" style={{ padding: 6 }}>Inicie sesión para guardar y consultar casos — puede seguir diligenciando formatos y herramientas sin guardar mientras tanto.</p>
+            <div style={{ padding: 6 }}>
+              <p className="fdesc" style={{ margin: 0 }}>
+                Este caso queda guardado en este navegador. Si dejó su correo electrónico al diligenciar la
+                petición, ya tiene una cuenta para entrar desde cualquier dispositivo — use "Iniciar sesión"
+                en la barra superior.
+              </p>
+            </div>
           ) : (
             <>
               {casos.length === 0 && <p className="fdesc" style={{ padding: 6 }}>Ningún caso creado todavía — cree uno desde Petición de Acceso.</p>}

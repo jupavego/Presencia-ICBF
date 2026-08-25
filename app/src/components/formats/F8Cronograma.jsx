@@ -67,7 +67,7 @@ function escribirFilas(ws, filas, columnas) {
 
 export default function F8Cronograma({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
   const [tab, setTab] = useState('familiar');
   const [familiar, setFamiliar] = useState([nuevaVisitaFamiliar(0)]);
   const [comunitario, setComunitario] = useState([nuevoEncuentro(0)]);
@@ -138,7 +138,7 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
       wsComunitario.getCell(`C${FILA_INICIAL}`).value = telefono;
       escribirFilas(wsComunitario, comunitario, COLS_COMUNITARIO);
     }, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob, codigoAcceso });
   }
 
   return (

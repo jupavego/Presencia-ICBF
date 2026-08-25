@@ -71,7 +71,7 @@ function RatingItem({ index, text, value, onChange }) {
 
 export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
   const [entiendeInfo, setEntiendeInfo] = useState('');
   const [aceptaResponder, setAceptaResponder] = useState('');
   const [respuestas, setRespuestas] = useState({});
@@ -132,7 +132,7 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
       }
       ws.getCell('A30').value = fd.get('sugerencias') || '';
     }, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob, codigoAcceso });
   }
 
   return (

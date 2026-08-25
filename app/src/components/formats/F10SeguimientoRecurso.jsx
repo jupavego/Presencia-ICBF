@@ -30,7 +30,7 @@ const nuevaCompra = () => ({ fecha: '', soporte: '', establecimiento: '', detall
 
 export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
   const [categorias, setCategorias] = useState([]);
   const [compras, setCompras] = useState([nuevaCompra()]);
   const [saldoPendiente, setSaldoPendiente] = useState('');
@@ -111,7 +111,7 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
     await guardarDatosFormatoOficial(casoActivoId, 'F10', datos);
     const nombreArchivo = 'F10-Seguimiento-Recurso-diligenciado.docx';
     const blob = await descargarDocxOficial('/plantillas/F10-Seguimiento-Recurso.docx', datos, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
   }
 
   return (

@@ -8,7 +8,6 @@ import AmbitosPanel from './components/AmbitosPanel.jsx';
 import PerfilSesionPanel from './components/PerfilSesionPanel.jsx';
 import FormatViewer from './components/FormatViewer.jsx';
 import LoginScreen from './components/auth/LoginScreen.jsx';
-import RetomarCasoScreen from './components/auth/RetomarCasoScreen.jsx';
 import BolsaCasosPanel from './components/caso/BolsaCasosPanel.jsx';
 import { ETAPAS } from './data/etapas.js';
 import { AuthProvider, useAuth } from './context/AuthContext.jsx';
@@ -26,13 +25,12 @@ function AppShell() {
   const [activeIndex, setActiveIndex] = useState(() => leerUbicacionActual().activeIndex);
   const [openFormat, setOpenFormat] = useState(() => leerUbicacionActual().formato);
   const [mostrarLogin, setMostrarLogin] = useState(false);
-  const [mostrarRetomar, setMostrarRetomar] = useState(false);
   const { session, profile } = useAuth();
   const puedeGestionarCasos = profile?.rol === 'profesional_icbf' || profile?.rol === 'admin';
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === 'Escape') { setOpenFormat(null); setMostrarLogin(false); setMostrarRetomar(false); }
+      if (e.key === 'Escape') { setOpenFormat(null); setMostrarLogin(false); }
     }
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -77,34 +75,47 @@ function AppShell() {
     <>
       <TopBar
         onRequestLogin={() => setMostrarLogin(true)}
-        onRequestRetomar={() => setMostrarRetomar(true)}
         onOpenPerfilSesion={() => setActiveIndex('perfil')}
       />
       <div className="shell">
         <Sidebar etapas={ETAPAS} activeIndex={activeIndex} onSelect={setActiveIndex} puedeGestionarCasos={puedeGestionarCasos} />
         <main className="content">
-          {etapa ? (
-            <>
-              {/* Solo en Acceso y Admisión (etapa 01): el resto de etapas ya
-                  quedan orientadas por su propio encabezado en StagePanel,
-                  no hace falta repetir la presentación general del servicio. */}
-              {etapa.code === '01' && <Hero />}
-              <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
-            </>
-          ) : herramientas ? (
-            <AmbitosPanel onOpenFormat={setOpenFormat} />
-          ) : perfilSesion ? (
-            <PerfilSesionPanel onOpenFormat={setOpenFormat} />
-          ) : bolsaCasos ? (
-            <BolsaCasosPanel />
-          ) : (
-            <Home onSelectStage={setActiveIndex} />
-          )}
+          <div style={{ position: 'relative' }}>
+            {/* Antes vivía en el TopBar, junto a la campana y los íconos de
+                sesión — ahí competía por espacio con ellos en cada pantalla.
+                Sigue el mismo contenido en todas las secciones, solo movido
+                a la esquina de la sección actual. */}
+            {!session && (
+              <span
+                className="topbar-tag"
+                style={{ position: 'absolute', top: 22, right: 24, zIndex: 5 }}
+                title="La petición inicial, el Mapa de Pertenencia y las herramientas del Módulo de Perfilamiento quedan guardadas con un código de acceso. El resto de formatos oficiales lo diligencia el equipo de acompañamiento."
+              >
+                Modo invitado
+              </span>
+            )}
+            {etapa ? (
+              <>
+                {/* Solo en Acceso y Admisión (etapa 01): el resto de etapas ya
+                    quedan orientadas por su propio encabezado en StagePanel,
+                    no hace falta repetir la presentación general del servicio. */}
+                {etapa.code === '01' && <Hero />}
+                <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
+              </>
+            ) : herramientas ? (
+              <AmbitosPanel onOpenFormat={setOpenFormat} />
+            ) : perfilSesion ? (
+              <PerfilSesionPanel onOpenFormat={setOpenFormat} />
+            ) : bolsaCasos ? (
+              <BolsaCasosPanel />
+            ) : (
+              <Home onSelectStage={setActiveIndex} />
+            )}
+          </div>
         </main>
       </div>
       <FormatViewer formato={openFormat} onClose={() => setOpenFormat(null)} />
       {mostrarLogin && !session && <LoginScreen onClose={() => setMostrarLogin(false)} />}
-      {mostrarRetomar && <RetomarCasoScreen onClose={() => setMostrarRetomar(false)} />}
     </>
   );
 }
