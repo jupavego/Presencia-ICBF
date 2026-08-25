@@ -5,13 +5,9 @@ export default function TopBar({ onRequestLogin, onRequestRetomar, onOpenPerfilS
   const { session, signOut } = useAuth();
   return (
     <header className="topbar">
-      <svg className="mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="24" cy="24" r="23" fill="#eaf7e6" stroke="#a9d99a" strokeWidth="1.2" />
-        <path d="M24 30c-6-4.5-11-8-11-13.2C13 12.8 16 10 19.6 10c2 0 3.7 1 4.4 2.6C24.7 11 26.4 10 28.4 10 32 10 35 12.8 35 16.8 35 22 30 25.5 24 30Z" fill="#7ac142" />
-        <circle cx="24" cy="34.5" r="3.4" fill="#fff" />
-      </svg>
+      <img className="mark" src="/favicon.svg" alt="Presencia" />
       <div className="brandblock">
-        <span className="icbf">ICBF · Bienestar Familiar</span>
+        <span className="icbf">ICBF - Regional Antioquia</span>
         <span className="servicio">Servicio <b>PRESENCIA</b> — Portal de Gestión y Acompañamiento</span>
       </div>
       <div className="topbar-spacer" />

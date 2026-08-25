@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import TopBar from './components/layout/TopBar.jsx';
 import Sidebar from './components/layout/Sidebar.jsx';
 import Hero from './components/layout/Hero.jsx';
@@ -16,10 +16,15 @@ import { CasoProvider } from './context/CasoContext.jsx';
 import { PerfilSesionProvider } from './context/PerfilSesionContext.jsx';
 import { FamiliaProvider } from './context/FamiliaContext.jsx';
 import { CompromisosProvider } from './context/CompromisosContext.jsx';
+import { buildUrl, leerUbicacionActual } from './lib/routing.js';
 
 function AppShell() {
-  const [activeIndex, setActiveIndex] = useState(-1); // -1 = Inicio, 'herramientas' = módulo de perfilamiento, 'perfil' = perfil de sesión, 'bolsa' = bolsa de casos, número = índice en ETAPAS
-  const [openFormat, setOpenFormat] = useState(null);
+  // -1 = Inicio, 'herramientas' = módulo de perfilamiento, 'perfil' = perfil
+  // de sesión, 'bolsa' = bolsa de casos, número = índice en ETAPAS. El valor
+  // inicial se lee de la URL (no siempre -1) para que recargar o abrir un
+  // link directo caiga en la sección/formato correctos — ver lib/routing.js.
+  const [activeIndex, setActiveIndex] = useState(() => leerUbicacionActual().activeIndex);
+  const [openFormat, setOpenFormat] = useState(() => leerUbicacionActual().formato);
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [mostrarRetomar, setMostrarRetomar] = useState(false);
   const { session, profile } = useAuth();
@@ -32,6 +37,36 @@ function AppShell() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, []);
+
+  // Botón atrás/adelante del navegador: relee la URL y actualiza el
+  // estado. El efecto de sincronización de abajo no vuelve a empujar una
+  // entrada nueva en este caso porque la URL calculada ya coincide con la
+  // real (fue la que disparó este cambio).
+  useEffect(() => {
+    function onPopState() {
+      const { activeIndex: ai, formato } = leerUbicacionActual();
+      setActiveIndex(ai);
+      setOpenFormat(formato);
+    }
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  // Mantiene la URL como reflejo de activeIndex/openFormat, sin importar
+  // qué la haya cambiado (sidebar, Home, FormatCard, FormatViewer...) — así
+  // ningún punto de la app necesita saber que el ruteo existe. El primer
+  // montaje normaliza con replaceState (no crea una entrada de historial
+  // nueva); los cambios posteriores usan pushState para que atrás/adelante
+  // funcione.
+  const primerMontaje = useRef(true);
+  useEffect(() => {
+    const url = buildUrl(activeIndex, openFormat);
+    const actual = window.location.pathname + window.location.search;
+    if (url !== actual) {
+      window.history[primerMontaje.current ? 'replaceState' : 'pushState'](null, '', url);
+    }
+    primerMontaje.current = false;
+  }, [activeIndex, openFormat]);
 
   const etapa = typeof activeIndex === 'number' && activeIndex >= 0 ? ETAPAS[activeIndex] : null;
   const herramientas = activeIndex === 'herramientas';

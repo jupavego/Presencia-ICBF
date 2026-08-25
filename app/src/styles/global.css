@@ -123,13 +123,47 @@ details.about summary { cursor: pointer; font-size: 11px; font-weight: 700; colo
 .ambitos-panel .stage-head { padding-bottom: 18px; }
 .ambitos-panel .stage-head p { max-width: 860px; margin-bottom: 12px; }
 .ambito-block { padding: 20px 24px; border-top: 1px solid var(--border); scroll-margin-top: 90px; }
-.ambito-block-head { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px; flex-wrap: wrap; }
+.ambito-block > .format-grid, .ambito-block > .ambito-nota-diseno, .ambito-block > .ambito-objetivos-footer { margin-top: 16px; }
+.ambito-block:not([open]) > .format-grid, .ambito-block:not([open]) > .ambito-nota-diseno, .ambito-block:not([open]) > .ambito-objetivos-footer { display: none; }
+
+/* El resumen colapsado es clicable pero no tenía ninguna señal visual de
+   ello más allá del cursor — se agrega un chevron que rota al abrir, y un
+   hover llamativo (fondo + borde + leve elevación) sobre todo el bloque. */
+.ambito-block-head { position: relative; overflow: hidden; display: flex; align-items: flex-start; gap: 14px; flex-wrap: wrap; cursor: pointer; list-style: none; padding: 6px 8px; margin: -6px -8px; border-radius: 12px; border: 1px solid transparent; transition: background .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.ambito-block-head::-webkit-details-marker { display: none; }
+.ambito-block-head:hover { background: #f3fbef; border-color: #cdeec0; box-shadow: 0 4px 14px -6px rgba(79, 125, 43, 0.35); }
+.ambito-block-head:hover .ambito-chevron { color: var(--verde-oscuro); transform: translateY(1px); }
 .ambito-block-head .num { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: var(--teal-900); color: #fff; font-size: 12px; font-weight: 800; flex: none; }
 .ambito-block-title { flex: 1; min-width: 220px; }
 .ambito-block-title h3 { margin: 0 0 4px; font-size: 15.5px; color: var(--teal-900); }
 .ambito-block-title p { margin: 0; font-size: 11.5px; color: var(--muted); max-width: 620px; }
+.ambito-chevron { color: var(--muted); flex: none; align-self: center; transition: transform .2s ease, color .15s ease; }
+.ambito-block[open] .ambito-chevron { transform: rotate(180deg); }
 .ambito-objetivos { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
 .objetivo-chip { background: #eef3fb; color: #2d5187; border-color: #d5e2f5; cursor: default; }
+.ambito-count-chip { background: var(--verde-oscuro); color: #fff; border-color: var(--verde-oscuro); cursor: default; font-weight: 800; align-self: center; }
+.ambito-objetivos-footer { border-top: 1px dashed var(--border); padding-top: 12px; }
+.ambito-objetivos-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+
+/* Relleno al hover: en vez de una burbuja flotante aparte, el propio
+   contenedor de la esfera se llena de verde corporativo de izquierda a
+   derecha, y el texto "clic para ver instrumentos" aparece encima una vez
+   que el relleno ya lo cubre (transition-delay), no antes. */
+.ambito-fill-overlay {
+  position: absolute; inset: 0; z-index: 4;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(120deg, var(--verde), var(--verde-oscuro));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .4s ease;
+  pointer-events: none;
+}
+.ambito-fill-overlay-text {
+  color: #fff; font-size: 12.5px; font-weight: 800; letter-spacing: 0.3px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  opacity: 0; transition: opacity .2s ease .18s;
+}
+.ambito-block-head:hover .ambito-fill-overlay { transform: scaleX(1); }
+.ambito-block-head:hover .ambito-fill-overlay-text { opacity: 1; }
 .ambito-nota-diseno { font-size: 10.5px; color: var(--muted); font-style: italic; margin: 10px 2px 0; }
 
 /* ---------- Listas de casos (Bolsa de casos, Perfil de sesión) ----------
