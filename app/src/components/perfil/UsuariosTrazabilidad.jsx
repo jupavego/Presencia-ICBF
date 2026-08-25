@@ -113,11 +113,21 @@ export default function UsuariosTrazabilidad() {
         <div className="perfil-kpi"><b>{conteoEvidencia.herramientas}</b><span>Resultados de herramientas</span></div>
       </div>
 
-      <details style={{ marginTop: 18 }}>
-        <summary className="fnote-status" style={{ cursor: 'pointer' }}>
-          Trabajadores ({perfiles.length}) · ver detalle — quién ha diligenciado qué, por casos actualmente
-          asignados a cada quien (no es un registro exacto de autoría: si un caso se reasignó, su histórico queda
-          del lado del profesional actual).
+      <details className="esfera-row" style={{ marginTop: 18 }}>
+        <summary>
+          <div className="esfera-row-head">
+            <span className="esfera-row-title">
+              <b>Trabajadores</b>
+              <span>{perfiles.length} en el sistema</span>
+            </span>
+            <svg className="esfera-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          <p className="esfera-row-desc">
+            Quién ha diligenciado qué, por casos actualmente asignados a cada quien (no es un registro exacto de
+            autoría: si un caso se reasignó, su histórico queda del lado del profesional actual).
+          </p>
         </summary>
         {perfiles.map((p) => {
           const a = actividadPorProfesional[p.id];
@@ -137,10 +147,18 @@ export default function UsuariosTrazabilidad() {
         })}
       </details>
 
-      <details style={{ marginTop: 12 }}>
-        <summary className="fnote-status" style={{ cursor: 'pointer' }}>
-          Beneficiarios ({beneficiarios.length}) · ver detalle — quiénes tienen un caso registrado, su estado y
-          cuánto se ha diligenciado para cada uno.
+      <details className="esfera-row" style={{ marginTop: 12 }}>
+        <summary>
+          <div className="esfera-row-head">
+            <span className="esfera-row-title">
+              <b>Beneficiarios</b>
+              <span>{beneficiarios.length} casos registrados</span>
+            </span>
+            <svg className="esfera-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+          <p className="esfera-row-desc">Quiénes tienen un caso registrado, su estado y cuánto se ha diligenciado para cada uno.</p>
         </summary>
         {beneficiarios.map((c) => {
           const a = actividadPorCaso[c.id];

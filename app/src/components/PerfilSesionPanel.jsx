@@ -30,7 +30,7 @@ const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fo
 // primera versión.
 export default function PerfilSesionPanel({ onOpenFormat }) {
   const { registro } = usePerfilSesion();
-  const { caso, casoActivoId, seleccionarCaso } = useCaso();
+  const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
   const { compromisos } = useCompromisos();
   const { profile } = useAuth();
 
@@ -150,8 +150,15 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
         </Callout>
       ) : (
         <Callout>
-          Caso activo: <b>{caso?.nombre_participante || casoActivoId.slice(0, 8)}</b> — los resultados se guardan
-          automáticamente en el servidor.
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <span>
+              Caso activo: <b>{caso?.nombre_participante || casoActivoId.slice(0, 8)}</b> — los resultados se guardan
+              automáticamente en el servidor.
+            </span>
+            {esStaff && (
+              <button type="button" className="fbtn2 secondary" onClick={cerrarCaso}>Deseleccionar caso</button>
+            )}
+          </div>
         </Callout>
       )}
 
@@ -286,11 +293,16 @@ export default function PerfilSesionPanel({ onOpenFormat }) {
                     <details key={ambito.codigo} className="esfera-row">
                       <summary>
                         <div className="esfera-row-head">
-                          <b>{ambito.codigo} · {ambito.nombre}</b>
-                          <span>
-                            {hechasEsfera}/{herramientasEsfera.length}
-                            {calificacionPorEsfera[ambito.codigo] != null && ` · ${calificacionPorEsfera[ambito.codigo]}/5`}
+                          <span className="esfera-row-title">
+                            <b>{ambito.codigo} · {ambito.nombre}</b>
+                            <span>
+                              {hechasEsfera}/{herramientasEsfera.length}
+                              {calificacionPorEsfera[ambito.codigo] != null && ` · ${calificacionPorEsfera[ambito.codigo]}/5`}
+                            </span>
                           </span>
+                          <svg className="esfera-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
                         </div>
                         <div className="progreso-barra"><span style={{ width: `${pctEsfera}%` }} /></div>
                       </summary>
