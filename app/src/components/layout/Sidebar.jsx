@@ -1,7 +1,7 @@
 import { countDisponibles } from '../../data/etapas.js';
 import { AMBITOS } from '../../data/ambitos.js';
 
-export default function Sidebar({ etapas, activeIndex, onSelect, puedeGestionarCasos }) {
+export default function Sidebar({ etapas, activeIndex, onSelect, puedeGestionarCasos, esInvitado }) {
   return (
     <aside className="stages">
       <button type="button" className={`stage-btn${activeIndex === -1 ? ' active' : ''}`} onClick={() => onSelect(-1)}>
@@ -45,6 +45,16 @@ export default function Sidebar({ etapas, activeIndex, onSelect, puedeGestionarC
         <span className="lbl">Herramientas</span>
         <span className="count">{AMBITOS.length}</span>
       </button>
+      {esInvitado && (
+        <div style={{ marginTop: 'auto', paddingTop: 14 }}>
+          <span
+            className="topbar-tag"
+            title="La petición inicial, el Mapa de Pertenencia y las herramientas del Módulo de Perfilamiento quedan guardadas con un código de acceso. El resto de formatos oficiales lo diligencia el equipo de acompañamiento."
+          >
+            Modo invitado
+          </span>
+        </div>
+      )}
     </aside>
   );
 }

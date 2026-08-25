@@ -78,40 +78,25 @@ function AppShell() {
         onOpenPerfilSesion={() => setActiveIndex('perfil')}
       />
       <div className="shell">
-        <Sidebar etapas={ETAPAS} activeIndex={activeIndex} onSelect={setActiveIndex} puedeGestionarCasos={puedeGestionarCasos} />
+        <Sidebar etapas={ETAPAS} activeIndex={activeIndex} onSelect={setActiveIndex} puedeGestionarCasos={puedeGestionarCasos} esInvitado={!session} />
         <main className="content">
-          <div style={{ position: 'relative' }}>
-            {/* Antes vivía en el TopBar, junto a la campana y los íconos de
-                sesión — ahí competía por espacio con ellos en cada pantalla.
-                Sigue el mismo contenido en todas las secciones, solo movido
-                a la esquina de la sección actual. */}
-            {!session && (
-              <span
-                className="topbar-tag"
-                style={{ position: 'absolute', top: 22, right: 24, zIndex: 5 }}
-                title="La petición inicial, el Mapa de Pertenencia y las herramientas del Módulo de Perfilamiento quedan guardadas con un código de acceso. El resto de formatos oficiales lo diligencia el equipo de acompañamiento."
-              >
-                Modo invitado
-              </span>
-            )}
-            {etapa ? (
-              <>
-                {/* Solo en Acceso y Admisión (etapa 01): el resto de etapas ya
-                    quedan orientadas por su propio encabezado en StagePanel,
-                    no hace falta repetir la presentación general del servicio. */}
-                {etapa.code === '01' && <Hero />}
-                <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
-              </>
-            ) : herramientas ? (
-              <AmbitosPanel onOpenFormat={setOpenFormat} />
-            ) : perfilSesion ? (
-              <PerfilSesionPanel onOpenFormat={setOpenFormat} />
-            ) : bolsaCasos ? (
-              <BolsaCasosPanel />
-            ) : (
-              <Home onSelectStage={setActiveIndex} />
-            )}
-          </div>
+          {etapa ? (
+            <>
+              {/* Solo en Acceso y Admisión (etapa 01): el resto de etapas ya
+                  quedan orientadas por su propio encabezado en StagePanel,
+                  no hace falta repetir la presentación general del servicio. */}
+              {etapa.code === '01' && <Hero />}
+              <StagePanel etapa={etapa} onOpenFormat={setOpenFormat} />
+            </>
+          ) : herramientas ? (
+            <AmbitosPanel onOpenFormat={setOpenFormat} />
+          ) : perfilSesion ? (
+            <PerfilSesionPanel onOpenFormat={setOpenFormat} />
+          ) : bolsaCasos ? (
+            <BolsaCasosPanel />
+          ) : (
+            <Home onSelectStage={setActiveIndex} />
+          )}
         </main>
       </div>
       <FormatViewer formato={openFormat} onClose={() => setOpenFormat(null)} />
