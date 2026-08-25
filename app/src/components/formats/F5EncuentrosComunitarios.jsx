@@ -1,12 +1,14 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FormatHeader from '../ui/FormatHeader.jsx';
 import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import FormActions from '../ui/FormActions.jsx';
+import Callout from '../ui/Callout.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
-import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
-import { useCaso } from '../../context/CasoContext.jsx';
+import { guardarEncuentroComunitario } from '../../lib/persistenciaEncuentro.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { supabase } from '../../lib/supabaseClient.js';
 
 // El documento oficial de F5 es de texto libre (líneas en blanco por
 // sección) — estas listas de opciones son un agregado propio del
@@ -43,7 +45,7 @@ const MEJORAS = ['Fortalecer los mecanismos de convocatoria.', 'Ajustar los hora
 
 export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { session } = useAuth();
   const [metodologia, setMetodologia] = useState('');
   const [objetivo, setObjetivo] = useState('');
   const [actividades, setActividades] = useState([]);
@@ -56,6 +58,34 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
   const [detalles, setDetalles] = useState({});
   function setDetalle(campo, valor) {
     setDetalles((d) => ({ ...d, [campo]: valor }));
+  }
+
+  // Un encuentro comunitario lo registra el profesional una sola vez y lo
+  // asisten varios beneficiarios a la vez — ya no cuelga de un solo caso
+  // activo (ver encuentros_comunitarios/encuentro_participantes en
+  // 0003_roles_bolsa_asignacion.sql). Se marcan aquí cuáles de los propios
+  // casos asignados participaron.
+  const [misCasos, setMisCasos] = useState([]);
+  const [casosSeleccionados, setCasosSeleccionados] = useState([]);
+
+  useEffect(() => {
+    if (!session) {
+      setMisCasos([]);
+      return;
+    }
+    supabase
+      .from('casos')
+      .select('id, nombre_participante, numero_peticion')
+      .eq('asignado_a', session.user.id)
+      .eq('estado', 'asignado')
+      .then(({ data, error }) => {
+        if (error) console.error('No se pudieron cargar los casos asignados:', error);
+        setMisCasos(data || []);
+      });
+  }, [session]);
+
+  function toggleCaso(id) {
+    setCasosSeleccionados((sel) => (sel.includes(id) ? sel.filter((c) => c !== id) : [...sel, id]));
   }
 
   function handleSubmit(e) {
@@ -74,6 +104,15 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
   }
 
   async function handleExportarOficial() {
+    if (!session) {
+      alert('Inicie sesión para registrar un encuentro comunitario — es un formato que diligencia el equipo de acompañamiento, no la familia.');
+      return;
+    }
+    if (!casosSeleccionados.length) {
+      alert('Marque al menos uno de sus casos asignados como participante antes de generar el registro.');
+      return;
+    }
+
     const fd = new FormData(formRef.current);
     const logrosConDetalle = listaConDetalle(logros, 'logros');
     const aciertosConDetalle = listaConDetalle(aciertos, 'aciertos');
@@ -82,8 +121,9 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
       aciertosConDetalle.length ? `Aciertos: ${aciertosConDetalle.join('; ')}` : '',
     ].filter(Boolean).join(' | ');
 
+    const fecha = fd.get('fecha');
     const datos = {
-      fecha: formatoFecha(fd.get('fecha')),
+      fecha: formatoFecha(fecha),
       regional: fd.get('regional') || '',
       centroZonal: fd.get('centroZonal') || '',
       equipo: fd.get('equipo') || '',
@@ -97,7 +137,11 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
       oportunidadesMejora: listaConDetalle(mejoras, 'mejoras').join('; '),
     };
 
-    await guardarDatosFormatoOficial(casoActivoId, 'F5', datos);
+    try {
+      await guardarEncuentroComunitario({ userId: session.user.id, fecha, datos, casoIds: casosSeleccionados });
+    } catch (err) {
+      console.error('No se pudo guardar el encuentro comunitario:', err);
+    }
     await descargarDocxOficial(
       '/plantillas/F5-Encuentros-Comunitarios.docx',
       datos,
@@ -124,6 +168,25 @@ export default function F5EncuentrosComunitarios({ etapaCode, etapaNombre }) {
           <TextField name="numFamilias" label="Número de familias participantes" type="number" min="1" required />
           <TextField name="lugar" span="wide" label="Lugar en el que se desarrolla" placeholder="Dirección o espacio comunitario" required />
         </div>
+      </Section>
+
+      <Section title="Casos participantes" hint="Un mismo encuentro suele reunir a varias familias a la vez — márquelas para que este registro quede en el expediente de cada una, sin tener que diligenciarlo varias veces.">
+        {!session && (
+          <Callout variant="warn">Inicie sesión para ver sus casos asignados y poder registrar este encuentro.</Callout>
+        )}
+        {session && !misCasos.length && (
+          <Callout>No tiene casos asignados todavía. Asigne al menos uno desde Bolsa de casos antes de registrar un encuentro comunitario.</Callout>
+        )}
+        {misCasos.length > 0 && (
+          <div className="check-grid cols-3">
+            {misCasos.map((c) => (
+              <label key={c.id}>
+                <input type="checkbox" checked={casosSeleccionados.includes(c.id)} onChange={() => toggleCaso(c.id)} />
+                {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
+              </label>
+            ))}
+          </div>
+        )}
       </Section>
 
       <Section title="Caracterización y desarrollo del encuentro">

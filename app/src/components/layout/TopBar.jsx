@@ -1,7 +1,7 @@
 import CasoBar from '../caso/CasoBar.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
-export default function TopBar({ onRequestLogin }) {
+export default function TopBar({ onRequestLogin, onRequestRetomar }) {
   const { session, signOut } = useAuth();
   return (
     <header className="topbar">
@@ -26,7 +26,10 @@ export default function TopBar({ onRequestLogin }) {
         </button>
       ) : (
         <>
-          <span className="topbar-tag" title="Puede diligenciar cualquier formato o herramienta, pero nada queda guardado">Modo invitado · sin guardado</span>
+          <span className="topbar-tag" title="La petición inicial, el Mapa de Pertenencia y las herramientas del Módulo de Perfilamiento quedan guardadas con un código de acceso. El resto de formatos oficiales lo diligencia el equipo de acompañamiento.">Modo invitado</span>
+          <button type="button" className="ftab" onClick={onRequestRetomar}>
+            Retomar con código
+          </button>
           <button type="button" className="ftab" onClick={onRequestLogin}>
             Iniciar sesión
           </button>

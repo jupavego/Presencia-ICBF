@@ -20,6 +20,7 @@ const DEV_PASSWORD = import.meta.env.VITE_DEV_PASSWORD;
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined); // undefined = cargando, null = sin sesión
+  const [profile, setProfile] = useState(null); // fila de `profiles` (rol, nombre, centro_zonal) — null si no hay sesión
   const autoLoginIntentado = useRef(false);
 
   useEffect(() => {
@@ -29,6 +30,25 @@ export function AuthProvider({ children }) {
     });
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  // El rol (profesional_icbf/admin) vive en `profiles`, no en la sesión de
+  // Supabase Auth — se carga aparte una vez que hay sesión. Sin esto, la
+  // app no puede distinguir un beneficiario de un profesional ICBF.
+  useEffect(() => {
+    if (!session) {
+      setProfile(null);
+      return;
+    }
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) console.error('No se pudo cargar el perfil del usuario:', error);
+        setProfile(data || null);
+      });
+  }, [session]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || session !== null || !DEV_EMAIL || !DEV_PASSWORD || autoLoginIntentado.current) return;
@@ -49,7 +69,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ session, cargando: session === undefined, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, profile, cargando: session === undefined, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );

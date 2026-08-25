@@ -1,7 +1,7 @@
 import { countDisponibles } from '../../data/etapas.js';
 import { AMBITOS } from '../../data/ambitos.js';
 
-export default function Sidebar({ etapas, activeIndex, onSelect }) {
+export default function Sidebar({ etapas, activeIndex, onSelect, puedeGestionarCasos }) {
   return (
     <aside className="stages">
       <button type="button" className={`stage-btn${activeIndex === -1 ? ' active' : ''}`} onClick={() => onSelect(-1)}>
@@ -21,6 +21,20 @@ export default function Sidebar({ etapas, activeIndex, onSelect }) {
           <span className="count">{countDisponibles(e)}</span>
         </button>
       ))}
+      {puedeGestionarCasos && (
+        <>
+          <div className="side-divider" />
+          <button type="button" className={`stage-btn${activeIndex === 'bolsa' ? ' active' : ''}`} onClick={() => onSelect('bolsa')}>
+            <span className="num">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.3">
+                <path d="M3 12h4.5l1.5 3h6l1.5-3H21" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5.5 6h13L21 12v6a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18v-6L5.5 6Z" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="lbl">Bolsa de casos</span>
+          </button>
+        </>
+      )}
       <div className="side-divider" />
       <button type="button" className={`stage-btn${activeIndex === 'herramientas' ? ' active' : ''}`} onClick={() => onSelect('herramientas')}>
         <span className="num">

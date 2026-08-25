@@ -9,7 +9,9 @@ import Tooltip from '../ui/Tooltip.jsx';
 import { TIPOS_APOYO, leerRed, compararActualPotencial } from '../../lib/lecturaRed.js';
 import { GLOSARIO_AMBITOS, GLOSARIO_CIRCULOS, GLOSARIO_APOYOS, GLOSARIO_MAPAS } from '../../data/glosarioMapaPertenencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { guardarFormatoBeneficiario } from '../../lib/persistenciaBeneficiario.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 // Fuente: f1.go3_.mt5_.pp_mapa_pertenencia_actual_potencial_v1.docx
 const CUADRANTES = ['Familia', 'Ocupación', 'Instituciones y profesionales', 'Vida Social'];
@@ -203,7 +205,8 @@ function ComparacionActualPotencial({ actual, potencial }) {
 }
 
 export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
+  const { session } = useAuth();
   const [tipo, setTipo] = useState('actual');
   const [actual, setActual] = useState([nuevoVinculo()]);
   const [potencial, setPotencial] = useState([nuevoVinculo()]);
@@ -212,7 +215,13 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    const { guardado } = await guardarDatosFormatoOficial(casoActivoId, 'F1', { actual, potencial });
+    // F1 es el único formato oficial que un beneficiario puede diligenciar
+    // sin acompañamiento (ver formatos_metadata en
+    // 0003_roles_bolsa_asignacion.sql) — sin sesión, el guardado pasa por
+    // el código de acceso en vez de la ruta de staff.
+    const { guardado } = session
+      ? await guardarDatosFormatoOficial(casoActivoId, 'F1', { actual, potencial })
+      : await guardarFormatoBeneficiario(codigoAcceso, 'F1', { actual, potencial });
     alert(guardado ? '¡Mapa de pertenencia guardado con éxito!' : 'No hay un caso activo (o falló el guardado) — el mapa no quedó guardado en el servidor.');
   }
 

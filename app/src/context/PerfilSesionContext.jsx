@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 import { useCaso } from './CasoContext.jsx';
+import { useAuth } from './AuthContext.jsx';
+import { guardarPerfilamientoBeneficiario, obtenerPerfilamientoBeneficiario } from '../lib/persistenciaBeneficiario.js';
 
 // Perfil de sesión: registro compartido de los resultados que cada
 // herramienta del módulo de Perfilamiento produce para el caso activo.
@@ -25,50 +27,60 @@ import { useCaso } from './CasoContext.jsx';
 const PerfilSesionContext = createContext(null);
 
 export function PerfilSesionProvider({ children }) {
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
+  const { session } = useAuth();
   const [registro, setRegistro] = useState({});
   const [cargando, setCargando] = useState(false);
 
   // Al cambiar de caso activo, hidrata el registro con lo que ya exista
   // guardado para ese caso — sin esto, cada recarga de página (o cada
   // cambio de caso) volvería a empezar en blanco pese a tener datos
-  // guardados en Supabase.
+  // guardados en Supabase. Sin sesión (beneficiario), la RLS no permite un
+  // select directo — se hidrata vía obtener_perfilamiento_por_codigo.
+  // `.order('actualizado_en')` porque desde 0003_roles_bolsa_asignacion.sql
+  // puede haber varias filas por instrumento (historial, ya no se
+  // sobrescribe) — la última del recorrido gana, que es la más reciente.
   useEffect(() => {
     if (!casoActivoId) {
       setRegistro({});
       return;
     }
     setCargando(true);
-    supabase
-      .from('perfilamiento_resultados')
-      .select('instrumento_id, resultado')
-      .eq('caso_id', casoActivoId)
-      .then(({ data, error }) => {
-        if (error) {
-          console.error('No se pudo cargar el perfil de sesión guardado:', error);
-          setRegistro({});
-          return;
-        }
+    const cargar = session
+      ? supabase
+          .from('perfilamiento_resultados')
+          .select('instrumento_id, resultado')
+          .eq('caso_id', casoActivoId)
+          .order('actualizado_en', { ascending: true })
+          .then(({ data, error }) => {
+            if (error) console.error('No se pudo cargar el perfil de sesión guardado:', error);
+            return data || [];
+          })
+      : obtenerPerfilamientoBeneficiario(codigoAcceso);
+
+    cargar
+      .then((filas) => {
         const hidratado = {};
-        for (const fila of data || []) hidratado[fila.instrumento_id] = fila.resultado;
+        for (const fila of filas) hidratado[fila.instrumento_id] = fila.resultado;
         setRegistro(hidratado);
       })
       .finally(() => setCargando(false));
-  }, [casoActivoId]);
+  }, [casoActivoId, codigoAcceso, session]);
 
   const registrar = useCallback((instrumentoId, resultado) => {
     setRegistro((r) => (r[instrumentoId] === resultado ? r : { ...r, [instrumentoId]: resultado }));
     if (!casoActivoId) return; // sin caso activo, el resultado queda solo en memoria para esta visita
-    supabase
-      .from('perfilamiento_resultados')
-      .upsert(
-        { caso_id: casoActivoId, instrumento_id: instrumentoId, resultado, actualizado_en: new Date().toISOString() },
-        { onConflict: 'caso_id,instrumento_id' },
-      )
-      .then(({ error }) => {
-        if (error) console.error(`No se pudo guardar el resultado de ${instrumentoId} en el servidor:`, error);
-      });
-  }, [casoActivoId]);
+    if (session) {
+      supabase
+        .from('perfilamiento_resultados')
+        .insert({ caso_id: casoActivoId, instrumento_id: instrumentoId, resultado })
+        .then(({ error }) => {
+          if (error) console.error(`No se pudo guardar el resultado de ${instrumentoId} en el servidor:`, error);
+        });
+      return;
+    }
+    guardarPerfilamientoBeneficiario(codigoAcceso, instrumentoId, resultado);
+  }, [casoActivoId, codigoAcceso, session]);
 
   const value = useMemo(() => ({ registro, registrar, cargando }), [registro, registrar, cargando]);
 
