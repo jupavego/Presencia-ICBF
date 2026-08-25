@@ -27,8 +27,20 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { preview } from 'vite';
-import puppeteer from 'puppeteer';
 import { ETAPAS } from '../src/data/etapas.js';
+
+// El contenedor de build de Vercel es un Linux mínimo al que le faltan
+// librerías del sistema que el Chromium que trae `puppeteer` necesita para
+// arrancar (falla con "libnspr4.so: cannot open shared object file"). En
+// local (Windows/Mac/tu máquina) sí están esas librerías porque es un SO
+// completo, así que ahí `puppeteer` normal funciona bien. `process.env.VERCEL`
+// lo define Vercel automáticamente durante el build — con eso alcanza para
+// elegir el Chromium correcto en cada entorno sin duplicar el script.
+const enVercel = Boolean(process.env.VERCEL);
+const puppeteer = enVercel
+  ? (await import('puppeteer-core')).default
+  : (await import('puppeteer')).default;
+const chromium = enVercel ? (await import('@sparticuz/chromium')).default : null;
 
 const PORT = 4174;
 const BASE_URL = `http://localhost:${PORT}`;
@@ -53,14 +65,11 @@ async function main() {
   });
 
   try {
-    // --no-sandbox: el contenedor de build de Vercel (y la mayoría de CI)
-    // no tiene el sandbox de kernel que Chromium pide por defecto — sin
-    // este flag, `puppeteer.launch()` falla ahí aunque funcione en una
-    // máquina normal.
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-    });
+    const browser = await puppeteer.launch(
+      enVercel
+        ? { executablePath: await chromium.executablePath(), args: chromium.args, headless: chromium.headless }
+        : { headless: true }
+    );
     try {
       for (const ruta of RUTAS_PUBLICAS) {
         const page = await browser.newPage();
