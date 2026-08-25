@@ -9,6 +9,7 @@ import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
 // Fuente: F3.GO3_.MT5_.PP Formato Acuerdo de Vinculacion v2.docx
 const COLUMNAS_MENORES = [
@@ -45,6 +46,12 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
   function handleSubmit(e) {
     e.preventDefault();
     alert('¡Acuerdo de vinculación registrado con éxito!');
+  }
+
+  function alSeleccionarCaso(caso) {
+    if (formRef.current?.elements.declaranteNombre) {
+      formRef.current.elements.declaranteNombre.value = caso.nombre_participante || '';
+    }
   }
 
   async function handleExportarOficial() {
@@ -98,6 +105,8 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
         metaTitle="F3.GO3.MT5.PP · V2"
         metaSub="Ley 1581 de 2012 · Decreto 1074 de 2015"
       />
+
+      <SelectorCasoAsignado onSeleccionar={alSeleccionarCaso} />
 
       <Section title="Lugar y fecha del acuerdo">
         <div className="grid">

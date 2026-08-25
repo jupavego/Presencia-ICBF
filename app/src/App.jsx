@@ -40,7 +40,11 @@ function AppShell() {
 
   return (
     <>
-      <TopBar onRequestLogin={() => setMostrarLogin(true)} onRequestRetomar={() => setMostrarRetomar(true)} />
+      <TopBar
+        onRequestLogin={() => setMostrarLogin(true)}
+        onRequestRetomar={() => setMostrarRetomar(true)}
+        onOpenPerfilSesion={() => setActiveIndex('perfil')}
+      />
       <div className="shell">
         <Sidebar etapas={ETAPAS} activeIndex={activeIndex} onSelect={setActiveIndex} puedeGestionarCasos={puedeGestionarCasos} />
         <main className="content">

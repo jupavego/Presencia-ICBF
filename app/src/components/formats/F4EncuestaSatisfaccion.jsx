@@ -8,6 +8,7 @@ import FormActions from '../ui/FormActions.jsx';
 import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
 // Columna del formato oficial donde se marca la X según la escala 1–5 / N/A.
 const COLUMNA_ESCALA = { '1 · Totalmente insatisfecho': 'C', '2 · Insatisfecho': 'D', '3 · Indiferente': 'E', '4 · Satisfecho': 'F', '5 · Totalmente satisfecho': 'G', 'N/A': 'H' };
@@ -85,6 +86,12 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
     alert('¡Encuesta de satisfacción registrada con éxito!');
   }
 
+  function alSeleccionarCaso(caso) {
+    if (formRef.current?.elements.nombreResponde) {
+      formRef.current.elements.nombreResponde.value = caso.nombre_participante || '';
+    }
+  }
+
   async function handleExportarOficial() {
     const fd = new FormData(formRef.current);
 
@@ -134,6 +141,8 @@ export default function F4EncuestaSatisfaccion({ etapaCode, etapaNombre }) {
         metaTitle="F4.GO3.MT5.PP · V2"
         metaSub="Clasificación de la información: pública"
       />
+
+      <SelectorCasoAsignado onSeleccionar={alSeleccionarCaso} />
 
       <Section title="Datos de ubicación">
         <div className="grid">

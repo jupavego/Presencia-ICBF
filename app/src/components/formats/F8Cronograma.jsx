@@ -7,6 +7,7 @@ import FormActions from '../ui/FormActions.jsx';
 import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
 const COLUMNAS_FAMILIAR = [
   { key: 'num', label: '# Acomp.', width: '50px' },
@@ -110,6 +111,8 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
         metaTitle="F8.GO3.MT5.PP · V2"
         metaSub="Vigencia 2026"
       />
+
+      <SelectorCasoAsignado />
 
       <details className="finstructions">
         <summary>Instrucciones de diligenciamiento (ver directrices operativas)</summary>

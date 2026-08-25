@@ -7,6 +7,27 @@ function nombreCaso(c) {
   return c.nombre_participante || c.numero_peticion || c.id.slice(0, 8);
 }
 
+// Fila de una línea: nombre + etiqueta a la izquierda, acciones expuestas
+// como íconos a la derecha — con solo 2-3 acciones por fila no hace falta
+// esconderlas detrás de un clic de más (reemplaza el acordeón anterior).
+function FilaCaso({ caso, tag, children }) {
+  return (
+    <div className="caso-row">
+      <span className="caso-row-name">{nombreCaso(caso)}</span>
+      {tag && <span className="caso-row-tag">{tag}</span>}
+      <div className="caso-row-actions">{children}</div>
+    </div>
+  );
+}
+
+function IconAction({ onClick, title, danger, children }) {
+  return (
+    <button type="button" className={`icon-btn sm${danger ? ' danger' : ''}`} onClick={onClick} title={title} aria-label={title}>
+      {children}
+    </button>
+  );
+}
+
 // Panel de gestión de casos para el rol profesional ICBF/admin — ver
 // 0003_roles_bolsa_asignacion.sql. La RLS ya acota lo que cada consulta
 // puede traer (bolsa común, lo propio, o todo si es admin); este
@@ -116,56 +137,103 @@ export default function BolsaCasosPanel() {
       {error && <Callout variant="warn">{error}</Callout>}
       {cargando && <p className="fdesc">Cargando…</p>}
 
-      <div className="format-grid" style={{ marginTop: 8 }}>
-        <div className="ambito-block">
-          <h3>Bolsa común ({bolsaComun.length})</h3>
-          {bolsaComun.length === 0 && <p className="fdesc">Nada pendiente de asignar por ahora.</p>}
-          {bolsaComun.map((c) => (
-            <div key={c.id} className="fbtn" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 }}>
-              <span>{nombreCaso(c)} {c.municipio ? `· ${c.municipio}` : ''}</span>
-              <button type="button" className="fbtn2 primary" onClick={() => asignarme(c.id)}>Asignarme</button>
-            </div>
-          ))}
+      <div className="ambito-block">
+        <div className="ambito-block-head">
+          <div className="ambito-block-title">
+            <h3>Bolsa común ({bolsaComun.length})</h3>
+            <p>Casos sin asignar, disponibles para reclamar.</p>
+          </div>
         </div>
+        {bolsaComun.length === 0 ? (
+          <p className="fdesc">Nada pendiente de asignar por ahora.</p>
+        ) : (
+          <div className="caso-list">
+            {bolsaComun.map((c) => (
+              <FilaCaso key={c.id} caso={c} tag={c.municipio}>
+                <IconAction title="Asignarme este caso" onClick={() => asignarme(c.id)}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                    <polyline points="8 12.5 10.5 15 16 9" />
+                  </svg>
+                </IconAction>
+              </FilaCaso>
+            ))}
+          </div>
+        )}
+      </div>
 
-        <div className="ambito-block">
-          <h3>Mis casos asignados ({misCasos.length})</h3>
-          {misCasos.length === 0 && <p className="fdesc">No tiene casos asignados todavía.</p>}
-          {misCasos.map((c) => (
-            <div key={c.id} className="fbtn" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 8 }}>
-              <span>{nombreCaso(c)} {c.municipio ? `· ${c.municipio}` : ''}</span>
-              <span style={{ display: 'flex', gap: 6 }}>
-                <button type="button" className="fbtn2" onClick={() => liberar(c.id)}>Liberar</button>
-                <button type="button" className="fbtn2" onClick={() => cerrar(c.id)}>Cerrar</button>
+      <div className="ambito-block">
+        <div className="ambito-block-head">
+          <div className="ambito-block-title">
+            <h3>Mis casos asignados ({misCasos.length})</h3>
+            <p>Casos que tiene en su bandeja de trabajo.</p>
+          </div>
+        </div>
+        {misCasos.length === 0 ? (
+          <p className="fdesc">No tiene casos asignados todavía.</p>
+        ) : (
+          <div className="caso-list">
+            {misCasos.map((c) => (
+              <FilaCaso key={c.id} caso={c} tag={c.municipio}>
+                <IconAction title="Liberar (vuelve a la bolsa común)" onClick={() => liberar(c.id)}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="9 14 4 9 9 4" />
+                    <path d="M20 20v-7a4 4 0 0 0-4-4H4" />
+                  </svg>
+                </IconAction>
+                <IconAction title="Cerrar caso" onClick={() => cerrar(c.id)}>
+                  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="21 8 21 21 3 21 3 8" />
+                    <rect x="1" y="3" width="22" height="5" />
+                    <line x1="10" y1="12" x2="14" y2="12" />
+                  </svg>
+                </IconAction>
                 {esAdmin && (
-                  <button type="button" className="fbtn2" onClick={() => eliminar(c.id)}>Eliminar</button>
+                  <IconAction title="Eliminar caso" danger onClick={() => eliminar(c.id)}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </IconAction>
                 )}
-              </span>
-            </div>
-          ))}
-        </div>
+              </FilaCaso>
+            ))}
+          </div>
+        )}
+      </div>
 
-        {esAdmin && (
-          <div className="ambito-block">
-            <h3>Todos los casos asignados ({todosAsignados.length})</h3>
-            <p className="fdesc">Vista de administración — reasignar mueve el caso a otro profesional, cerrando la asignación actual.</p>
-            {todosAsignados.map((c) => (
-              <div key={c.id} className="fbtn" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, marginTop: 8 }}>
-                <span>{nombreCaso(c)}</span>
-                <span style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+      {esAdmin && (
+        <div className="ambito-block">
+          <div className="ambito-block-head">
+            <div className="ambito-block-title">
+              <h3>Todos los casos asignados ({todosAsignados.length})</h3>
+              <p>Vista de administración — reasignar mueve el caso a otro profesional, cerrando la asignación actual.</p>
+            </div>
+          </div>
+          {todosAsignados.length === 0 ? (
+            <p className="fdesc">No hay casos asignados en el sistema todavía.</p>
+          ) : (
+            <div className="caso-list">
+              {todosAsignados.map((c) => (
+                <FilaCaso key={c.id} caso={c}>
                   <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
                     <option value="" disabled>Reasignar a…</option>
                     {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
                       <option key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</option>
                     ))}
                   </select>
-                  <button type="button" className="fbtn2" onClick={() => eliminar(c.id)}>Eliminar</button>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                  <IconAction title="Eliminar caso" danger onClick={() => eliminar(c.id)}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                    </svg>
+                  </IconAction>
+                </FilaCaso>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </section>
   );
 }

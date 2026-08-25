@@ -10,7 +10,7 @@ import { AMBITOS } from '../data/ambitos.js';
 // --info, --amber) porque el SVG no puede leer variables CSS por JS.
 const COLUMNAS = [
   { id: 'persona', x: 90, nombre: 'Persona', sub: 'Recursos internos', color: '#1a5c50', esferas: ['A', 'B', 'G'] },
-  { id: 'familia', x: 300, nombre: 'Familia', sub: 'Dinámica del hogar', color: '#39a900', esferas: ['C', 'E'] },
+  { id: 'familia', x: 300, nombre: 'Familia', sub: 'Dinámica del hogar', color: '#7ac142', esferas: ['C', 'E'] },
   { id: 'redes', x: 500, nombre: 'Relaciones y redes', sub: 'Apoyo fuera del hogar', color: '#2d6cdf', esferas: ['D', 'F'] },
   { id: 'contexto', x: 700, nombre: 'Contexto', sub: 'Entorno más amplio', color: '#b8860b', esferas: ['H', 'I', 'J', 'K', 'L'] },
 ];
