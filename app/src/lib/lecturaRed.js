@@ -218,3 +218,21 @@ export function compararActualPotencial(actual, potencial) {
     .filter((b) => b.diferencia !== 0);
   return { brechas, crecimiento: p.length - a.length, hayDatos: a.length > 0 || p.length > 0 };
 }
+
+// Convierte el resultado de leerRed() en texto plano — se usa para
+// imprimir la lectura automatizada como nota al pie del mapa exportado a
+// imagen (ver svgAImagen.js), ya que el documento oficial de F1 no tiene
+// líneas de texto donde insertar este análisis.
+export function resumenLecturaParaExport(lectura) {
+  const parrafos = [lectura.perfil.descripcion];
+  if (lectura.total > 0) {
+    parrafos.push(
+      `${lectura.total} vínculo(s) registrados · ${lectura.diversidad.presentes}/${lectura.diversidad.total} ámbitos representados · ${lectura.proximidad}/100 índice de proximidad · ${lectura.naturaleza.porcentajeNatural}% red natural (no institucional).`,
+    );
+  }
+  for (const p of lectura.patrones) {
+    parrafos.push(`• ${p.titulo}: ${p.lectura}`);
+  }
+  parrafos.push('Esta lectura es descriptiva, no diagnóstica: debe validarse conversando con la familia o la persona, y con el criterio profesional del Equipo de Acompañamiento.');
+  return { titulo: `Lectura automatizada del mapa — ${lectura.perfil.nombre}`, parrafos };
+}

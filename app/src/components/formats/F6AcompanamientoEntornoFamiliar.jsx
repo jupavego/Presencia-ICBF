@@ -6,8 +6,9 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
-import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarDocxOficial, formatoFecha, DOCX_MIME } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useCompromisos } from '../../context/CompromisosContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
@@ -130,11 +131,9 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
     };
 
     await guardarDatosFormatoOficial(casoActivoId, 'F6', datos);
-    await descargarDocxOficial(
-      '/plantillas/F6-Acompanamiento-Entorno-Familiar.docx',
-      datos,
-      'F6-Acompanamiento-Entorno-Familiar-diligenciado.docx'
-    );
+    const nombreArchivo = 'F6-Acompanamiento-Entorno-Familiar-diligenciado.docx';
+    const blob = await descargarDocxOficial('/plantillas/F6-Acompanamiento-Entorno-Familiar.docx', datos, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
   }
 
   return (

@@ -6,7 +6,8 @@ import CheckboxGrid from '../ui/CheckboxGrid.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
-import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarDocxOficial, formatoFecha, DOCX_MIME } from '../../lib/exportOficial.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
@@ -78,11 +79,9 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
     }
 
     await guardarDatosFormatoOficial(casoActivoId, 'F10', datos);
-    await descargarDocxOficial(
-      '/plantillas/F10-Seguimiento-Recurso.docx',
-      datos,
-      'F10-Seguimiento-Recurso-diligenciado.docx'
-    );
+    const nombreArchivo = 'F10-Seguimiento-Recurso-diligenciado.docx';
+    const blob = await descargarDocxOficial('/plantillas/F10-Seguimiento-Recurso.docx', datos, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
   }
 
   return (

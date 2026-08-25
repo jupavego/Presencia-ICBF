@@ -4,7 +4,8 @@ import Section from '../ui/Section.jsx';
 import { TextField, SelectField } from '../ui/Field.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import FormActions from '../ui/FormActions.jsx';
-import { descargarXlsxOficial, formatoFecha } from '../../lib/exportOficial.js';
+import { descargarXlsxOficial, formatoFecha, XLSX_MIME } from '../../lib/exportOficial.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
@@ -83,7 +84,8 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
 
     await guardarDatosFormatoOficial(casoActivoId, 'F8', { regional, centroZonal, profesional, telefono, familiar, comunitario });
 
-    await descargarXlsxOficial('/plantillas/F8-Cronograma.xlsx', (workbook) => {
+    const nombreArchivo = 'F8-Cronograma-diligenciado.xlsx';
+    const blob = await descargarXlsxOficial('/plantillas/F8-Cronograma.xlsx', (workbook) => {
       const wsFamiliar = workbook.getWorksheet('Acomp Entorno Familiar');
       wsFamiliar.getCell('C10').value = regional;
       wsFamiliar.getCell('H10').value = centroZonal;
@@ -99,7 +101,8 @@ export default function F8Cronograma({ etapaCode, etapaNombre }) {
       wsComunitario.getCell(`B${FILA_INICIAL}`).value = profesional;
       wsComunitario.getCell(`C${FILA_INICIAL}`).value = telefono;
       escribirFilas(wsComunitario, comunitario, COLS_COMUNITARIO);
-    }, 'F8-Cronograma-diligenciado.xlsx');
+    }, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: XLSX_MIME, blob });
   }
 
   return (

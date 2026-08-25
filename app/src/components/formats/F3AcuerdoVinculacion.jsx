@@ -6,8 +6,9 @@ import Choice from '../ui/Choice.jsx';
 import DataTable from '../ui/DataTable.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
-import { descargarDocxOficial } from '../../lib/exportOficial.js';
+import { descargarDocxOficial, DOCX_MIME } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
+import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
@@ -93,7 +94,9 @@ export default function F3AcuerdoVinculacion({ etapaCode, etapaNombre }) {
     }
 
     await guardarDatosFormatoOficial(casoActivoId, 'F3', datos);
-    await descargarDocxOficial('/plantillas/F3-Acuerdo-Vinculacion.docx', datos, 'F3-Acuerdo-Vinculacion-diligenciado.docx');
+    const nombreArchivo = 'F3-Acuerdo-Vinculacion-diligenciado.docx';
+    const blob = await descargarDocxOficial('/plantillas/F3-Acuerdo-Vinculacion.docx', datos, nombreArchivo);
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
   }
 
   return (

@@ -18,8 +18,8 @@ import Docxtemplater from 'docxtemplater';
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 
-const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+export const DOCX_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+export const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 // Rellena una plantilla .docx (con marcadores {tag}) con los datos
 // capturados en el formulario y descarga el resultado.
@@ -34,6 +34,7 @@ export async function descargarDocxOficial(plantillaUrl, datos, nombreArchivo) {
 
   const blob = doc.getZip().generate({ type: 'blob', mimeType: DOCX_MIME });
   saveAs(blob, nombreArchivo);
+  return blob;
 }
 
 // Carga una plantilla .xlsx original, permite escribir directamente sobre
@@ -51,6 +52,7 @@ export async function descargarXlsxOficial(plantillaUrl, mutar, nombreArchivo) {
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: XLSX_MIME });
   saveAs(blob, nombreArchivo);
+  return blob;
 }
 
 // Formatea una fecha ISO (yyyy-mm-dd, tal como la entregan los <input type="date">)
