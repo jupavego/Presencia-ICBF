@@ -1,7 +1,11 @@
 /* Tokens de marca — Servicio Presencia · ICBF */
 :root {
-  --verde: #39a900;
-  --verde-oscuro: #1f6b1f;
+  /* Verde estimado del logotipo real de Bienestar Familiar/ICBF (manos +
+     familia) — más claro y vivo que el verde bosque que traía el
+     proyecto antes. Es una aproximación visual, no un valor de manual de
+     marca; ajustar aquí si se cuenta con el hex oficial exacto. */
+  --verde: #7ac142;
+  --verde-oscuro: #4f7d2b;
   --teal-900: #0d3b34;
   --teal-800: #124a41;
   --teal-700: #1a5c50;

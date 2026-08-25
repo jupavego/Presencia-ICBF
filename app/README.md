@@ -175,15 +175,20 @@ apuntar por accidente a un proyecto equivocado, ver
 1. Cree un proyecto gratuito en [supabase.com](https://supabase.com).
 2. Abra el **editor SQL** del proyecto y corra, en orden y una sola vez,
    [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql)
-   (tablas `casos`, `perfilamiento_resultados`, `formatos_oficiales_datos`)
-   y luego
+   (tablas `casos`, `perfilamiento_resultados`, `formatos_oficiales_datos`),
+   luego
    [`supabase/migrations/0002_familia_compromisos.sql`](supabase/migrations/0002_familia_compromisos.sql)
-   (tablas `familia_integrantes`, `compromisos`) — ambas con Row Level
-   Security habilitada.
+   (tablas `familia_integrantes`, `compromisos`), y luego
+   [`supabase/migrations/0003_roles_bolsa_asignacion.sql`](supabase/migrations/0003_roles_bolsa_asignacion.sql)
+   (roles, bolsa de casos, asignación, Encuentros Comunitarios como
+   entidad compartida) — todas con Row Level Security habilitada.
 3. Cree al menos un usuario desde **Authentication → Users** en el
    dashboard. No hay registro público en esta primera versión — las
    cuentas de los profesionales se crean manualmente, para no dejar la
-   API abierta sobre datos sensibles de familias del ICBF.
+   API abierta sobre datos sensibles de familias del ICBF. Cada cuenta
+   nueva queda automáticamente con `rol = 'profesional_icbf'` en la tabla
+   `profiles` (vía trigger); para subir alguien a `admin`, edite esa fila
+   a mano desde el editor SQL o la tabla del dashboard.
 4. Copie **Project Settings → API → Project URL** y **anon public key**
    a `app/.env` (ver `.env.example`). Este archivo nunca se comitea.
 5. Opcional: conecte el repositorio a Vercel o Netlify para desplegar el
@@ -191,25 +196,38 @@ apuntar por accidente a un proyecto equivocado, ver
    variables de entorno (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`)
    en el panel de esa plataforma.
 
-**Alcance de esta primera versión (léalo antes de cargar datos reales):**
-cualquier usuario autenticado puede ver y editar todos los casos — no hay
-control de acceso por profesional o por rol todavía. Tampoco se hizo una
-auditoría de seguridad ni una revisión de cumplimiento de la Ley 1581
-(Habeas Data); antes de usar la app con información real de familias, esa
-revisión debe hacerla el equipo legal/de cumplimiento del ICBF, no algo
-que quede resuelto solo con este cambio de código.
+**Alcance del control de acceso:** hay dos roles reales — **beneficiario**
+(sin cuenta, retoma su caso con un código de acceso de 8 caracteres) y
+**profesional ICBF** (cuenta creada a mano, ve la bolsa de casos sin
+asignar y gestiona los que tiene asignados; el rol `admin` ve y reasigna
+todo). Un beneficiario solo puede diligenciar PET, las 25 herramientas
+del Módulo de Perfilamiento y F1 (Mapa de Pertenencia) — el resto de
+formatos oficiales requiere un profesional con sesión. Tampoco se hizo
+una auditoría de seguridad externa ni una revisión de cumplimiento de la
+Ley 1581 (Habeas Data); antes de usar la app con información real de
+familias, esa revisión debe hacerla el equipo legal/de cumplimiento del
+ICBF, no algo que quede resuelto solo con este cambio de código.
 
 ### Qué se persiste
 
 - **`casos`** — la entidad raíz: nace al registrar una Petición de
-  Vinculación (etapa 01). El resto de formatos y herramientas cuelgan sus
-  datos de este id.
+  Vinculación (etapa 01), con `estado` (`bolsa_comun`/`asignado`/
+  `cerrado`/`eliminado`) y `codigo_acceso` para el beneficiario. El resto
+  de formatos y herramientas cuelgan sus datos de este id.
+- **`caso_asignaciones`** — historial de qué profesional trabajó cada
+  caso y cuándo.
 - **`perfilamiento_resultados`** — el resultado de cada una de las 24
-  herramientas del Módulo de Perfilamiento para el caso activo (ver
-  `PerfilSesionContext.jsx`).
+  herramientas del Módulo de Perfilamiento (ver `PerfilSesionContext.jsx`)
+  — puede haber varias filas por instrumento (se conserva historial, no
+  se sobrescribe).
 - **`formatos_oficiales_datos`** — los datos que cada formato oficial
-  (F1, F3-F8, F10) ya arma para su descarga en Word/Excel, guardados
-  también en el servidor al exportar.
+  (F1, F3, F4, F6-F8, F10) ya arma para su descarga en Word/Excel,
+  guardados también en el servidor al exportar — mismo criterio, varias
+  filas por formato posibles.
+- **`encuentros_comunitarios`** / **`encuentro_participantes`** — F5,
+  separado de `formatos_oficiales_datos`: un encuentro lo diligencia el
+  profesional una sola vez y queda enlazado a varios casos a la vez, en
+  vez de duplicarse por cada familia participante.
 - **`familia_integrantes`** — los integrantes de la familia del caso
   activo, capturados desde F7 pero compartidos (ver `FamiliaContext.jsx`)
   con cualquier otro formato o herramienta que los necesite.
@@ -219,13 +237,17 @@ que quede resuelto solo con este cambio de código.
 
 ## Próximos pasos de arquitectura
 
-Ya resuelto en esta vuelta: persistencia real (Supabase), autenticación
-básica, la entidad **Caso** (que antes no existía en ningún lugar del
-cliente), y **Familia/Integrante** + **Compromiso/Acuerdo** como
-entidades propias del caso (antes vivían aisladas dentro del JSONB de
-F7 y F6 respectivamente, sin poder compartirse ni consultarse entre
-formatos).
+Ya resuelto: persistencia real (Supabase), autenticación básica, la
+entidad **Caso**, **Familia/Integrante** + **Compromiso/Acuerdo** como
+entidades propias del caso, y roles reales (beneficiario/profesional
+ICBF/admin) con bolsa de casos, asignación y control de acceso por fila
+vía RLS.
 
-Pendiente para vueltas posteriores: **Profesional/Equipo** con roles y
-control de acceso por caso, y el motor de recomendaciones cruzadas entre
-esferas (Producto 9, ver `docs/arquitectura-modulo-perfilamiento.md`).
+Pendiente para vueltas posteriores: **expediente curado** — anexar
+formatos/herramientas ya diligenciados como soportes formales del
+expediente, con almacenamiento de evidencias en una cuenta dedicada
+(pendiente de credenciales); una interfaz para navegar el historial
+completo de diligenciamientos por formato/herramienta (hoy el modelo lo
+soporta, la interfaz solo muestra el más reciente); y el motor de
+recomendaciones cruzadas entre esferas (Producto 9, ver
+`docs/arquitectura-modulo-perfilamiento.md`).

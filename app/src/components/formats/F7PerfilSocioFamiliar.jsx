@@ -4,12 +4,17 @@ import Section from '../ui/Section.jsx';
 import { TextField, SelectField, TextAreaField } from '../ui/Field.jsx';
 import Choice from '../ui/Choice.jsx';
 import CheckboxGrid from '../ui/CheckboxGrid.jsx';
+import DataTable from '../ui/DataTable.jsx';
+import Tooltip from '../ui/Tooltip.jsx';
 import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useFamilia } from '../../context/FamiliaContext.jsx';
+import { useCompromisos } from '../../context/CompromisosContext.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+import { supabase } from '../../lib/supabaseClient.js';
 
 const ESTADOS_CIVILES = ['Soltero(a)', 'Casado(a)', 'Unión libre', 'Separado(a)', 'Viudo(a)', 'Divorciado(a)', 'No aplica'];
 const NIVELES_ESCOLARES = ['Ninguno', 'Primaria completa', 'Primaria incompleta', 'Secundaria completa', 'Secundaria incompleta', 'Técnico completo', 'Técnico incompleto', 'Universitario completo', 'Universitario incompleto', 'Preescolar', 'Otro'];
@@ -23,6 +28,15 @@ const EVENTOS_SIGNIFICATIVOS = ['Violencia intrafamiliar', 'Abuso de SPA', 'Enfe
 const ASPIRACIONES = ['Fortalecer la comunicación familiar', 'Mejorar relaciones y convivencia', 'Fortalecer cuidado y crianza', 'Fortalecer redes de apoyo', 'Mejorar condiciones económicas', 'Acceder a servicios y derechos', 'Fortalecer autonomía y toma de decisiones', 'Manejar una situación familiar específica', 'Fortalecer proyectos educativos', 'Fortalecer proyectos laborales o productivos', 'Mejorar bienestar y buen vivir', 'Fortalecer participación comunitaria', 'Construir acuerdos familiares', 'Reconocer fortalezas y capacidades', 'Prepararse para cambios o transiciones', 'Otra'];
 const CONCLUSIONES = ['Respuesta satisfactoria y cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Profundizar la comprensión de la situación', 'Fortalecer capacidades de cuidado y crianza', 'Fortalecer redes familiares y sociales', 'Orientar acceso a oferta institucional', 'Articular con otra entidad o servicio', 'Hacer seguimiento a acuerdos', 'Fortalecer autonomía', 'Abordar situación familiar priorizada', 'Construir plan de acción con la familia', 'Realizar nueva valoración', 'Otro resultado / conclusión'];
 const RUTA_CONTINUIDAD = ['Cierre', 'Nuevo encuentro de Diálogo para el Cuidado y el Buen Vivir', 'Encuentro Comunitario de Cuidado', 'Acompañamiento en el Entorno Familiar', 'Combinación de formas de acompañamiento', 'Otra / por definir'];
+const COMPROMISOS_ACUERDO = ['Participar en los próximos encuentros de acompañamiento.', 'Suministrar la información requerida para el proceso.', 'Cumplir las fechas y horarios concertados.', 'Vincularse a las herramientas y actividades propuestas.', 'Fortalecer las prácticas de cuidado identificadas.', 'Activar o mantener las redes de apoyo identificadas.', 'Realizar las gestiones acordadas con otras instituciones.', 'Revisar conjuntamente los avances del proceso.', 'Mantener comunicación con el equipo profesional.', 'Otro compromiso'];
+
+const COMPROMISO_COLUMNS = [
+  { key: 'descripcion', label: 'Descripción del Compromiso', placeholder: 'Ej. Participar en próximo encuentro' },
+  { key: 'responsable', label: 'Responsable', type: 'select', options: ['Familia', 'ICBF', 'Conjunto'] },
+  { key: 'fecha', label: 'Fecha Prevista', type: 'date' },
+  { key: 'estado', label: 'Estado', type: 'select', options: ['Pendiente', 'En proceso', 'Cumplido'] },
+];
+const nuevoCompromiso = () => ({ id: crypto.randomUUID(), descripcion: '', responsable: 'Familia', fecha: '', estado: 'Pendiente', origen: 'F7' });
 
 const INGRESO_OPCIONES = ['Menos de un salario mínimo', '1 s.m.', '2 s.m.', '3 a 4 s.m.', '5 o más s.m.', 'No sabe / no informa'];
 const INGRESO_TAGS = ['ingresoMenosSmX', 'ingreso1SmX', 'ingreso2SmX', 'ingreso3a4SmX', 'ingreso5MasSmX', 'ingresoNoSabeX'];
@@ -44,8 +58,10 @@ const nuevoIntegrante = () => ({
 
 export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, seleccionarCaso } = useCaso();
+  const { session } = useAuth();
   const { integrantes: integrantesDelCaso, guardarIntegrantes, cargando: cargandoFamilia } = useFamilia();
+  const { compromisos: compromisosDelCaso, guardarCompromisos, cargando: cargandoCompromisos } = useCompromisos();
   const [acudenPor, setAcudenPor] = useState('');
   const [recibeSubsidios, setRecibeSubsidios] = useState('');
   const [trayectoria, setTrayectoria] = useState([]);
@@ -55,6 +71,37 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
   const [integrantes, setIntegrantes] = useState([nuevoIntegrante()]);
   const [modalidadIcbf, setModalidadIcbf] = useState('');
   const [rutaContinuidad, setRutaContinuidad] = useState('');
+  const [compromisosAcuerdo, setCompromisosAcuerdo] = useState([]);
+  const [compromisos, setCompromisos] = useState([nuevoCompromiso()]);
+
+  // "2. Persona participante" acepta texto libre (siempre existió para
+  // peticiones nuevas), pero si el beneficiario ya tiene un caso asignado
+  // a este profesional, conviene elegirlo de una lista en vez de
+  // retipear el nombre — y de paso deja ese caso como activo, para que
+  // el guardado de este F7 quede sobre el caso correcto.
+  const [misCasos, setMisCasos] = useState([]);
+  const [nombreParticipante, setNombreParticipante] = useState('');
+  const [rolParticipante, setRolParticipante] = useState('');
+  useEffect(() => {
+    if (!session) { setMisCasos([]); return; }
+    supabase
+      .from('casos')
+      .select('id, nombre_participante, numero_peticion, municipio')
+      .eq('asignado_a', session.user.id)
+      .eq('estado', 'asignado')
+      .then(({ data, error }) => {
+        if (error) console.error('No se pudieron cargar los casos asignados:', error);
+        setMisCasos(data || []);
+      });
+  }, [session]);
+
+  function seleccionarBeneficiarioExistente(casoId) {
+    if (!casoId) return;
+    const c = misCasos.find((x) => x.id === casoId);
+    if (!c) return;
+    seleccionarCaso(casoId);
+    setNombreParticipante(c.nombre_participante || c.numero_peticion || '');
+  }
   // Detalle de texto libre de la opción "Otro/a" — ver el mismo patrón en
   // F5EncuentrosComunitarios.jsx. Reemplaza los campos "¿Cuál?" que
   // vivían siempre visibles debajo de cada lista (trOtraCual,
@@ -96,6 +143,21 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
     setIntegrantes(integrantesDelCaso.length ? integrantesDelCaso : [nuevoIntegrante()]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [casoActivoId, cargandoFamilia]);
+
+  // Mismo patrón que F6AcompanamientoEntornoFamiliar.jsx: la matriz de
+  // compromisos es una entidad compartida por caso (CompromisosContext),
+  // no propia de F7 — si F6 ya registró compromisos para este caso,
+  // aparecen mezclados aquí también, y viceversa.
+  useEffect(() => {
+    if (cargandoCompromisos) return;
+    setCompromisos(compromisosDelCaso.length ? compromisosDelCaso : [nuevoCompromiso()]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casoActivoId, cargandoCompromisos]);
+
+  function actualizarCompromisos(nuevaLista) {
+    setCompromisos(nuevaLista);
+    guardarCompromisos(nuevaLista);
+  }
 
   function toggleEnArreglo(arreglo, setArreglo, valor) {
     setArreglo(arreglo.includes(valor) ? arreglo.filter((v) => v !== valor) : [...arreglo, valor]);
@@ -140,7 +202,7 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       profesionales: fd.get('profesionales') || '',
       nombreParticipante: fd.get('nombreParticipante') || '',
       tipoDocumento: fd.get('tipoDocumento') || '',
-      rolParticipante: fd.get('rolParticipante') || '',
+      rolParticipante: conDetalle(rolParticipante, 'rolParticipante'),
       participantesEncuentro: fd.get('participantesEncuentro') || '',
       direccion: fd.get('direccion') || '',
       barrio: fd.get('barrio') || '',
@@ -191,6 +253,10 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       const idx = EVENTOS_SIGNIFICATIVOS.indexOf(label);
       if (idx >= 0) datos[EVENTO_TAGS[idx]] = 'X';
     });
+    // "Otros" es una tabla de marcado oficial (una celda por opción), no
+    // texto libre — el detalle se imprime junto a la X en la misma celda
+    // (ver plantilla), sin reemplazar la marca ni alterar las demás filas.
+    datos.ev16Detalle = eventos.includes('Otros') ? (detalles.eventos || '') : '';
 
     datos.vsAmigosX = vidaSocial.includes('Amigos') ? 'X' : '';
     datos.vsVecinosX = vidaSocial.includes('Vecinos') ? 'X' : '';
@@ -215,8 +281,15 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       fd.get('conclusionNarrativa') ? `Conclusión: ${fd.get('conclusionNarrativa')}` : '',
     ].filter(Boolean).join(' | ');
 
+    const compromisosAcuerdoConDetalle = listaConDetalle(compromisosAcuerdo, 'compromisosAcuerdo');
+    const matrizCompromisosTexto = compromisos
+      .filter((c) => c.descripcion)
+      .map((c) => `Matriz: ${c.descripcion} (${c.responsable}, ${formatoFecha(c.fecha) || 'sin fecha'}, ${c.estado})`)
+      .join(' | ');
     datos.acuerdosTexto = [
+      compromisosAcuerdoConDetalle.length ? compromisosAcuerdoConDetalle.join('; ') : '',
       fd.get('acuerdosCompromisos') ? `Acuerdos: ${fd.get('acuerdosCompromisos')}` : '',
+      matrizCompromisosTexto,
       rutaContinuidad ? `Ruta: ${conDetalle(rutaContinuidad, 'rutaContinuidad')}` : '',
     ].filter(Boolean).join(' | ');
 
@@ -260,10 +333,28 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
       </Section>
 
       <Section title="2. Persona participante" hint="Registrar los datos de la persona a la cual se le haya creado el beneficiario en el SIM.">
+        {session && (
+          <div className="grid" style={{ marginBottom: 12 }}>
+            <SelectField
+              span="full"
+              label="Seleccionar de mis casos asignados"
+              tip="Beneficiarios cuyo caso ya está asignado a este usuario ICBF — al elegir uno, este F7 queda vinculado a ese caso y se sugiere su nombre abajo."
+              options={misCasos.map((c) => ({ value: c.id, label: `${c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}${c.municipio ? ` · ${c.municipio}` : ''}` }))}
+              value=""
+              onChange={(e) => seleccionarBeneficiarioExistente(e.target.value)}
+            />
+            {misCasos.length === 0 && (
+              <Callout>No tiene casos asignados todavía — puede seguir diligenciando con el texto libre de abajo.</Callout>
+            )}
+          </div>
+        )}
         <div className="grid">
-          <TextField name="nombreParticipante" span="wide" label="Nombre" />
+          <TextField name="nombreParticipante" span="wide" label="Nombre" value={nombreParticipante} onChange={(e) => setNombreParticipante(e.target.value)} />
           <TextField name="tipoDocumento" label="Tipo y número de identificación" />
-          <TextField name="rolParticipante" label="Rol en el grupo familiar" />
+          <SelectField name="rolParticipante" label="Rol en el grupo familiar" options={ROLES_FAMILIA} value={rolParticipante} onChange={(e) => setRolParticipante(e.target.value)} />
+          {esOtro(rolParticipante) && (
+            <TextField span="full" label='¿Cuál "Otra(o) pariente"?' value={detalles.rolParticipante || ''} onChange={(e) => setDetalle('rolParticipante', e.target.value)} />
+          )}
         </div>
       </Section>
 
@@ -382,6 +473,16 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
           tip="Son situaciones vividas por la familia en el último año, o que han sido especialmente significativas en su historia, y que pueden influir en su dinámica actual."
           options={EVENTOS_SIGNIFICATIVOS} selected={eventos} onChange={setEventos}
         />
+        {eventos.includes('Otros') && (
+          <div style={{ marginTop: 12 }}>
+            <TextField
+              span="full" label='¿Cuál "Otros" evento?'
+              value={detalles.eventos || ''}
+              onChange={(e) => setDetalle('eventos', e.target.value)}
+              placeholder="Especifique el evento — se imprime junto a la marca en el documento oficial"
+            />
+          </div>
+        )}
         <div className="grid" style={{ marginTop: 12 }}>
           <Choice label="¿Actualmente están incursos en otros procesos?" name="procesos" options={['No', 'Sí']} value={procesos} onChange={setProcesos} />
           <TextField name="procesosCuales" span="wide" label="¿Cuáles?" placeholder="Legales, terapéuticos, médicos, etc." />
@@ -437,7 +538,34 @@ export default function F7PerfilSocioFamiliar({ etapaCode, etapaNombre }) {
         )}
         <div className="grid" style={{ marginTop: 12 }}>
           <TextAreaField name="conclusionNarrativa" label="Conclusión narrativa" placeholder="Propuestas adecuadas a la expectativa de la familia, respuesta brindada y decisión de continuidad o cierre." />
-          <TextAreaField name="acuerdosCompromisos" label="Acuerdos y compromisos" placeholder="Qué se acordó, quién participa y qué acción se realizará." />
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <CheckboxGrid
+            cols={3}
+            label="Acuerdos y compromisos (selección múltiple)"
+            tip="Compromisos sugeridos derivados de este primer perfil — se suman al texto libre de abajo, no lo reemplazan."
+            options={COMPROMISOS_ACUERDO} selected={compromisosAcuerdo} onChange={setCompromisosAcuerdo}
+          />
+          {compromisosAcuerdo.includes('Otro compromiso') && (
+            <div style={{ marginTop: 12 }}>
+              <TextField label="¿Cuál otro compromiso?" value={detalles.compromisosAcuerdo || ''} onChange={(e) => setDetalle('compromisosAcuerdo', e.target.value)} placeholder="Describa el compromiso" />
+            </div>
+          )}
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+            Matriz de compromisos
+            <Tooltip text="Registro detallado de cada compromiso acordado, con su responsable (Familia, ICBF o Conjunto), la fecha prevista y su estado de cumplimiento — compartida con el resto de formatos del caso.">
+              <span className="tip-ico">?</span>
+            </Tooltip>
+          </label>
+          <DataTable columns={COMPROMISO_COLUMNS} rows={compromisos} onChange={actualizarCompromisos} newRow={nuevoCompromiso} />
+        </div>
+
+        <div className="grid" style={{ marginTop: 16 }}>
+          <TextAreaField name="acuerdosCompromisos" label="Acuerdos y compromisos (texto libre adicional)" placeholder="Qué se acordó, quién participa y qué acción se realizará." />
           <SelectField name="rutaContinuidad" span="full" label="Ruta de continuidad propuesta" options={RUTA_CONTINUIDAD} value={rutaContinuidad} onChange={(e) => setRutaContinuidad(e.target.value)} />
           {esOtro(rutaContinuidad) && (
             <TextField span="full" label='¿Cuál "Otra / por definir"?' value={detalles.rutaContinuidad || ''} onChange={(e) => setDetalle('rutaContinuidad', e.target.value)} />

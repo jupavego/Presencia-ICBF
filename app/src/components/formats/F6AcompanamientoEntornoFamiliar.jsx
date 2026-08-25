@@ -10,6 +10,7 @@ import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useCompromisos } from '../../context/CompromisosContext.jsx';
+import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
 // El documento oficial de F6 es de texto libre (10 preguntas abiertas)
 // -- estas listas de opciones son un agregado propio del formulario web
@@ -86,6 +87,12 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
     alert('¡Registro de acompañamiento familiar estructurado con éxito!');
   }
 
+  function alSeleccionarCaso(caso) {
+    const el = formRef.current?.elements;
+    if (el?.numPeticion) el.numPeticion.value = caso.numero_peticion || '';
+    if (el?.municipio) el.municipio.value = caso.municipio || '';
+  }
+
   async function handleExportarOficial() {
     const fd = new FormData(formRef.current);
 
@@ -139,6 +146,8 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
         metaTitle="F6.GO3.MT5.PP · V2"
         metaSub="Modalidad familiar"
       />
+
+      <SelectorCasoAsignado onSeleccionar={alSeleccionarCaso} />
 
       <Section title="1. Datos iniciales y ubicación" hint="Información general del registro de acompañamiento y profesionales responsables.">
         <div className="grid">

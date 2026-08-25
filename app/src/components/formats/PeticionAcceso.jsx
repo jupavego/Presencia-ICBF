@@ -96,6 +96,7 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
   const [alerta, setAlerta] = useState('');
   const [resultado, setResultado] = useState(null);
   const [errorCaso, setErrorCaso] = useState(null);
+  const [codigoNuevoCaso, setCodigoNuevoCaso] = useState(null);
   // Detalle de texto libre de la opción "Otro/a" de cada campo — ver el
   // mismo patrón en F5EncuentrosComunitarios.jsx. PET es un formato
   // propio de la plataforma (no digitaliza un documento oficial), pero
@@ -128,18 +129,18 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
     }
 
     // Esta petición es el punto donde nace el caso: crea la fila raíz en
-    // Supabase y la deja como caso activo para que el resto de formatos y
-    // herramientas (F1-F10, Módulo de Perfilamiento) cuelguen sus datos
-    // de este mismo id — ver CasoContext.jsx.
+    // Supabase (vía crear_caso_beneficiario, security definer — funciona
+    // igual con o sin sesión, entra a la bolsa común) y la deja como caso
+    // activo para que el resto de formatos y herramientas (F1-F10, Módulo
+    // de Perfilamiento) cuelguen sus datos de este mismo id — ver
+    // CasoContext.jsx.
     setErrorCaso(null);
+    setCodigoNuevoCaso(null);
     try {
-      await crearCaso({ nombreParticipante: nombre, municipio });
+      const caso = await crearCaso({ nombreParticipante: nombre, municipio });
+      setCodigoNuevoCaso(caso.codigo_acceso);
     } catch (err) {
-      setErrorCaso(
-        session
-          ? 'No se pudo registrar el caso en el servidor. La orientación se muestra igual, pero los datos de esta petición no quedaron guardados — intente de nuevo.'
-          : 'La orientación se muestra igual, pero para que esta petición quede guardada como un caso real necesita iniciar sesión (botón arriba a la derecha).'
-      );
+      setErrorCaso('No se pudo registrar el caso en el servidor. La orientación se muestra igual, pero los datos de esta petición no quedaron guardados — intente de nuevo.');
     }
 
     const lectura = evaluarOrientacion(alerta);
@@ -321,6 +322,19 @@ export default function PeticionAcceso({ etapaCode, etapaNombre }) {
       </Section>
 
       {errorCaso && <Callout variant="warn">{errorCaso}</Callout>}
+
+      {codigoNuevoCaso && !session && (
+        <Callout>
+          <b>Guarda este código para retomar tu caso más adelante: {codigoNuevoCaso}</b><br />
+          En este mismo navegador no lo necesitas — el caso queda abierto automáticamente. Si cambias de
+          dispositivo o borras los datos del navegador, usa "Retomar con código" arriba, en la barra superior.
+        </Callout>
+      )}
+      {codigoNuevoCaso && session && (
+        <p style={{ fontSize: 13, color: 'var(--muted, #6b7a74)' }}>
+          Código de acceso del caso (por si la familia necesita retomarlo sin cuenta): {codigoNuevoCaso}
+        </p>
+      )}
 
       {resultado && (
         <div className={`orient-card ${resultado.clase}`}>

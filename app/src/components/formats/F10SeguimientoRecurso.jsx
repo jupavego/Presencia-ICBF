@@ -9,6 +9,7 @@ import FormActions from '../ui/FormActions.jsx';
 import { descargarDocxOficial, formatoFecha } from '../../lib/exportOficial.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { useCaso } from '../../context/CasoContext.jsx';
+import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 
 const CAT_KEYS = { Física: 'catFisica', Visual: 'catVisual', Auditiva: 'catAuditiva', Sordoceguera: 'catSordoceguera', Psicosocial: 'catPsicosocial', Intelectual: 'catIntelectual', Múltiple: 'catMultiple' };
 const MONEY = (n) => (n ? Number(n).toLocaleString('es-CO', { minimumFractionDigits: 2 }) : '');
@@ -39,6 +40,12 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
   function handleSubmit(e) {
     e.preventDefault();
     alert('¡Seguimiento a la inversión del apoyo económico registrado con éxito!');
+  }
+
+  function alSeleccionarCaso(caso) {
+    if (formRef.current?.elements.nombreParticipante) {
+      formRef.current.elements.nombreParticipante.value = caso.nombre_participante || '';
+    }
   }
 
   async function handleExportarOficial() {
@@ -87,6 +94,8 @@ export default function F10SeguimientoRecurso({ etapaCode, etapaNombre }) {
         metaTitle="ICBF · Acciones Afirmativas"
         metaSub="Control de legalización"
       />
+
+      <SelectorCasoAsignado onSeleccionar={alSeleccionarCaso} />
 
       <Section title="Datos básicos del seguimiento" hint="Información general del grupo familiar, beneficiario y centro zonal.">
         <div className="grid">
