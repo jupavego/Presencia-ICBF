@@ -17,6 +17,12 @@ dist-ssr
 .env.*
 !.env.example
 
+# Llave de la cuenta de servicio de Google Drive — nunca comitear. Vive
+# aquí solo temporalmente mientras se sube como secreto a Supabase; una
+# vez ahí, este archivo local se puede borrar.
+*.iam.gserviceaccount.json
+presencia-icbf-*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
