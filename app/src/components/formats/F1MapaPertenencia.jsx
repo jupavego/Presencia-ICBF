@@ -244,12 +244,12 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
       if (svgActualRef.current) {
         const nota = resumenLecturaParaExport(leerRed(actual));
         const blob = await svgElementConNotaAPng(svgActualRef.current, nota);
-        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Actual.png', mimeType: 'image/png', blob });
+        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Actual.png', mimeType: 'image/png', blob, codigoAcceso });
       }
       if (svgPotencialRef.current) {
         const nota = resumenLecturaParaExport(leerRed(potencial));
         const blob = await svgElementConNotaAPng(svgPotencialRef.current, nota);
-        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Potencial.png', mimeType: 'image/png', blob });
+        respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Potencial.png', mimeType: 'image/png', blob, codigoAcceso });
       }
     }
   }

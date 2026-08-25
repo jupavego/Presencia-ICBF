@@ -43,7 +43,7 @@ const nuevoCompromiso = () => ({ id: crypto.randomUUID(), descripcion: '', respo
 
 export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre }) {
   const formRef = useRef(null);
-  const { casoActivoId } = useCaso();
+  const { casoActivoId, codigoAcceso } = useCaso();
   const { compromisos: compromisosDelCaso, guardarCompromisos, cargando: cargandoCompromisos } = useCompromisos();
   const [motivoCategoria, setMotivoCategoria] = useState('');
   const [objetivo, setObjetivo] = useState('');
@@ -133,7 +133,7 @@ export default function F6AcompanamientoEntornoFamiliar({ etapaCode, etapaNombre
     await guardarDatosFormatoOficial(casoActivoId, 'F6', datos);
     const nombreArchivo = 'F6-Acompanamiento-Entorno-Familiar-diligenciado.docx';
     const blob = await descargarDocxOficial('/plantillas/F6-Acompanamiento-Entorno-Familiar.docx', datos, nombreArchivo);
-    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob });
+    respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
   }
 
   return (

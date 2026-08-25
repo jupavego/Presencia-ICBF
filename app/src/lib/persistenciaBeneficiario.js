@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
 
-// Guardado sin sesión, para un beneficiario que retoma su caso con el
-// código de acceso (ver CasoContext.jsx / RetomarCasoScreen.jsx). La RLS
+// Guardado sin sesión, usando el código de acceso guardado en este mismo
+// navegador (ver CasoContext.jsx). La RLS
 // no le da a `anon` ningún acceso directo a formatos_oficiales_datos ni a
 // perfilamiento_resultados — todo pasa por estas funciones `security
 // definer` de 0003_roles_bolsa_asignacion.sql, que validan el código antes

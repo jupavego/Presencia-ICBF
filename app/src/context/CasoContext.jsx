@@ -14,9 +14,13 @@ import { useAuth } from './AuthContext.jsx';
 // (crear_caso_beneficiario / obtener_caso_por_codigo, ver
 // 0003_roles_bolsa_asignacion.sql) — funcionan igual con o sin sesión, así
 // que no hace falta bifurcar la lógica de creación entre invitado y staff.
-// Sin sesión, además del id se guarda el `codigo_acceso`: es el único
-// mecanismo para que un beneficiario retome su caso desde otro
-// dispositivo, ya que la RLS de `casos` no le permite un `select` directo.
+// Sin sesión, además del id se guarda el `codigo_acceso`: es el
+// mecanismo interno para leer/escribir el caso en este mismo navegador
+// (RPCs `guardar_formato_beneficiario`/`guardar_perfilamiento_beneficiario`,
+// ya que la RLS de las tablas no le permite un acceso directo a `anon`).
+// No hay forma de recuperarlo manualmente desde otro dispositivo — si el
+// beneficiario dejó su correo en el PET, entra con esa cuenta en su
+// lugar (ver PeticionAcceso.jsx / signUp en AuthContext.jsx).
 const CasoContext = createContext(null);
 const STORAGE_KEY = 'presencia_caso_activo_id';
 const CODIGO_KEY = 'presencia_codigo_acceso';
@@ -70,20 +74,6 @@ export function CasoProvider({ children }) {
     return data;
   }, []);
 
-  // Beneficiario cambiando de dispositivo, o retomando tras borrar datos
-  // del navegador — ver RetomarCasoScreen.jsx.
-  const retomarConCodigo = useCallback(async (codigo) => {
-    const { data, error } = await supabase.rpc('obtener_caso_por_codigo', { p_codigo: codigo });
-    if (error) throw error;
-    if (!data) return null;
-    localStorage.setItem(STORAGE_KEY, data.id);
-    localStorage.setItem(CODIGO_KEY, data.codigo_acceso);
-    setCasoActivoId(data.id);
-    setCodigoAcceso(data.codigo_acceso);
-    setCaso(data);
-    return data;
-  }, []);
-
   const cerrarCaso = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(CODIGO_KEY);
@@ -94,7 +84,7 @@ export function CasoProvider({ children }) {
 
   return (
     <CasoContext.Provider
-      value={{ casoActivoId, codigoAcceso, caso, seleccionarCaso, crearCaso, retomarConCodigo, cerrarCaso }}
+      value={{ casoActivoId, codigoAcceso, caso, seleccionarCaso, crearCaso, cerrarCaso }}
     >
       {children}
     </CasoContext.Provider>

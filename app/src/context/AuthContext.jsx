@@ -1,12 +1,15 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient.js';
 
-// Sesión de autenticación de Supabase. No hay registro público en esta
-// primera vuelta — las cuentas de los profesionales se crean manualmente
-// desde el dashboard de Supabase (Authentication → Users), para no dejar
-// la API abierta a que cualquiera se cree una cuenta sobre datos
-// sensibles de familias del ICBF. Ver README.md "Configuración de
-// Supabase".
+// Sesión de autenticación de Supabase. Las cuentas de los profesionales
+// se siguen creando manualmente desde el dashboard de Supabase
+// (Authentication → Users) — no cambia. Lo que sí se agregó es signUp()
+// para beneficiarios: marca la cuenta con
+// raw_user_meta_data.tipo_cuenta='beneficiario' para que el trigger
+// handle_new_user() (0004_beneficiario_autenticado.sql) NO le cree fila
+// en `profiles` — así queda autenticado pero nunca indistinguible de
+// staff para los chequeos `profile?.rol === '...'` de la app. Ver
+// README.md "Configuración de Supabase".
 const AuthContext = createContext(null);
 
 // Auto-login de desarrollo: si VITE_DEV_EMAIL/VITE_DEV_PASSWORD están en el
@@ -64,12 +67,28 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   }
 
+  // Registro de beneficiario: la metadata `tipo_cuenta` es lo único que
+  // evita que el trigger handle_new_user() le cree una fila en `profiles`
+  // (ver 0004_beneficiario_autenticado.sql) — sin ella quedaría
+  // indistinguible de una cuenta de staff. `data.session` puede venir
+  // null si el proyecto de Supabase exige confirmar el correo antes de
+  // otorgar sesión; quien llame a esto debe manejar ese caso.
+  async function signUp(email, password) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { tipo_cuenta: 'beneficiario' } },
+    });
+    if (error) throw error;
+    return data;
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
 
   return (
-    <AuthContext.Provider value={{ session, profile, cargando: session === undefined, signIn, signOut }}>
+    <AuthContext.Provider value={{ session, profile, cargando: session === undefined, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
