@@ -1,19 +1,19 @@
 import { useState } from 'react';
-import { AMBITOS } from '../data/ambitos.js';
+import { AMBITOS, SECCIONES } from '../data/ambitos.js';
 
 // Diagrama de red compacto: agrupa las 13 esferas en 4 columnas
 // conceptuales (de lo más cercano a la persona hacia el entorno más
 // amplio) que convergen en un nodo final, el Proyecto de Vida. Es un
 // ordenamiento pedagógico para presentar el módulo en un solo vistazo, no
 // una taxonomía oficial adicional — cada esfera sigue siendo independiente
-// en ambitos.js. Los colores replican tokens.css (--teal-700, --verde,
-// --info, --amber) porque el SVG no puede leer variables CSS por JS.
-const COLUMNAS = [
-  { id: 'persona', x: 90, nombre: 'Persona', sub: 'Recursos internos', color: '#1a5c50', esferas: ['A', 'B', 'G'] },
-  { id: 'familia', x: 300, nombre: 'Familia', sub: 'Dinámica del hogar', color: '#7ac142', esferas: ['C', 'E'] },
-  { id: 'redes', x: 500, nombre: 'Relaciones y redes', sub: 'Apoyo fuera del hogar', color: '#2d6cdf', esferas: ['D', 'F'] },
-  { id: 'contexto', x: 700, nombre: 'Contexto', sub: 'Entorno más amplio', color: '#b8860b', esferas: ['H', 'I', 'J', 'K', 'L'] },
-];
+// en ambitos.js. Las secciones (nombre/esferas) vienen de SECCIONES en
+// ambitos.js, que también usa AmbitosPanel.jsx para agrupar las tarjetas —
+// aquí solo se agrega la posición (x) y el color de cada columna, que son
+// detalles de este dibujo, no de la agrupación en sí. Los colores replican
+// tokens.css (--teal-700, --verde, --info, --amber) porque el SVG no puede
+// leer variables CSS por JS.
+const PRESENTACION_COLUMNAS = { persona: { x: 90, color: '#1a5c50' }, familia: { x: 300, color: '#7ac142' }, redes: { x: 500, color: '#2d6cdf' }, contexto: { x: 700, color: '#b8860b' } };
+const COLUMNAS = SECCIONES.map((seccion) => ({ ...seccion, ...PRESENTACION_COLUMNAS[seccion.id] }));
 
 const HUB = { x: 900, codigo: 'M', nombre: 'Proyecto de vida' };
 const CY = 190;

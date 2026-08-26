@@ -152,6 +152,22 @@ export const AMBITOS = [
   },
 ];
 
+// Agrupación pedagógica de las 13 esferas en 4 secciones (de lo más
+// cercano a la persona hacia el entorno más amplio) — la misma que ya
+// dibuja EsferasDiagrama.jsx. Vive aquí, no en el diagrama, para que sea
+// una única fuente de verdad: AmbitosPanel.jsx la reutiliza para agrupar
+// las tarjetas de herramientas, así ambas vistas no pueden desincronizarse.
+// M (Proyecto de Vida) queda fuera a propósito: es el nodo de convergencia
+// de las otras 4, no una sección más — se presenta aparte.
+export const SECCIONES = [
+  { id: 'persona', nombre: 'Persona', sub: 'Recursos internos', esferas: ['A', 'B', 'G'] },
+  { id: 'familia', nombre: 'Familia', sub: 'Dinámica del hogar', esferas: ['C', 'E'] },
+  { id: 'redes', nombre: 'Relaciones y redes', sub: 'Apoyo fuera del hogar', esferas: ['D', 'F'] },
+  { id: 'contexto', nombre: 'Contexto', sub: 'Entorno más amplio', esferas: ['H', 'I', 'J', 'K', 'L'] },
+];
+
+export const SECCION_PROYECTO_VIDA = { id: 'proyecto-vida', nombre: 'Proyecto de Vida', sub: 'Integra todo lo anterior', esferas: ['M'] };
+
 export function countHerramientas(ambito) {
   return ambito.herramientas.length;
 }
