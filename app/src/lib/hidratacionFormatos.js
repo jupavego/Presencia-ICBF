@@ -7,7 +7,7 @@
 // con texto libre ya sustituido, o un campo compuesto como
 // "motivo. descripción"), se deja ese control vacío en vez de adivinar.
 
-// DD/MM/AAAA (formatoFecha, exportOficial.js) -> AAAA-MM-DD (lo que espera
+// DD/MM/AAAA (formatoFecha, fechas.js) -> AAAA-MM-DD (lo que espera
 // el value de un <input type="date">).
 export function ddmmaaaaAIso(texto) {
   if (!texto) return '';

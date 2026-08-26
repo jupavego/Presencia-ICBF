@@ -55,15 +55,6 @@ export async function descargarXlsxOficial(plantillaUrl, mutar, nombreArchivo) {
   return blob;
 }
 
-// Formatea una fecha ISO (yyyy-mm-dd, tal como la entregan los <input type="date">)
-// a dd/mm/aaaa, el formato que usan todos los formatos oficiales del servicio.
-export function formatoFecha(iso) {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  if (!y || !m || !d) return iso;
-  return `${d}/${m}/${y}`;
-}
-
 // Convierte un valor posiblemente vacío/indefinido en el texto que se
 // imprime sobre las líneas en blanco del documento oficial.
 export function t(valor) {

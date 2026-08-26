@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { FORMAT_REGISTRY } from './formats/registry.js';
 import { findEtapaByComponentKey } from '../data/etapas.js';
 
@@ -16,7 +17,13 @@ export default function FormatViewer({ formato, onClose }) {
         </div>
         <div className="viewer-body">
           <div className="fmain">
-            {Component ? <Component etapaCode={etapa?.code} etapaNombre={etapa?.nombre} /> : <p>Este formato aún no está digitalizado.</p>}
+            {Component ? (
+              <Suspense fallback={<p>Cargando formato…</p>}>
+                <Component etapaCode={etapa?.code} etapaNombre={etapa?.nombre} />
+              </Suspense>
+            ) : (
+              <p>Este formato aún no está digitalizado.</p>
+            )}
           </div>
         </div>
       </div>
