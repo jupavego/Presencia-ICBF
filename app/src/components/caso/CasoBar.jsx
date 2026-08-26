@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { exportarResumenMaestro } from '../../lib/exportMaestro.js';
 
 // Barra compacta en el TopBar: qué caso está activo y un selector simple
 // para cambiar entre los ya existentes. La creación de un caso nuevo pasa
@@ -28,6 +27,11 @@ export default function CasoBar() {
     setExportando(true);
     setErrorExportar(null);
     try {
+      // Import dinámico: exportMaestro.js trae exceljs (pesado) — cargarlo
+      // solo cuando de verdad se va a exportar evita que cualquier
+      // visitante lo descargue solo por ver el TopBar, que siempre está
+      // montado.
+      const { exportarResumenMaestro } = await import('../../lib/exportMaestro.js');
       await exportarResumenMaestro();
     } catch (err) {
       console.error('No se pudo generar el resumen maestro:', err);

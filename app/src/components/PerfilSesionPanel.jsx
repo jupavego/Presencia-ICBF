@@ -9,7 +9,7 @@ import { usePerfilSesion } from '../context/PerfilSesionContext.jsx';
 import { useCaso } from '../context/CasoContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCompromisos } from '../context/CompromisosContext.jsx';
-import { formatoFecha } from '../lib/exportOficial.js';
+import { formatoFecha } from '../lib/fechas.js';
 import { supabase } from '../lib/supabaseClient.js';
 
 const NIVEL_LABEL = { fortaleza: 'Fortalezas', oportunidad: 'Oportunidades de fortalecimiento', profundizacion: 'Situaciones a priorizar' };

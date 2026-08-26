@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import Callout from '../ui/Callout.jsx';
-import { formatoFecha } from '../../lib/exportOficial.js';
+import { formatoFecha } from '../../lib/fechas.js';
 
 const ROL_LABEL = { profesional_icbf: 'Profesional ICBF', admin: 'Admin' };
 const ESTADO_LABEL = { bolsa_comun: 'Bolsa común', asignado: 'Asignado', cerrado: 'Cerrado' };

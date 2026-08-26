@@ -1,73 +1,49 @@
 // Registro central: asocia el `componentKey` usado en src/data/etapas.js
 // con el componente React que digitaliza cada formato.
-import PeticionAcceso from './PeticionAcceso.jsx';
-import F1MapaPertenencia from './F1MapaPertenencia.jsx';
-import F3AcuerdoVinculacion from './F3AcuerdoVinculacion.jsx';
-import F4EncuestaSatisfaccion from './F4EncuestaSatisfaccion.jsx';
-import F5EncuentrosComunitarios from './F5EncuentrosComunitarios.jsx';
-import F6AcompanamientoEntornoFamiliar from './F6AcompanamientoEntornoFamiliar.jsx';
-import F7PerfilSocioFamiliar from './F7PerfilSocioFamiliar.jsx';
-import F8Cronograma from './F8Cronograma.jsx';
-import F10SeguimientoRecurso from './F10SeguimientoRecurso.jsx';
-import WHO5Herramienta from '../herramientas/WHO5Herramienta.jsx';
-import BFI2Herramienta from '../herramientas/BFI2Herramienta.jsx';
-import MSPSSHerramienta from '../herramientas/MSPSSHerramienta.jsx';
-import FACES20espHerramienta from '../herramientas/FACES20espHerramienta.jsx';
-import AutoeficaciaHerramienta from '../herramientas/AutoeficaciaHerramienta.jsx';
-import FQOLHerramienta from '../herramientas/FQOLHerramienta.jsx';
-import McMasterFADHerramienta from '../herramientas/McMasterFADHerramienta.jsx';
-import FRASHibridoHerramienta from '../herramientas/FRASHibridoHerramienta.jsx';
-import FRASRealHerramienta from '../herramientas/FRASRealHerramienta.jsx';
-import EmpoderamientoFamiliarHerramienta from '../herramientas/EmpoderamientoFamiliarHerramienta.jsx';
-import AutoestimaHerramienta from '../herramientas/AutoestimaHerramienta.jsx';
-import HonestidadHumildadHerramienta from '../herramientas/HonestidadHumildadHerramienta.jsx';
-import ResilienciaIndividualHerramienta from '../herramientas/ResilienciaIndividualHerramienta.jsx';
-import FortalezasPorVirtudHerramienta from '../herramientas/FortalezasPorVirtudHerramienta.jsx';
-import InteresesTipologicosHerramienta from '../herramientas/InteresesTipologicosHerramienta.jsx';
-import InteresesPreferenciasVitalesHerramienta from '../herramientas/InteresesPreferenciasVitalesHerramienta.jsx';
-import AptitudesHabilidadesHerramienta from '../herramientas/AptitudesHabilidadesHerramienta.jsx';
-import PracticasCrianzaHerramienta from '../herramientas/PracticasCrianzaHerramienta.jsx';
-import CalidadVidaDominiosHerramienta from '../herramientas/CalidadVidaDominiosHerramienta.jsx';
-import ExploracionEducativaHerramienta from '../herramientas/ExploracionEducativaHerramienta.jsx';
-import ExploracionOcupacionalHerramienta from '../herramientas/ExploracionOcupacionalHerramienta.jsx';
-import CaracterizacionSocioeconomicaHerramienta from '../herramientas/CaracterizacionSocioeconomicaHerramienta.jsx';
-import ExploracionCulturalHerramienta from '../herramientas/ExploracionCulturalHerramienta.jsx';
-import ExploracionTerritorialHerramienta from '../herramientas/ExploracionTerritorialHerramienta.jsx';
-import ProyectoDeVidaHerramienta from '../herramientas/ProyectoDeVidaHerramienta.jsx';
+//
+// Cada entrada usa React.lazy en vez de un import estático: F3/F4/F5/F6/F7/
+// F8/F10 cargan docxtemplater+exceljs+pizzip (exportOficial.js/exportMaestro.js)
+// para generar los Word/Excel oficiales, y antes de esto se descargaban
+// siempre, para cualquier visitante, aunque nunca abriera un formato —
+// FormatViewer.jsx se monta siempre en App.jsx, y este registro se
+// importaba entero con él. Con lazy, Vite genera un chunk aparte por
+// formato y solo se descarga cuando alguien efectivamente lo abre (ver
+// Suspense en FormatViewer.jsx).
+import { lazy } from 'react';
 
 export const FORMAT_REGISTRY = {
-  PETICION: PeticionAcceso,
-  F1: F1MapaPertenencia,
-  F3: F3AcuerdoVinculacion,
-  F4: F4EncuestaSatisfaccion,
-  F5: F5EncuentrosComunitarios,
-  F6: F6AcompanamientoEntornoFamiliar,
-  F7: F7PerfilSocioFamiliar,
-  F8: F8Cronograma,
-  F10: F10SeguimientoRecurso,
-  WHO5: WHO5Herramienta,
-  BFI2: BFI2Herramienta,
-  MSPSS: MSPSSHerramienta,
-  FACES20ESP: FACES20espHerramienta,
-  AUTOEF: AutoeficaciaHerramienta,
-  FQOL: FQOLHerramienta,
-  FAD: McMasterFADHerramienta,
-  FRAS_HIB: FRASHibridoHerramienta,
-  FRAS_REAL: FRASRealHerramienta,
-  EMPOFAM: EmpoderamientoFamiliarHerramienta,
-  AUTOESTIMA: AutoestimaHerramienta,
-  HONHUM: HonestidadHumildadHerramienta,
-  RESIND: ResilienciaIndividualHerramienta,
-  FORTVIRT: FortalezasPorVirtudHerramienta,
-  RIASECHIB: InteresesTipologicosHerramienta,
-  INTERES: InteresesPreferenciasVitalesHerramienta,
-  APTITUD: AptitudesHabilidadesHerramienta,
-  CRIANZA: PracticasCrianzaHerramienta,
-  CVIDAHIB: CalidadVidaDominiosHerramienta,
-  EDU: ExploracionEducativaHerramienta,
-  OCUP: ExploracionOcupacionalHerramienta,
-  SOCIOECO: CaracterizacionSocioeconomicaHerramienta,
-  CULTURAL: ExploracionCulturalHerramienta,
-  TERRITORIO: ExploracionTerritorialHerramienta,
-  PROYVIDA: ProyectoDeVidaHerramienta,
+  PETICION: lazy(() => import('./PeticionAcceso.jsx')),
+  F1: lazy(() => import('./F1MapaPertenencia.jsx')),
+  F3: lazy(() => import('./F3AcuerdoVinculacion.jsx')),
+  F4: lazy(() => import('./F4EncuestaSatisfaccion.jsx')),
+  F5: lazy(() => import('./F5EncuentrosComunitarios.jsx')),
+  F6: lazy(() => import('./F6AcompanamientoEntornoFamiliar.jsx')),
+  F7: lazy(() => import('./F7PerfilSocioFamiliar.jsx')),
+  F8: lazy(() => import('./F8Cronograma.jsx')),
+  F10: lazy(() => import('./F10SeguimientoRecurso.jsx')),
+  WHO5: lazy(() => import('../herramientas/WHO5Herramienta.jsx')),
+  BFI2: lazy(() => import('../herramientas/BFI2Herramienta.jsx')),
+  MSPSS: lazy(() => import('../herramientas/MSPSSHerramienta.jsx')),
+  FACES20ESP: lazy(() => import('../herramientas/FACES20espHerramienta.jsx')),
+  AUTOEF: lazy(() => import('../herramientas/AutoeficaciaHerramienta.jsx')),
+  FQOL: lazy(() => import('../herramientas/FQOLHerramienta.jsx')),
+  FAD: lazy(() => import('../herramientas/McMasterFADHerramienta.jsx')),
+  FRAS_HIB: lazy(() => import('../herramientas/FRASHibridoHerramienta.jsx')),
+  FRAS_REAL: lazy(() => import('../herramientas/FRASRealHerramienta.jsx')),
+  EMPOFAM: lazy(() => import('../herramientas/EmpoderamientoFamiliarHerramienta.jsx')),
+  AUTOESTIMA: lazy(() => import('../herramientas/AutoestimaHerramienta.jsx')),
+  HONHUM: lazy(() => import('../herramientas/HonestidadHumildadHerramienta.jsx')),
+  RESIND: lazy(() => import('../herramientas/ResilienciaIndividualHerramienta.jsx')),
+  FORTVIRT: lazy(() => import('../herramientas/FortalezasPorVirtudHerramienta.jsx')),
+  RIASECHIB: lazy(() => import('../herramientas/InteresesTipologicosHerramienta.jsx')),
+  INTERES: lazy(() => import('../herramientas/InteresesPreferenciasVitalesHerramienta.jsx')),
+  APTITUD: lazy(() => import('../herramientas/AptitudesHabilidadesHerramienta.jsx')),
+  CRIANZA: lazy(() => import('../herramientas/PracticasCrianzaHerramienta.jsx')),
+  CVIDAHIB: lazy(() => import('../herramientas/CalidadVidaDominiosHerramienta.jsx')),
+  EDU: lazy(() => import('../herramientas/ExploracionEducativaHerramienta.jsx')),
+  OCUP: lazy(() => import('../herramientas/ExploracionOcupacionalHerramienta.jsx')),
+  SOCIOECO: lazy(() => import('../herramientas/CaracterizacionSocioeconomicaHerramienta.jsx')),
+  CULTURAL: lazy(() => import('../herramientas/ExploracionCulturalHerramienta.jsx')),
+  TERRITORIO: lazy(() => import('../herramientas/ExploracionTerritorialHerramienta.jsx')),
+  PROYVIDA: lazy(() => import('../herramientas/ProyectoDeVidaHerramienta.jsx')),
 };
