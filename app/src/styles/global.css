@@ -122,6 +122,9 @@ details.about summary { cursor: pointer; font-size: 11px; font-weight: 700; colo
 /* ---------- Módulo de Perfilamiento (Herramientas por ámbito) ---------- */
 .ambitos-panel .stage-head { padding-bottom: 18px; }
 .ambitos-panel .stage-head p { max-width: 860px; margin-bottom: 12px; }
+.ambito-seccion-titulo { padding: 20px 24px 6px; border-top: 3px solid var(--verde-oscuro); background: #fafdfb; }
+.ambito-seccion-titulo h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--verde-oscuro); font-weight: 800; }
+.ambito-seccion-titulo p { margin: 2px 0 0; font-size: 11px; color: var(--muted); }
 .ambito-block { padding: 20px 24px; border-top: 1px solid var(--border); scroll-margin-top: 90px; }
 .ambito-block > .format-grid, .ambito-block > .ambito-nota-diseno, .ambito-block > .ambito-objetivos-footer { margin-top: 16px; }
 .ambito-block:not([open]) > .format-grid, .ambito-block:not([open]) > .ambito-nota-diseno, .ambito-block:not([open]) > .ambito-objetivos-footer { display: none; }
