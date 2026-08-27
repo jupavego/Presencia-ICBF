@@ -144,7 +144,7 @@ details.about summary { cursor: pointer; font-size: 11px; font-weight: 700; colo
 .ambito-block[open] .ambito-chevron { transform: rotate(180deg); }
 .ambito-objetivos { display: flex; flex-wrap: wrap; gap: 6px; align-items: flex-start; }
 .objetivo-chip { background: #eef3fb; color: #2d5187; border-color: #d5e2f5; cursor: default; }
-.ambito-count-chip { background: var(--verde-oscuro); color: #fff; border-color: var(--verde-oscuro); cursor: default; font-weight: 800; align-self: center; }
+.ambito-count-chip { background: linear-gradient(135deg, var(--verde), var(--verde-oscuro)); color: #fff; border-color: var(--verde-oscuro); cursor: default; font-weight: 800; align-self: center; }
 .ambito-objetivos-footer { border-top: 1px dashed var(--border); padding-top: 12px; }
 .ambito-objetivos-label { display: block; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
 
