@@ -241,12 +241,13 @@ export default function BolsaCasosPanel() {
             agruparPorProfesional(todosAsignados, profesionales).map((grupo) => (
               <div className="profesional-grupo" key={grupo.uid}>
                 <div className="profesional-grupo-head">
+                  <span className="func-chip rol-chip rol-icbf">ICBF</span>
                   <h4>{grupo.nombre}</h4>
                   <span className="func-chip">{grupo.casos.length} caso{grupo.casos.length === 1 ? '' : 's'}</span>
                 </div>
                 <div className="caso-list">
                   {grupo.casos.map((c) => (
-                    <FilaCaso key={c.id} caso={c}>
+                    <FilaCaso key={c.id} caso={c} tag="Beneficiario">
                       <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
                         <option value="" disabled>Reasignar a…</option>
                         {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
