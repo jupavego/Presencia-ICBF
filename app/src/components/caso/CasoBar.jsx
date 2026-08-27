@@ -18,6 +18,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 export default function CasoBar() {
   const { caso, casoActivoId, seleccionarCaso, cerrarCaso } = useCaso();
   const { session } = useAuth();
+  const uid = session?.user?.id;
   const [casos, setCasos] = useState([]);
   const [abierto, setAbierto] = useState(false);
   const [exportando, setExportando] = useState(false);
@@ -41,15 +42,22 @@ export default function CasoBar() {
     }
   }
 
+  // Solo casos realmente asignados a este usuario — seleccionarCaso() es
+  // puramente local (ver CasoContext.jsx), no reclama ni valida nada contra
+  // la base de datos. Sin este filtro, cualquier caso visible por RLS (la
+  // bolsa común entera, o todo si es admin) aparecía aquí como si fuera
+  // "activable" sin pasar por "Asignarme este caso" en Bolsa de casos, que
+  // es lo único que de verdad actualiza asignado_a/estado.
   useEffect(() => {
-    if (!abierto || !session) return;
+    if (!abierto || !uid) return;
     supabase
       .from('casos')
       .select('id, numero_peticion, nombre_participante, creado_en')
+      .eq('asignado_a', uid)
       .order('creado_en', { ascending: false })
       .limit(50)
       .then(({ data }) => setCasos(data || []));
-  }, [abierto, session]);
+  }, [abierto, uid]);
 
   const estadoCaso = caso
     ? `Caso: ${caso.nombre_participante || caso.numero_peticion || caso.id.slice(0, 8)}`
