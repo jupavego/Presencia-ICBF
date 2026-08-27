@@ -13,6 +13,25 @@ function nombreProfesional(profesionales, uid) {
   return p?.nombre || uid.slice(0, 8);
 }
 
+// Un profesional puede tener varios casos asignados (al revés nunca — un
+// caso tiene un único profesional), así que para la vista de admin agrupar
+// por profesional escala mejor que una lista plana de casos: con decenas
+// de beneficiarios reales, encontrar "los casos de fulano" es más directo
+// que leer el chip de cada fila una por una. Se agrupa por el `asignado_a`
+// que ya trae cada caso (no por la lista de profesionales) para no perder
+// de vista un caso si, por lo que sea, quedó asignado a alguien que ya no
+// aparece en esa lista (rol cambiado, cuenta desactivada, etc.).
+function agruparPorProfesional(casos, profesionales) {
+  const grupos = new Map();
+  for (const c of casos) {
+    if (!grupos.has(c.asignado_a)) grupos.set(c.asignado_a, { uid: c.asignado_a, casos: [] });
+    grupos.get(c.asignado_a).casos.push(c);
+  }
+  return Array.from(grupos.values())
+    .map((g) => ({ ...g, nombre: nombreProfesional(profesionales, g.uid) }))
+    .sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
+
 // Fila de una línea: nombre + etiqueta a la izquierda, acciones expuestas
 // como íconos a la derecha — con solo 2-3 acciones por fila no hace falta
 // esconderlas detrás de un clic de más (reemplaza el acordeón anterior).
@@ -219,24 +238,32 @@ export default function BolsaCasosPanel() {
           {todosAsignados.length === 0 ? (
             <p className="fdesc">No hay casos asignados en el sistema todavía.</p>
           ) : (
-            <div className="caso-list">
-              {todosAsignados.map((c) => (
-                <FilaCaso key={c.id} caso={c} tag={`ICBF · ${nombreProfesional(profesionales, c.asignado_a)}`}>
-                  <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
-                    <option value="" disabled>Reasignar a…</option>
-                    {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
-                      <option key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</option>
-                    ))}
-                  </select>
-                  <IconAction title="Eliminar caso" danger onClick={() => eliminar(c.id)}>
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </IconAction>
-                </FilaCaso>
-              ))}
-            </div>
+            agruparPorProfesional(todosAsignados, profesionales).map((grupo) => (
+              <div className="profesional-grupo" key={grupo.uid}>
+                <div className="profesional-grupo-head">
+                  <h4>{grupo.nombre}</h4>
+                  <span className="func-chip">{grupo.casos.length} caso{grupo.casos.length === 1 ? '' : 's'}</span>
+                </div>
+                <div className="caso-list">
+                  {grupo.casos.map((c) => (
+                    <FilaCaso key={c.id} caso={c}>
+                      <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
+                        <option value="" disabled>Reasignar a…</option>
+                        {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
+                          <option key={p.id} value={p.id}>{p.nombre || p.id.slice(0, 8)}</option>
+                        ))}
+                      </select>
+                      <IconAction title="Eliminar caso" danger onClick={() => eliminar(c.id)}>
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        </svg>
+                      </IconAction>
+                    </FilaCaso>
+                  ))}
+                </div>
+              </div>
+            ))
           )}
         </div>
       )}
