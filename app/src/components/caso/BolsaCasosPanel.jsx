@@ -7,6 +7,12 @@ function nombreCaso(c) {
   return c.nombre_participante || c.numero_peticion || c.id.slice(0, 8);
 }
 
+function nombreProfesional(profesionales, uid) {
+  if (!uid) return null;
+  const p = profesionales.find((p) => p.id === uid);
+  return p?.nombre || uid.slice(0, 8);
+}
+
 // Fila de una línea: nombre + etiqueta a la izquierda, acciones expuestas
 // como íconos a la derecha — con solo 2-3 acciones por fila no hace falta
 // esconderlas detrás de un clic de más (reemplaza el acordeón anterior).
@@ -215,7 +221,7 @@ export default function BolsaCasosPanel() {
           ) : (
             <div className="caso-list">
               {todosAsignados.map((c) => (
-                <FilaCaso key={c.id} caso={c}>
+                <FilaCaso key={c.id} caso={c} tag={nombreProfesional(profesionales, c.asignado_a)}>
                   <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
                     <option value="" disabled>Reasignar a…</option>
                     {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
