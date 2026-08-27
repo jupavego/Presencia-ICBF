@@ -221,7 +221,7 @@ export default function BolsaCasosPanel() {
           ) : (
             <div className="caso-list">
               {todosAsignados.map((c) => (
-                <FilaCaso key={c.id} caso={c} tag={nombreProfesional(profesionales, c.asignado_a)}>
+                <FilaCaso key={c.id} caso={c} tag={`ICBF · ${nombreProfesional(profesionales, c.asignado_a)}`}>
                   <select defaultValue="" onChange={(e) => { reasignar(c.id, e.target.value); e.target.value = ''; }}>
                     <option value="" disabled>Reasignar a…</option>
                     {profesionales.filter((p) => p.id !== c.asignado_a).map((p) => (
