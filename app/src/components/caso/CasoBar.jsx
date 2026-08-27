@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -23,6 +23,21 @@ export default function CasoBar() {
   const [abierto, setAbierto] = useState(false);
   const [exportando, setExportando] = useState(false);
   const [errorExportar, setErrorExportar] = useState(null);
+  const contenedorRef = useRef(null);
+
+  // Cerrar al hacer clic afuera. Esta app no usa react-router y TopBar
+  // nunca se desmonta, así que no hay un evento de "cambio de página" que
+  // escuchar — pero como toda navegación acá (Sidebar, Home, etc.) empieza
+  // con un clic en algún punto fuera de este desplegable, este mismo
+  // listener ya cubre también "se cerró al navegar a otra sección".
+  useEffect(() => {
+    if (!abierto) return;
+    function onClickFuera(e) {
+      if (contenedorRef.current && !contenedorRef.current.contains(e.target)) setAbierto(false);
+    }
+    document.addEventListener('mousedown', onClickFuera);
+    return () => document.removeEventListener('mousedown', onClickFuera);
+  }, [abierto]);
 
   async function exportarMaestro() {
     setExportando(true);
@@ -66,7 +81,7 @@ export default function CasoBar() {
       : 'Sin caso activo';
 
   return (
-    <div className="topbar-caso" style={{ position: 'relative' }}>
+    <div className="topbar-caso" style={{ position: 'relative' }} ref={contenedorRef}>
       <button type="button" className="icon-btn" onClick={() => setAbierto((v) => !v)} title={estadoCaso} aria-label={estadoCaso}>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
@@ -98,7 +113,7 @@ export default function CasoBar() {
                   key={c.id}
                   type="button"
                   className="fbtn"
-                  style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 4, background: c.id === casoActivoId ? 'var(--verde-oscuro)' : undefined }}
+                  style={{ display: 'block', width: '100%', textAlign: 'left', marginTop: 4, background: c.id === casoActivoId ? 'linear-gradient(135deg, var(--verde), var(--verde-oscuro))' : undefined }}
                   onClick={() => { seleccionarCaso(c.id); setAbierto(false); }}
                 >
                   {c.nombre_participante || c.numero_peticion || c.id.slice(0, 8)}
