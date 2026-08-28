@@ -37,26 +37,29 @@ export async function descargarDocxOficial(plantillaUrl, datos, nombreArchivo) {
   return blob;
 }
 
-// Para F1 (Mapa de Pertenencia): el .docx oficial no trae marcadores de
-// texto — son dos diagramas en blanco para dibujar a mano (ver
-// docs/exportacion-formatos-oficiales.md). En vez de una plantilla con
-// {tags}, se descarga el .docx oficial tal cual y se reemplazan sus dos
-// imágenes internas (word/media/image1.jpeg = "Mapa Actual",
-// word/media/image2.jpeg = "Mapa Potencial") por las que ya genera la app
-// con el diagrama real del caso + el análisis de lectura de red debajo
-// (ver svgAImagen.js) — no hace falta Docxtemplater, es más simple
-// manipular el zip directamente con PizZip.
-export async function descargarDocxConImagenes(plantillaUrl, reemplazosMedia, nombreArchivo) {
+// Para F1 (Mapa de Pertenencia): el .docx oficial trae marcadores {tag} de
+// texto (respuestas a las preguntas guía, lectura automatizada del mapa —
+// ver public/plantillas/F1-Mapa-Pertenencia.docx) igual que los demás
+// formatos, pero ADEMÁS dos imágenes en blanco (los diagramas para dibujar
+// el mapa a mano) que hay que reemplazar por el diagrama real del caso.
+// Se renderiza el texto con Docxtemplater como siempre, y sobre ese mismo
+// zip ya renderizado se sustituyen los archivos de imagen antes de generar
+// el .docx final.
+export async function descargarDocxOficialConImagenes(plantillaUrl, datos, reemplazosMedia, nombreArchivo) {
   const respuesta = await fetch(plantillaUrl);
   if (!respuesta.ok) throw new Error(`No se encontró la plantilla oficial (${plantillaUrl}).`);
   const arrayBuffer = await respuesta.arrayBuffer();
 
   const zip = new PizZip(arrayBuffer);
+  const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+  doc.render(datos);
+
+  const zipRenderizado = doc.getZip();
   for (const [ruta, imagenBlob] of Object.entries(reemplazosMedia)) {
-    zip.file(ruta, await imagenBlob.arrayBuffer());
+    zipRenderizado.file(ruta, await imagenBlob.arrayBuffer());
   }
 
-  const blob = zip.generate({ type: 'blob', mimeType: DOCX_MIME });
+  const blob = zipRenderizado.generate({ type: 'blob', mimeType: DOCX_MIME });
   saveAs(blob, nombreArchivo);
   return blob;
 }

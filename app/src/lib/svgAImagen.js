@@ -37,7 +37,7 @@ async function cargarSvgComoImagen(svgEl, size) {
   }
 }
 
-export async function svgElementAPng(svgEl, { size = 900, fondo = '#ffffff' } = {}) {
+export async function svgElementAPng(svgEl, { size = 900, fondo = '#ffffff', mime = 'image/png' } = {}) {
   const img = await cargarSvgComoImagen(svgEl, size);
   const canvas = document.createElement('canvas');
   canvas.width = size;
@@ -46,7 +46,7 @@ export async function svgElementAPng(svgEl, { size = 900, fondo = '#ffffff' } = 
   ctx.fillStyle = fondo;
   ctx.fillRect(0, 0, size, size);
   ctx.drawImage(img, 0, 0, size, size);
-  return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  return await new Promise((resolve) => canvas.toBlob(resolve, mime));
 }
 
 function envolverTexto(ctx, texto, maxWidth) {
