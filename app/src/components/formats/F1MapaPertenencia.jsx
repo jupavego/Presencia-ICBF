@@ -6,14 +6,15 @@ import Callout from '../ui/Callout.jsx';
 import FormActions from '../ui/FormActions.jsx';
 import PatternCard from '../ui/PatternCard.jsx';
 import Tooltip from '../ui/Tooltip.jsx';
-import { TIPOS_APOYO, leerRed, compararActualPotencial, resumenLecturaParaExport } from '../../lib/lecturaRed.js';
+import { TIPOS_APOYO, leerRed, compararActualPotencial, resumenLecturaParaExport, textoLecturaPlano } from '../../lib/lecturaRed.js';
 import { GLOSARIO_AMBITOS, GLOSARIO_CIRCULOS, GLOSARIO_APOYOS, GLOSARIO_MAPAS } from '../../data/glosarioMapaPertenencia.js';
 import { guardarDatosFormatoOficial } from '../../lib/persistenciaCaso.js';
 import { guardarFormatoBeneficiario } from '../../lib/persistenciaBeneficiario.js';
 import { useCaso } from '../../context/CasoContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
-import { svgElementConNotaAPng } from '../../lib/svgAImagen.js';
+import { svgElementAPng, svgElementConNotaAPng } from '../../lib/svgAImagen.js';
+import { descargarDocxOficialConImagenes, DOCX_MIME } from '../../lib/exportOficial.js';
 import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
 
@@ -218,6 +219,12 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
   const [tipo, setTipo] = useState('actual');
   const [actual, setActual] = useState([nuevoVinculo()]);
   const [potencial, setPotencial] = useState([nuevoVinculo()]);
+  // Ninguno de los campos que ya captura el mapa responde a "¿qué hace que
+  // siempre acuda a esta misma persona?" (una de las preguntas guía del
+  // documento oficial) — es una reflexión cualitativa aparte, no atada a
+  // un vínculo puntual, así que se agrega como campo propio en vez de
+  // forzarla dentro de la tabla de vínculos.
+  const [porQuePersona, setPorQuePersona] = useState('');
   const contactos = tipo === 'actual' ? actual : potencial;
   const setContactos = tipo === 'actual' ? setActual : setPotencial;
   const svgActualRef = useRef(null);
@@ -231,6 +238,7 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
     if (!datosGuardados) return;
     if (datosGuardados.actual?.length) setActual(datosGuardados.actual);
     if (datosGuardados.potencial?.length) setPotencial(datosGuardados.potencial);
+    if (datosGuardados.porQuePersona) setPorQuePersona(datosGuardados.porQuePersona);
   }, [datosGuardados]);
 
   async function handleSubmit(e) {
@@ -240,8 +248,8 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
     // 0003_roles_bolsa_asignacion.sql) — sin sesión, el guardado pasa por
     // el código de acceso en vez de la ruta de staff.
     const { guardado } = session
-      ? await guardarDatosFormatoOficial(casoActivoId, 'F1', { actual, potencial })
-      : await guardarFormatoBeneficiario(codigoAcceso, 'F1', { actual, potencial });
+      ? await guardarDatosFormatoOficial(casoActivoId, 'F1', { actual, potencial, porQuePersona })
+      : await guardarFormatoBeneficiario(codigoAcceso, 'F1', { actual, potencial, porQuePersona });
     alert(guardado ? '¡Mapa de pertenencia guardado con éxito!' : 'No hay un caso activo (o falló el guardado) — el mapa no quedó guardado en el servidor.');
 
     // El documento oficial de F1 no trae líneas de texto para diligenciar
@@ -262,6 +270,56 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
         const blob = await svgElementConNotaAPng(svgPotencialRef.current, nota);
         respaldarEnDrive({ casoId: casoActivoId, fase, fileName: 'F1-Mapa-Pertenencia-Potencial.png', mimeType: 'image/png', blob, codigoAcceso });
       }
+    }
+  }
+
+  // Nombres de los vínculos del mapa Actual que cumplen `filtro` — se usa
+  // para responder, con los datos que ya se registraron, las preguntas
+  // guía que trae el documento oficial (ver handleExportarOficial).
+  function nombresPorFiltro(filtro) {
+    const nombres = actual.filter(filtro).map((c) => c.nombre).filter(Boolean);
+    return nombres.length ? nombres.join(', ') : 'No se registró ningún vínculo que responda a esta pregunta en el mapa.';
+  }
+
+  // Descarga el .docx oficial de F1 con el mapa ya "diligenciado": las dos
+  // imágenes en blanco de la plantilla se reemplazan por el diagrama real
+  // del caso (sin texto encima — ver más abajo por qué), y el resto de
+  // marcadores {tag} de la plantilla (ver
+  // public/plantillas/F1-Mapa-Pertenencia.docx) se rellenan con texto real:
+  // la respuesta a cada pregunta guía, armada a partir de los datos que ya
+  // capturó el mapa Actual (círculo Interior = "contacto cotidiano" según
+  // la propia guía metodológica del documento, para la pregunta de
+  // contacto reciente; apoyos Emocional/Contención para la de dificultades),
+  // y la lectura automatizada de cada mapa como texto corrido, no como
+  // rótulo dentro de la imagen — así queda seleccionable/copiable en Word,
+  // no atrapado en píxeles.
+  async function handleExportarOficial() {
+    if (!svgActualRef.current || !svgPotencialRef.current) {
+      alert('No se pudo generar el documento: el mapa todavía no está listo en pantalla.');
+      return;
+    }
+    const imagenActual = await svgElementAPng(svgActualRef.current, { mime: 'image/jpeg' });
+    const imagenPotencial = await svgElementAPng(svgPotencialRef.current, { mime: 'image/jpeg' });
+
+    const datos = {
+      respuestaPersonasImportantes: nombresPorFiltro(() => true),
+      respuestaContactoReciente: nombresPorFiltro((c) => c.circulo === 'Interior'),
+      respuestaVidaSocial: nombresPorFiltro((c) => c.cuadrante === 'Vida Social'),
+      respuestaDificultadesQuienes: nombresPorFiltro((c) => (c.apoyos || []).includes('Emocional') || (c.apoyos || []).includes('Contención')),
+      respuestaDificultadesPorQue: porQuePersona.trim() || 'No se registró una respuesta para esta pregunta.',
+      analisisActual: textoLecturaPlano(leerRed(actual)),
+      analisisPotencial: textoLecturaPlano(leerRed(potencial)),
+    };
+
+    const nombreArchivo = 'F1-Mapa-Pertenencia-diligenciado.docx';
+    const blob = await descargarDocxOficialConImagenes(
+      '/plantillas/F1-Mapa-Pertenencia.docx',
+      datos,
+      { 'word/media/image1.jpeg': imagenActual, 'word/media/image2.jpeg': imagenPotencial },
+      nombreArchivo,
+    );
+    if (casoActivoId) {
+      respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
     }
   }
 
@@ -313,10 +371,28 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
         <LecturaDelMapa contactos={contactos} />
       </Section>
 
+      <Section
+        title="Reflexión: apoyo en momentos de dificultad"
+        hint='Pregunta guía del documento oficial: "Cuando te encuentras en dificultades ¿A qué personas acudes? ¿Qué hace que siempre que esto sucede acudas a esta misma persona?" — el "a quién acude" ya se responde con los vínculos marcados como apoyo Emocional o Contención; esta reflexión cualitativa no se desprende de ningún otro campo del mapa, así que se registra aparte.'
+      >
+        <textarea
+          value={porQuePersona}
+          onChange={(e) => setPorQuePersona(e.target.value)}
+          placeholder="Ej. Porque siempre tiene tiempo para escuchar sin juzgar, o porque vive cerca y puede llegar rápido…"
+          rows={3}
+          style={{ width: '100%', resize: 'vertical' }}
+        />
+      </Section>
+
       <ComparacionActualPotencial actual={actual} potencial={potencial} />
 
       <Section>
-        <FormActions statusText="✓ Mapa de pertenencia parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Guardar mapa →" />
+        <FormActions
+          statusText="✓ Mapa de pertenencia parametrizado"
+          onSaveDraft={() => alert('Borrador guardado localmente.')}
+          submitLabel="Guardar mapa →"
+          onExport={handleExportarOficial}
+        />
       </Section>
     </form>
   );

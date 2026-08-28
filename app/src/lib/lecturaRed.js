@@ -219,6 +219,23 @@ export function compararActualPotencial(actual, potencial) {
   return { brechas, crecimiento: p.length - a.length, hayDatos: a.length > 0 || p.length > 0 };
 }
 
+// Igual que resumenLecturaParaExport, pero como un solo arreglo de líneas
+// (perfil incluido como primera línea) — se usa para insertar la lectura
+// como texto real dentro del .docx oficial de F1 (ver exportOficial.js),
+// a diferencia de resumenLecturaParaExport, pensado para imprimirse sobre
+// una imagen (ver svgAImagen.js).
+export function textoLecturaPlano(lectura) {
+  const lineas = [lectura.perfil.nombre, lectura.perfil.descripcion];
+  if (lectura.total > 0) {
+    lineas.push(
+      `${lectura.total} vínculo(s) registrados · ${lectura.diversidad.presentes}/${lectura.diversidad.total} ámbitos representados · ${lectura.proximidad}/100 índice de proximidad · ${lectura.naturaleza.porcentajeNatural}% red natural (no institucional).`,
+    );
+  }
+  for (const p of lectura.patrones) lineas.push(`• ${p.titulo}: ${p.lectura}`);
+  lineas.push('Esta lectura es descriptiva, no diagnóstica: debe validarse conversando con la familia o la persona, y con el criterio profesional del Equipo de Acompañamiento.');
+  return lineas.join('\n');
+}
+
 // Convierte el resultado de leerRed() en texto plano — se usa para
 // imprimir la lectura automatizada como nota al pie del mapa exportado a
 // imagen (ver svgAImagen.js), ya que el documento oficial de F1 no tiene

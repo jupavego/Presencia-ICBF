@@ -37,6 +37,33 @@ export async function descargarDocxOficial(plantillaUrl, datos, nombreArchivo) {
   return blob;
 }
 
+// Para F1 (Mapa de Pertenencia): el .docx oficial trae marcadores {tag} de
+// texto (respuestas a las preguntas guía, lectura automatizada del mapa —
+// ver public/plantillas/F1-Mapa-Pertenencia.docx) igual que los demás
+// formatos, pero ADEMÁS dos imágenes en blanco (los diagramas para dibujar
+// el mapa a mano) que hay que reemplazar por el diagrama real del caso.
+// Se renderiza el texto con Docxtemplater como siempre, y sobre ese mismo
+// zip ya renderizado se sustituyen los archivos de imagen antes de generar
+// el .docx final.
+export async function descargarDocxOficialConImagenes(plantillaUrl, datos, reemplazosMedia, nombreArchivo) {
+  const respuesta = await fetch(plantillaUrl);
+  if (!respuesta.ok) throw new Error(`No se encontró la plantilla oficial (${plantillaUrl}).`);
+  const arrayBuffer = await respuesta.arrayBuffer();
+
+  const zip = new PizZip(arrayBuffer);
+  const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true });
+  doc.render(datos);
+
+  const zipRenderizado = doc.getZip();
+  for (const [ruta, imagenBlob] of Object.entries(reemplazosMedia)) {
+    zipRenderizado.file(ruta, await imagenBlob.arrayBuffer());
+  }
+
+  const blob = zipRenderizado.generate({ type: 'blob', mimeType: DOCX_MIME });
+  saveAs(blob, nombreArchivo);
+  return blob;
+}
+
 // Carga una plantilla .xlsx original, permite escribir directamente sobre
 // sus celdas (conservando el formato y el diseño del libro), y descarga el
 // resultado. `mutar` recibe el workbook de exceljs ya cargado.
