@@ -37,6 +37,30 @@ export async function descargarDocxOficial(plantillaUrl, datos, nombreArchivo) {
   return blob;
 }
 
+// Para F1 (Mapa de Pertenencia): el .docx oficial no trae marcadores de
+// texto — son dos diagramas en blanco para dibujar a mano (ver
+// docs/exportacion-formatos-oficiales.md). En vez de una plantilla con
+// {tags}, se descarga el .docx oficial tal cual y se reemplazan sus dos
+// imágenes internas (word/media/image1.jpeg = "Mapa Actual",
+// word/media/image2.jpeg = "Mapa Potencial") por las que ya genera la app
+// con el diagrama real del caso + el análisis de lectura de red debajo
+// (ver svgAImagen.js) — no hace falta Docxtemplater, es más simple
+// manipular el zip directamente con PizZip.
+export async function descargarDocxConImagenes(plantillaUrl, reemplazosMedia, nombreArchivo) {
+  const respuesta = await fetch(plantillaUrl);
+  if (!respuesta.ok) throw new Error(`No se encontró la plantilla oficial (${plantillaUrl}).`);
+  const arrayBuffer = await respuesta.arrayBuffer();
+
+  const zip = new PizZip(arrayBuffer);
+  for (const [ruta, imagenBlob] of Object.entries(reemplazosMedia)) {
+    zip.file(ruta, await imagenBlob.arrayBuffer());
+  }
+
+  const blob = zip.generate({ type: 'blob', mimeType: DOCX_MIME });
+  saveAs(blob, nombreArchivo);
+  return blob;
+}
+
 // Carga una plantilla .xlsx original, permite escribir directamente sobre
 // sus celdas (conservando el formato y el diseño del libro), y descarga el
 // resultado. `mutar` recibe el workbook de exceljs ya cargado.

@@ -71,7 +71,13 @@ function envolverTexto(ctx, texto, maxWidth) {
 // evidencia que queda en Drive no es solo el dibujo en blanco, incluye el
 // análisis que ya genera la app. `nota.titulo` va en negrita arriba,
 // `nota.parrafos` son líneas de texto corrido debajo, en orden.
-export async function svgElementConNotaAPng(svgEl, nota, { size = 900, fondo = '#ffffff' } = {}) {
+//
+// `mime` es 'image/png' por defecto (uso original: respaldo en Drive) pero
+// acepta 'image/jpeg' — hace falta al insertar esta imagen dentro del .docx
+// oficial de F1 (exportOficial.js), cuyas dos imágenes originales están
+// declaradas como .jpeg; escribir bytes PNG ahí con esa extensión rompe la
+// apertura del documento en Word.
+export async function svgElementConNotaAPng(svgEl, nota, { size = 900, fondo = '#ffffff', mime = 'image/png' } = {}) {
   const img = await cargarSvgComoImagen(svgEl, size);
 
   const margen = 28;
@@ -114,5 +120,5 @@ export async function svgElementConNotaAPng(svgEl, nota, { size = 900, fondo = '
     y += bloque.espacioDespues;
   }
 
-  return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  return await new Promise((resolve) => canvas.toBlob(resolve, mime));
 }

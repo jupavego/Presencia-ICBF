@@ -14,6 +14,7 @@ import { useCaso } from '../../context/CasoContext.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import SelectorCasoAsignado from './SelectorCasoAsignado.jsx';
 import { svgElementConNotaAPng } from '../../lib/svgAImagen.js';
+import { descargarDocxConImagenes, DOCX_MIME } from '../../lib/exportOficial.js';
 import { respaldarEnDrive } from '../../lib/driveEvidencia.js';
 import { useUltimoFormatoOficial } from '../../hooks/useUltimoFormatoOficial.js';
 
@@ -265,6 +266,33 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
     }
   }
 
+  // Descarga el .docx oficial de F1 con el mapa actual y el potencial del
+  // caso ya "diligenciados" — no hay campos de texto que rellenar (ver
+  // handleSubmit), así que "diligenciado" acá significa reemplazar las dos
+  // imágenes en blanco de la plantilla por los diagramas reales del caso
+  // más el análisis de lectura de red que ya calcula la app, en vez de
+  // dejarlas en blanco para dibujar a mano como en el documento original.
+  async function handleExportarOficial() {
+    if (!svgActualRef.current || !svgPotencialRef.current) {
+      alert('No se pudo generar el documento: el mapa todavía no está listo en pantalla.');
+      return;
+    }
+    const notaActual = resumenLecturaParaExport(leerRed(actual));
+    const imagenActual = await svgElementConNotaAPng(svgActualRef.current, notaActual, { mime: 'image/jpeg' });
+    const notaPotencial = resumenLecturaParaExport(leerRed(potencial));
+    const imagenPotencial = await svgElementConNotaAPng(svgPotencialRef.current, notaPotencial, { mime: 'image/jpeg' });
+
+    const nombreArchivo = 'F1-Mapa-Pertenencia-diligenciado.docx';
+    const blob = await descargarDocxConImagenes(
+      '/plantillas/F1-Mapa-Pertenencia.docx',
+      { 'word/media/image1.jpeg': imagenActual, 'word/media/image2.jpeg': imagenPotencial },
+      nombreArchivo,
+    );
+    if (casoActivoId) {
+      respaldarEnDrive({ casoId: casoActivoId, fase: `${etapaCode} · ${etapaNombre}`, fileName: nombreArchivo, mimeType: DOCX_MIME, blob, codigoAcceso });
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <FormatHeader
@@ -316,7 +344,12 @@ export default function F1MapaPertenencia({ etapaCode, etapaNombre }) {
       <ComparacionActualPotencial actual={actual} potencial={potencial} />
 
       <Section>
-        <FormActions statusText="✓ Mapa de pertenencia parametrizado" onSaveDraft={() => alert('Borrador guardado localmente.')} submitLabel="Guardar mapa →" />
+        <FormActions
+          statusText="✓ Mapa de pertenencia parametrizado"
+          onSaveDraft={() => alert('Borrador guardado localmente.')}
+          submitLabel="Guardar mapa →"
+          onExport={handleExportarOficial}
+        />
       </Section>
     </form>
   );
